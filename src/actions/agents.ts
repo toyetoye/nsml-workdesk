@@ -71,14 +71,10 @@ Return ONLY valid JSON:
 
   const content = response.choices[0]?.message?.content;
 
-  if (!content) {
-    throw new Error("No response from Chief of Staff.");
-  }
-
   let tasks: any[] = [];
 
   try {
-    tasks = JSON.parse(content);
+    tasks = JSON.parse(content || "[]");
   } catch {
     console.error(content);
     throw new Error("Chief of Staff returned invalid JSON.");
@@ -118,7 +114,7 @@ export async function runSpecialistAgent(
     .eq("id", task.project_id)
     .single();
 
-  const prompt = `
+  const specialistPrompt = `
 You are acting as:
 ${task.assigned_agent}
 
@@ -141,23 +137,24 @@ Produce:
 Return detailed operational analysis in markdown.
 `;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a world-class specialist advisor operating inside an elite operational intelligence platform.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
+  const specialistResponse =
+    await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a world-class specialist advisor operating inside an elite operational intelligence platform.",
+        },
+        {
+          role: "user",
+          content: specialistPrompt,
+        },
+      ],
+    });
 
   const output =
-    response.choices[0]?.message?.content ??
+    specialistResponse.choices[0]?.message?.content ??
     "No output generated.";
 
   await supabase.from("agent_outputs").insert({
@@ -167,11 +164,71 @@ Return detailed operational analysis in markdown.
     confidence: "Medium",
   });
 
+  const extractionPrompt = `
+Extract operational intelligence from this report.
+
+Return ONLY valid JSON array.
+
+Format:
+
+[
+  {
+    "claim": "string",
+    "reliability": "Low | Medium | High",
+    "type": "Claim | Risk | Assumption | Recommendation | Evidence Gap"
+  }
+]
+
+Report:
+${output}
+`;
+
+  const extractionResponse =
+    await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You extract structured operational intelligence from reports.",
+        },
+        {
+          role: "user",
+          content: extractionPrompt,
+        },
+      ],
+    });
+
+  const extractionContent =
+    extractionResponse.choices[0]?.message?.content;
+
+  let evidenceItems: any[] = [];
+
+  try {
+    evidenceItems = JSON.parse(extractionContent || "[]");
+  } catch {
+    console.error(extractionContent);
+    evidenceItems = [];
+  }
+
+  if (evidenceItems.length > 0) {
+    await supabase.from("evidence_items").insert(
+      evidenceItems.map((item) => ({
+        project_id: task.project_id,
+        claim: `[${item.type}] ${item.claim}`,
+        reliability: item.reliability || "Medium",
+        source: task.assigned_agent,
+        used_in_memo: false,
+      }))
+    );
+  }
+
   await supabase
     .from("tasks")
     .update({
       status: "Review",
       confidence: "Medium",
+      evidence_count: evidenceItems.length,
     })
     .eq("id", taskId);
 

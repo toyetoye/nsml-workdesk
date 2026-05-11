@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createTask } from "@/actions/tasks";
 import { ChiefOfStaffPanel } from "@/components/ChiefOfStaffPanel";
 import { AgentOutputs } from "@/components/AgentOutputs";
+import { EvidencePanel } from "@/components/EvidencePanel";
 import { TaskBoard } from "@/components/TaskBoard";
 import { WorkspaceTabs } from "@/components/WorkspaceTabs";
 import { supabase } from "@/lib/supabase";
@@ -70,6 +71,8 @@ export default async function ProjectWorkspace({
       <TaskBoard projectId={project.id} />
 
       <AgentOutputs projectId={project.id} />
+
+      <EvidencePanel projectId={project.id} />
 
       <details className="card p-5">
         <summary className="cursor-pointer text-lg font-bold text-white">
@@ -155,4 +158,5 @@ export default async function ProjectWorkspace({
     </section>
   );
 }
+
 
