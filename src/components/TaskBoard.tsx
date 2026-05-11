@@ -1,4 +1,4 @@
-import { projectTasks } from "@/lib/mock-data";
+import { supabase } from "@/lib/supabase";
 
 const columns = [
   "To Investigate",
@@ -8,8 +8,18 @@ const columns = [
   "Included in Memo",
 ];
 
-export function TaskBoard({ projectId }: { projectId: string }) {
-  const tasks = projectTasks.filter((task) => task.projectId === projectId);
+export async function TaskBoard({ projectId }: { projectId: string }) {
+  const { data: tasks, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error(error);
+  }
+
+  const liveTasks = tasks ?? [];
 
   return (
     <section className="space-y-4">
@@ -22,7 +32,7 @@ export function TaskBoard({ projectId }: { projectId: string }) {
 
       <div className="grid gap-3 lg:grid-cols-5">
         {columns.map((column) => {
-          const columnTasks = tasks.filter((task) => task.status === column);
+          const columnTasks = liveTasks.filter((task) => task.status === column);
 
           return (
             <div
@@ -52,11 +62,13 @@ export function TaskBoard({ projectId }: { projectId: string }) {
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-400">{task.agent}</p>
+                    <p className="text-xs text-slate-400">
+                      {task.assigned_agent || "Unassigned"}
+                    </p>
 
                     <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
                       <span>Confidence: {task.confidence}</span>
-                      <span>{task.evidenceCount} evidence</span>
+                      <span>{task.evidence_count ?? 0} evidence</span>
                     </div>
                   </article>
                 ))}
