@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { TaskBoard } from "@/components/TaskBoard";
 import { WorkspaceTabs } from "@/components/WorkspaceTabs";
-import { agents, projects } from "@/lib/mock-data";
+import { supabase } from "@/lib/supabase";
 
 export default async function ProjectWorkspace({
   params,
@@ -10,15 +10,20 @@ export default async function ProjectWorkspace({
 }) {
   const { id } = await params;
 
-  const project = projects.find((item) => item.id === id);
+  const { data: project, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  if (!project) {
+  if (error || !project) {
     notFound();
   }
 
-  const assignedAgents = agents.filter((agent) =>
-    project.agents.includes(agent.name)
-  );
+  const { data: agents } = await supabase
+    .from("agents")
+    .select("*")
+    .order("created_at", { ascending: true });
 
   return (
     <section className="space-y-6">
@@ -30,7 +35,7 @@ export default async function ProjectWorkspace({
         <h1 className="text-4xl font-bold text-white">{project.name}</h1>
 
         <p className="max-w-3xl text-lg leading-7 text-slate-300">
-          {project.decisionQuestion}
+          {project.decision_question}
         </p>
       </header>
 
@@ -41,9 +46,9 @@ export default async function ProjectWorkspace({
         </div>
 
         <div className="card p-4">
-          <p className="text-sm text-slate-400">Assigned Staff</p>
+          <p className="text-sm text-slate-400">Available Staff</p>
           <p className="mt-2 text-2xl font-bold text-white">
-            {assignedAgents.length}
+            {(agents ?? []).length}
           </p>
         </div>
 
@@ -83,11 +88,11 @@ export default async function ProjectWorkspace({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-2xl font-bold text-white">Assigned Staff</h2>
+        <h2 className="text-2xl font-bold text-white">Available Staff</h2>
 
         <div className="grid gap-3 md:grid-cols-2">
-          {assignedAgents.map((agent) => (
-            <article key={agent.name} className="card p-4">
+          {(agents ?? []).map((agent) => (
+            <article key={agent.id} className="card p-4">
               <h3 className="text-lg font-semibold text-white">
                 {agent.name}
               </h3>
