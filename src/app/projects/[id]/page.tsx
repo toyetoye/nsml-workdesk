@@ -4,6 +4,7 @@ import { AgentOutputs } from "@/components/AgentOutputs";
 import { ChiefOfStaffPanel } from "@/components/ChiefOfStaffPanel";
 import { EvidencePanel } from "@/components/EvidencePanel";
 import { ExecutiveMemoPanel } from "@/components/ExecutiveMemoPanel";
+import { MemoryPanel } from "@/components/MemoryPanel";
 import { RedTeamPanel } from "@/components/RedTeamPanel";
 import { TaskBoard } from "@/components/TaskBoard";
 import { WorkspaceTabs } from "@/components/WorkspaceTabs";
@@ -79,6 +80,8 @@ export default async function ProjectWorkspace({
       <RedTeamPanel projectId={project.id} />
 
       <ExecutiveMemoPanel projectId={project.id} />
+
+      <MemoryPanel projectId={project.id} />
 
       <details className="card p-5">
         <summary className="cursor-pointer text-lg font-bold text-white">
@@ -164,3 +167,4 @@ export default async function ProjectWorkspace({
     </section>
   );
 }
+

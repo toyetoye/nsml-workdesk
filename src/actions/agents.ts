@@ -3,42 +3,55 @@
 import OpenAI from "openai";
 import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
+import { retrieveMemoryContext } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function runChiefOfStaff(
-  projectId: string,
-  userCommand: string
-) {
+function cleanJson(content: string) {
+  return content.replace(/```json/g, "").replace(/```/g, "").trim();
+}
+
+export async function runChiefOfStaff(projectId: string, userCommand: string) {
   const { data: project } = await supabase
     .from("projects")
     .select("*")
     .eq("id", projectId)
     .single();
 
-  const { data: agents } = await supabase
-    .from("agents")
-    .select("*");
+  if (!project) {
+    throw new Error("Project not found.");
+  }
 
-  const agentNames =
-    agents?.map((agent) => agent.name).join(", ") ?? "";
+  const { data: agents } = await supabase.from("agents").select("*");
+
+  const agentNames = agents?.map((agent) => agent.name).join(", ") ?? "";
+
+  const memoryContext = await retrieveMemoryContext({
+    projectId,
+    query: `${project.name} ${project.decision_question} ${userCommand}`,
+  });
 
   const prompt = `
-You are the Chief of Staff for an operational intelligence platform.
+You are the Chief of Staff for Staff OS.
+
+Use organizational memory where relevant, but do not blindly copy it. Identify reusable lessons, prior risks, and similar project patterns.
 
 Project:
-${project?.name}
+${project.name}
 
 Decision Question:
-${project?.decision_question}
+${project.decision_question}
 
 User Command:
 ${userCommand}
 
 Available Agents:
 ${agentNames}
+
+Relevant Organizational Memory:
+${memoryContext}
 
 Generate between 5 and 8 operational tasks.
 
@@ -60,7 +73,7 @@ Return ONLY valid JSON:
       {
         role: "system",
         content:
-          "You are an elite Chief of Staff specializing in operational decomposition.",
+          "You are an elite Chief of Staff specializing in operational decomposition and institutional memory reuse.",
       },
       {
         role: "user",
@@ -70,17 +83,9 @@ Return ONLY valid JSON:
   });
 
   const content = response.choices[0]?.message?.content;
+  const tasks = JSON.parse(cleanJson(content || "[]"));
 
-  let tasks: any[] = [];
-
-  try {
-    tasks = JSON.parse(content || "[]");
-  } catch {
-    console.error(content);
-    throw new Error("Chief of Staff returned invalid JSON.");
-  }
-
-  const inserts = tasks.map((task) => ({
+  const inserts = tasks.map((task: any) => ({
     project_id: projectId,
     title: task.title,
     assigned_agent: task.assigned_agent,
@@ -95,9 +100,7 @@ Return ONLY valid JSON:
   revalidatePath(`/projects/${projectId}`);
 }
 
-export async function runSpecialistAgent(
-  taskId: string
-) {
+export async function runSpecialistAgent(taskId: string) {
   const { data: task } = await supabase
     .from("tasks")
     .select("*")
@@ -114,18 +117,32 @@ export async function runSpecialistAgent(
     .eq("id", task.project_id)
     .single();
 
+  if (!project) {
+    throw new Error("Project not found.");
+  }
+
+  const memoryContext = await retrieveMemoryContext({
+    projectId: task.project_id,
+    query: `${project.name} ${project.decision_question} ${task.title} ${task.assigned_agent}`,
+  });
+
   const specialistPrompt = `
 You are acting as:
 ${task.assigned_agent}
 
 Project:
-${project?.name}
+${project.name}
 
 Decision Question:
-${project?.decision_question}
+${project.decision_question}
 
 Task:
 ${task.title}
+
+Relevant Organizational Memory:
+${memoryContext}
+
+Use memory to avoid repeating previous mistakes and to reuse useful prior lessons.
 
 Produce:
 - findings
@@ -137,25 +154,23 @@ Produce:
 Return detailed operational analysis in markdown.
 `;
 
-  const specialistResponse =
-    await openai.chat.completions.create({
-      model: "gpt-5",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a world-class specialist advisor operating inside an elite operational intelligence platform.",
-        },
-        {
-          role: "user",
-          content: specialistPrompt,
-        },
-      ],
-    });
+  const specialistResponse = await openai.chat.completions.create({
+    model: "gpt-5",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a world-class specialist advisor operating inside an institutional intelligence system.",
+      },
+      {
+        role: "user",
+        content: specialistPrompt,
+      },
+    ],
+  });
 
   const output =
-    specialistResponse.choices[0]?.message?.content ??
-    "No output generated.";
+    specialistResponse.choices[0]?.message?.content ?? "No output generated.";
 
   await supabase.from("agent_outputs").insert({
     project_id: task.project_id,
@@ -183,29 +198,27 @@ Report:
 ${output}
 `;
 
-  const extractionResponse =
-    await openai.chat.completions.create({
-      model: "gpt-5",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You extract structured operational intelligence from reports.",
-        },
-        {
-          role: "user",
-          content: extractionPrompt,
-        },
-      ],
-    });
+  const extractionResponse = await openai.chat.completions.create({
+    model: "gpt-5",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You extract structured operational intelligence from reports.",
+      },
+      {
+        role: "user",
+        content: extractionPrompt,
+      },
+    ],
+  });
 
-  const extractionContent =
-    extractionResponse.choices[0]?.message?.content;
+  const extractionContent = extractionResponse.choices[0]?.message?.content;
 
   let evidenceItems: any[] = [];
 
   try {
-    evidenceItems = JSON.parse(extractionContent || "[]");
+    evidenceItems = JSON.parse(cleanJson(extractionContent || "[]"));
   } catch {
     console.error(extractionContent);
     evidenceItems = [];

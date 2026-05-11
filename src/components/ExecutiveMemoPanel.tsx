@@ -1,4 +1,4 @@
-import { generateExecutiveMemo } from "@/actions/memos";
+import { GenerateMemoButton } from "@/components/GenerateMemoButton";
 import { supabase } from "@/lib/supabase";
 
 export async function ExecutiveMemoPanel({
@@ -32,12 +32,7 @@ export async function ExecutiveMemoPanel({
             </p>
           </div>
 
-          <form action={generateExecutiveMemo}>
-            <input type="hidden" name="project_id" value={projectId} />
-            <button type="submit" className="btn-primary">
-              Generate Memo
-            </button>
-          </form>
+          <GenerateMemoButton projectId={projectId} />
         </div>
       </div>
 
@@ -88,3 +83,4 @@ export async function ExecutiveMemoPanel({
     </section>
   );
 }
+

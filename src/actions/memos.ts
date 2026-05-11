@@ -3,24 +3,18 @@
 import OpenAI from "openai";
 import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
+import { retrieveMemoryContext } from "@/lib/memory";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 function cleanJson(content: string) {
-  return content
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
+  return content.replace(/```json/g, "").replace(/```/g, "").trim();
 }
 
-export async function generateExecutiveMemo(formData: FormData) {
-  const projectId = String(formData.get("project_id") || "").trim();
-
-  if (!projectId) {
-    throw new Error("Project ID is required.");
-  }
+export async function generateExecutiveMemo(projectId: string) {
+  if (!projectId) throw new Error("Project ID is required.");
 
   const { data: project } = await supabase
     .from("projects")
@@ -28,44 +22,34 @@ export async function generateExecutiveMemo(formData: FormData) {
     .eq("id", projectId)
     .single();
 
-  if (!project) {
-    throw new Error("Project not found.");
-  }
+  if (!project) throw new Error("Project not found.");
 
-  const { data: tasks } = await supabase
-    .from("tasks")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: true });
+  const { data: tasks } = await supabase.from("tasks").select("*").eq("project_id", projectId);
+  const { data: outputs } = await supabase.from("agent_outputs").select("*").eq("project_id", projectId);
+  const { data: evidence } = await supabase.from("evidence_items").select("*").eq("project_id", projectId);
 
-  const { data: outputs } = await supabase
-    .from("agent_outputs")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: true });
-
-  const { data: evidence } = await supabase
-    .from("evidence_items")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: true });
+  const memoryContext = await retrieveMemoryContext({
+    projectId,
+    query: `${project.name} ${project.decision_question} executive memo decision risks recommendations`,
+  });
 
   const prompt = `
 You are the Executive Writer inside Staff OS.
 
-Your job is to synthesize a decision-ready executive memo using ONLY the project data, task state, agent outputs, and evidence provided.
+Synthesize a decision-ready executive memo using:
+- project data
+- task state
+- agent outputs
+- evidence items
+- relevant organizational memory
+
+Do not overstate confidence. Distinguish evidence from assumptions.
 
 Project:
 ${project.name}
 
 Decision Question:
 ${project.decision_question}
-
-Project Status:
-${project.status}
-
-Confidence:
-${project.confidence}
 
 Tasks:
 ${JSON.stringify(tasks ?? [], null, 2)}
@@ -76,7 +60,10 @@ ${JSON.stringify(outputs ?? [], null, 2)}
 Evidence Items:
 ${JSON.stringify(evidence ?? [], null, 2)}
 
-Return ONLY valid JSON in this exact format:
+Relevant Organizational Memory:
+${memoryContext}
+
+Return ONLY valid JSON:
 
 {
   "recommendation": "Proceed | Do Not Proceed | Proceed With Conditions | Insufficient Evidence",
@@ -96,7 +83,7 @@ Return ONLY valid JSON in this exact format:
       {
         role: "system",
         content:
-          "You are an elite executive writer producing concise, evidence-aware decision memos.",
+          "You are an elite executive writer producing evidence-aware decision memos using institutional memory.",
       },
       {
         role: "user",
@@ -106,29 +93,19 @@ Return ONLY valid JSON in this exact format:
   });
 
   const content = response.choices[0]?.message?.content;
+  if (!content) throw new Error("No memo generated.");
 
-  if (!content) {
-    throw new Error("No memo generated.");
-  }
+  const memo = JSON.parse(cleanJson(content));
 
-  let memo: any;
-
-  try {
-    memo = JSON.parse(cleanJson(content));
-  } catch {
-    console.error(content);
-    throw new Error("Executive Writer returned invalid JSON.");
-  }
-
-  const fullRationale = `
+  const rationale = `
 Executive Summary:
 ${memo.executive_summary}
 
 Key Findings:
-${(memo.key_findings ?? []).map((item: string) => `- ${item}`).join("\n")}
+${(memo.key_findings ?? []).map((x: string) => `- ${x}`).join("\n")}
 
 Assumptions:
-${(memo.assumptions ?? []).map((item: string) => `- ${item}`).join("\n")}
+${(memo.assumptions ?? []).map((x: string) => `- ${x}`).join("\n")}
 
 Confidence Assessment:
 ${memo.confidence_assessment}
@@ -137,25 +114,19 @@ Rationale:
 ${memo.rationale}
 `;
 
-  const risksText = (memo.critical_risks ?? [])
-    .map((item: string) => `- ${item}`)
-    .join("\n");
-
-  const nextActionsText = (memo.next_actions ?? [])
-    .map((item: string) => `- ${item}`)
-    .join("\n");
+  const risks = (memo.critical_risks ?? []).map((x: string) => `- ${x}`).join("\n");
+  const nextActions = (memo.next_actions ?? []).map((x: string) => `- ${x}`).join("\n");
 
   const { error } = await supabase.from("decisions").insert({
     project_id: projectId,
     recommendation: memo.recommendation,
-    rationale: fullRationale,
-    risks: risksText,
-    next_actions: nextActionsText,
+    rationale,
+    risks,
+    next_actions: nextActions,
   });
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/memos");
 }
