@@ -18,9 +18,11 @@ export default async function ProjectsPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#D8A84E]">
           Projects
         </p>
+
         <h1 className="mt-2 text-3xl font-bold text-white md:text-5xl">
           Command pipeline
         </h1>
+
         <p className="mt-3 max-w-2xl leading-7 text-slate-300">
           Create decision-led projects and assign your AI workforce to investigate,
           validate, and execute.
@@ -32,6 +34,7 @@ export default async function ProjectsPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-[#D8A84E]">
             New Project
           </p>
+
           <h2 className="mt-1 text-2xl font-bold text-white">
             Frame the decision
           </h2>
@@ -42,6 +45,7 @@ export default async function ProjectsPage() {
             <span className="text-sm font-medium text-slate-300">
               Project name
             </span>
+
             <input
               name="name"
               required
@@ -54,6 +58,7 @@ export default async function ProjectsPage() {
             <span className="text-sm font-medium text-slate-300">
               Status
             </span>
+
             <select
               name="status"
               defaultValue="Idea"
@@ -72,6 +77,7 @@ export default async function ProjectsPage() {
           <span className="text-sm font-medium text-slate-300">
             Decision question
           </span>
+
           <textarea
             name="decision_question"
             required
@@ -84,6 +90,7 @@ export default async function ProjectsPage() {
           <span className="text-sm font-medium text-slate-300">
             Confidence
           </span>
+
           <select
             name="confidence"
             defaultValue="Early"
@@ -96,13 +103,18 @@ export default async function ProjectsPage() {
           </select>
         </label>
 
-        <button type="submit" className="btn-primary w-full md:w-auto">
+        <button
+          type="submit"
+          className="btn-primary w-full md:w-auto"
+        >
           Create Project
         </button>
       </form>
 
       <section className="space-y-3">
-        <h2 className="text-2xl font-bold text-white">Live Projects</h2>
+        <h2 className="text-2xl font-bold text-white">
+          Live Projects
+        </h2>
 
         <div className="grid gap-3">
           {(projects ?? []).map((project) => (
@@ -115,6 +127,7 @@ export default async function ProjectsPage() {
                 <h3 className="text-lg font-semibold text-white">
                   {project.name}
                 </h3>
+
                 <span className="shrink-0 rounded-full border border-[#233450] px-3 py-1 text-xs text-slate-300">
                   {project.status}
                 </span>

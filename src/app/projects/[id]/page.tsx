@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { createTask } from "@/actions/tasks";
+import { ChiefOfStaffPanel } from "@/components/ChiefOfStaffPanel";
+import { AgentOutputs } from "@/components/AgentOutputs";
 import { TaskBoard } from "@/components/TaskBoard";
 import { WorkspaceTabs } from "@/components/WorkspaceTabs";
 import { supabase } from "@/lib/supabase";
@@ -63,95 +65,75 @@ export default async function ProjectWorkspace({
 
       <WorkspaceTabs />
 
-      <form action={createTask} className="card space-y-4 p-5">
-        <input type="hidden" name="project_id" value={project.id} />
-
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-[#D8A84E]">
-            Tasking
-          </p>
-          <h2 className="mt-1 text-2xl font-bold text-white">
-            Create operational task
-          </h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Add a task manually before the agents start generating them.
-          </p>
-        </div>
-
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-slate-300">Task title</span>
-          <input
-            name="title"
-            required
-            placeholder="e.g. Identify cheapest enclosure frame options"
-            className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
-          />
-        </label>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-300">
-              Assign agent
-            </span>
-            <select
-              name="assigned_agent"
-              className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
-            >
-              <option value="">Unassigned</option>
-              {(agents ?? []).map((agent) => (
-                <option key={agent.id} value={agent.name}>
-                  {agent.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-300">
-              Priority
-            </span>
-            <select
-              name="priority"
-              defaultValue="Medium"
-              className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
-            >
-              <option>Low</option>
-              <option>Medium</option>
-              <option>High</option>
-              <option>Critical</option>
-            </select>
-          </label>
-        </div>
-
-        <button type="submit" className="btn-primary w-full md:w-auto">
-          Add Task
-        </button>
-      </form>
+      <ChiefOfStaffPanel projectId={project.id} />
 
       <TaskBoard projectId={project.id} />
 
-      <section className="card p-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-[#D8A84E]">
-              Command
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-white">
-              Chief of Staff
-            </h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Next step: this button will generate tasks automatically.
-            </p>
+      <AgentOutputs projectId={project.id} />
+
+      <details className="card p-5">
+        <summary className="cursor-pointer text-lg font-bold text-white">
+          Manual Override / Add Task
+        </summary>
+
+        <form action={createTask} className="mt-5 space-y-4">
+          <input type="hidden" name="project_id" value={project.id} />
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-slate-300">
+              Task title
+            </span>
+
+            <input
+              name="title"
+              required
+              placeholder="e.g. Identify cheapest enclosure frame options"
+              className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
+            />
+          </label>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-300">
+                Assign agent
+              </span>
+
+              <select
+                name="assigned_agent"
+                className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
+              >
+                <option value="">Unassigned</option>
+                {(agents ?? []).map((agent) => (
+                  <option key={agent.id} value={agent.name}>
+                    {agent.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-300">
+                Priority
+              </span>
+
+              <select
+                name="priority"
+                defaultValue="Medium"
+                className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+                <option>Critical</option>
+              </select>
+            </label>
           </div>
 
-          <button className="btn-primary">Run Agent</button>
-        </div>
-
-        <textarea
-          placeholder="What should we investigate first?"
-          className="mt-5 min-h-[140px] w-full rounded-2xl border border-[#233450] bg-[#101B2E] p-4 text-sm text-white outline-none"
-        />
-      </section>
+          <button type="submit" className="btn-primary w-full md:w-auto">
+            Add Task
+          </button>
+        </form>
+      </details>
 
       <section className="space-y-3">
         <h2 className="text-2xl font-bold text-white">Available Staff</h2>
@@ -173,3 +155,4 @@ export default async function ProjectWorkspace({
     </section>
   );
 }
+
