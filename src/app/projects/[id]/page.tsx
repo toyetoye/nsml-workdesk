@@ -5,9 +5,9 @@ import { ChiefOfStaffPanel } from "@/components/ChiefOfStaffPanel";
 import { EvidencePanel } from "@/components/EvidencePanel";
 import { ExecutiveMemoPanel } from "@/components/ExecutiveMemoPanel";
 import { MemoryPanel } from "@/components/MemoryPanel";
+import { ProjectWorkspaceTabs } from "@/components/ProjectWorkspaceTabs";
 import { RedTeamPanel } from "@/components/RedTeamPanel";
-import { TaskBoard } from "@/components/TaskBoard";
-import { WorkspaceTabs } from "@/components/WorkspaceTabs";
+import { TaskList } from "@/components/TaskList";
 import { supabase } from "@/lib/supabase";
 
 export default async function ProjectWorkspace({
@@ -17,19 +17,25 @@ export default async function ProjectWorkspace({
 }) {
   const { id } = await params;
 
-  const { data: project, error } = await supabase
+  const { data: project } = await supabase
     .from("projects")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error || !project) {
+  if (!project) {
     notFound();
   }
 
   const { data: agents } = await supabase
     .from("agents")
     .select("*")
+    .order("created_at", { ascending: true });
+
+  const { data: tasks } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("project_id", project.id)
     .order("created_at", { ascending: true });
 
   return (
@@ -39,7 +45,9 @@ export default async function ProjectWorkspace({
           Project Workspace
         </p>
 
-        <h1 className="text-4xl font-bold text-white">{project.name}</h1>
+        <h1 className="text-4xl font-bold text-white">
+          {project.name}
+        </h1>
 
         <p className="max-w-3xl text-lg leading-7 text-slate-300">
           {project.decision_question}
@@ -49,7 +57,9 @@ export default async function ProjectWorkspace({
       <section className="grid gap-3 md:grid-cols-3">
         <div className="card p-4">
           <p className="text-sm text-slate-400">Status</p>
-          <p className="mt-2 text-2xl font-bold text-white">{project.status}</p>
+          <p className="mt-2 text-2xl font-bold text-white">
+            {project.status}
+          </p>
         </div>
 
         <div className="card p-4">
@@ -67,21 +77,62 @@ export default async function ProjectWorkspace({
         </div>
       </section>
 
-      <WorkspaceTabs />
+      <ProjectWorkspaceTabs
+        sections={{
+          Command: (
+            <ChiefOfStaffPanel projectId={project.id} />
+          ),
 
-      <ChiefOfStaffPanel projectId={project.id} />
+          Tasks: (
+            <TaskList tasks={tasks ?? []} />
+          ),
 
-      <TaskBoard projectId={project.id} />
+          Outputs: (
+            <AgentOutputs projectId={project.id} />
+          ),
 
-      <AgentOutputs projectId={project.id} />
+          Evidence: (
+            <EvidencePanel projectId={project.id} />
+          ),
 
-      <EvidencePanel projectId={project.id} />
+          "Red Team": (
+            <RedTeamPanel projectId={project.id} />
+          ),
 
-      <RedTeamPanel projectId={project.id} />
+          Memo: (
+            <ExecutiveMemoPanel projectId={project.id} />
+          ),
 
-      <ExecutiveMemoPanel projectId={project.id} />
+          Memory: (
+            <MemoryPanel projectId={project.id} />
+          ),
 
-      <MemoryPanel projectId={project.id} />
+          Staff: (
+            <section className="space-y-3">
+              <h2 className="text-2xl font-bold text-white">
+                Available Staff
+              </h2>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {(agents ?? []).map((agent) => (
+                  <article
+                    key={agent.id}
+                    className="card p-4"
+                  >
+                    <h3 className="text-lg font-semibold text-white">
+                      {agent.name}
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      {agent.role}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ),
+        }}
+      />
 
       <details className="card p-5">
         <summary className="cursor-pointer text-lg font-bold text-white">
@@ -89,82 +140,56 @@ export default async function ProjectWorkspace({
         </summary>
 
         <form action={createTask} className="mt-5 space-y-4">
-          <input type="hidden" name="project_id" value={project.id} />
+          <input
+            type="hidden"
+            name="project_id"
+            value={project.id}
+          />
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-300">
-              Task title
-            </span>
-
-            <input
-              name="title"
-              required
-              placeholder="e.g. Identify cheapest enclosure frame options"
-              className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
-            />
-          </label>
+          <input
+            name="title"
+            required
+            placeholder="Task title"
+            className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
+          />
 
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-300">
-                Assign agent
-              </span>
+            <select
+              name="assigned_agent"
+              className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
+            >
+              <option value="">Unassigned</option>
 
-              <select
-                name="assigned_agent"
-                className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
-              >
-                <option value="">Unassigned</option>
-                {(agents ?? []).map((agent) => (
-                  <option key={agent.id} value={agent.name}>
-                    {agent.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+              {(agents ?? []).map((agent) => (
+                <option
+                  key={agent.id}
+                  value={agent.name}
+                >
+                  {agent.name}
+                </option>
+              ))}
+            </select>
 
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-300">
-                Priority
-              </span>
-
-              <select
-                name="priority"
-                defaultValue="Medium"
-                className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
-              >
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-                <option>Critical</option>
-              </select>
-            </label>
+            <select
+              name="priority"
+              defaultValue="Medium"
+              className="w-full rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm text-white outline-none"
+            >
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
           </div>
 
-          <button type="submit" className="btn-primary w-full md:w-auto">
+          <button
+            type="submit"
+            className="btn-primary"
+          >
             Add Task
           </button>
         </form>
       </details>
-
-      <section className="space-y-3">
-        <h2 className="text-2xl font-bold text-white">Available Staff</h2>
-
-        <div className="grid gap-3 md:grid-cols-2">
-          {(agents ?? []).map((agent) => (
-            <article key={agent.id} className="card p-4">
-              <h3 className="text-lg font-semibold text-white">
-                {agent.name}
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-slate-300">
-                {agent.role}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
     </section>
   );
 }
-

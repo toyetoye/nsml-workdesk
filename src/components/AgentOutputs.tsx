@@ -28,34 +28,41 @@ export async function AgentOutputs({
       {liveOutputs.length === 0 && (
         <div className="card p-5">
           <p className="text-sm text-slate-400">
-            No agent outputs yet. Run a specialist agent from the task board.
+            No outputs yet.
           </p>
         </div>
       )}
 
       <div className="space-y-3">
         {liveOutputs.map((output) => (
-          <article key={output.id} className="card p-5">
-            <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-[#D8A84E]">
-                  {output.agent_name}
-                </p>
+          <details
+            key={output.id}
+            className="card overflow-hidden"
+          >
+            <summary className="cursor-pointer list-none p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.2em] text-[#D8A84E]">
+                    {output.agent_name}
+                  </p>
 
-                <h3 className="mt-1 text-xl font-bold text-white">
-                  Specialist Report
-                </h3>
+                  <h3 className="mt-1 text-lg font-bold text-white">
+                    Specialist Report
+                  </h3>
+                </div>
+
+                <span className="rounded-full border border-[#233450] px-3 py-1 text-xs text-slate-300">
+                  {output.confidence}
+                </span>
               </div>
+            </summary>
 
-              <span className="rounded-full border border-[#233450] px-3 py-1 text-xs text-slate-300">
-                Confidence: {output.confidence || "Medium"}
-              </span>
+            <div className="border-t border-[#233450] px-5 py-5">
+              <div className="whitespace-pre-wrap text-sm leading-7 text-slate-300">
+                {output.output}
+              </div>
             </div>
-
-            <div className="whitespace-pre-wrap text-sm leading-7 text-slate-300">
-              {output.output}
-            </div>
-          </article>
+          </details>
         ))}
       </div>
     </section>
