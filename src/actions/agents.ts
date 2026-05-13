@@ -247,3 +247,31 @@ ${output}
 
   revalidatePath(`/projects/${task.project_id}`);
 }
+
+export async function runAllSpecialistAgents(projectId: string) {
+  const { data: tasks, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("project_id", projectId)
+    .not("assigned_agent", "is", null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const runnableTasks = (tasks ?? []).filter((task) => {
+    const hasAgent = Boolean(task.assigned_agent);
+    const notAlreadyReviewed =
+      task.status !== "Review" &&
+      task.status !== "Validated" &&
+      task.status !== "Included in Memo";
+
+    return hasAgent && notAlreadyReviewed;
+  });
+
+  for (const task of runnableTasks) {
+    await runSpecialistAgent(task.id);
+  }
+
+  revalidatePath(`/projects/${projectId}`);
+}
