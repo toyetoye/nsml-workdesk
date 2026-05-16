@@ -1,4 +1,4 @@
-import { GenerateMemoButton } from "@/components/GenerateMemoButton";
+﻿import { GenerateMemoButton } from "@/components/GenerateMemoButton";
 import { supabase } from "@/lib/supabase";
 
 export async function ExecutiveMemoPanel({
@@ -66,17 +66,53 @@ export async function ExecutiveMemoPanel({
             <section>
               <h4 className="mb-2 font-semibold text-white">Rationale</h4>
               <div className="whitespace-pre-wrap">{latestMemo.rationale}</div>
-            </section>
+
+            {latestMemo && (
+              <div className="mt-6 flex gap-3">
+                <a
+                  href={`/print/memo/${latestMemo.id}`}
+                  target="_blank"
+                  className="rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#142238]"
+                >
+                  Open Printable Version
+                </a>
+              </div>
+            )}
+          </section>
 
             <section>
               <h4 className="mb-2 font-semibold text-white">Critical Risks</h4>
               <div className="whitespace-pre-wrap">{latestMemo.risks}</div>
-            </section>
+
+            {latestMemo && (
+              <div className="mt-6 flex gap-3">
+                <a
+                  href={`/print/memo/${latestMemo.id}`}
+                  target="_blank"
+                  className="rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#142238]"
+                >
+                  Open Printable Version
+                </a>
+              </div>
+            )}
+          </section>
 
             <section>
               <h4 className="mb-2 font-semibold text-white">Next Actions</h4>
               <div className="whitespace-pre-wrap">{latestMemo.next_actions}</div>
-            </section>
+
+            {latestMemo && (
+              <div className="mt-6 flex gap-3">
+                <a
+                  href={`/print/memo/${latestMemo.id}`}
+                  target="_blank"
+                  className="rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#142238]"
+                >
+                  Open Printable Version
+                </a>
+              </div>
+            )}
+          </section>
           </div>
         </article>
       )}

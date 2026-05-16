@@ -1,3 +1,6 @@
+﻿import { SummaryPanel } from "@/components/SummaryPanel";
+import { ActivityFeed } from "@/components/ActivityFeed";
+import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { ProjectControls } from "@/components/ProjectControls";
 import { AgentOutputs } from "@/components/AgentOutputs";
 import { RunAllAgentsButton } from "@/components/RunAllAgentsButton";
@@ -219,6 +222,8 @@ export function ProjectCommandCenter({
     <ChiefOfStaffPanel projectId={project.id} />
   </div>
 ),
+          Documents: <DocumentsPanel projectId={project.id} />,
+
           Tasks: (
             <div className="space-y-5">
               <TaskList tasks={tasks} />
@@ -226,8 +231,12 @@ export function ProjectCommandCenter({
             </div>
           ),
           Outputs: <AgentOutputs projectId={project.id} />,
+
+          Activity: <ActivityFeed projectId={project.id} />,
           Evidence: <EvidencePanel projectId={project.id} />,
           "Red Team": <RedTeamPanel projectId={project.id} />,
+          Summary: <SummaryPanel projectId={project.id} />,
+
           Memo: <ExecutiveMemoPanel projectId={project.id} />,
           Memory: <MemoryPanel projectId={project.id} />,
           Staff: <StaffDirectory agents={agents} />,
@@ -236,6 +245,7 @@ export function ProjectCommandCenter({
     </section>
   );
 }
+
 
 
 

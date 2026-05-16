@@ -1,24 +1,21 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
-
-const tabs = [
-  "Command",
-  "Tasks",
-  "Outputs",
-  "Evidence",
-  "Red Team",
-  "Memo",
-  "Memory",
-  "Staff",
-];
+import { useEffect, useState } from "react";
 
 export function ProjectWorkspaceTabs({
   sections,
 }: {
   sections: Record<string, React.ReactNode>;
 }) {
-  const [activeTab, setActiveTab] = useState("Tasks");
+  const tabs = Object.keys(sections);
+  const defaultTab = tabs.includes("Command") ? "Command" : tabs[0];
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
+  useEffect(() => {
+    if (!sections[activeTab]) {
+      setActiveTab(defaultTab);
+    }
+  }, [activeTab, defaultTab, sections]);
 
   return (
     <section className="space-y-5">

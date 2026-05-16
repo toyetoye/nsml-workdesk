@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import OpenAI from "openai";
 import { revalidatePath } from "next/cache";
@@ -260,18 +260,44 @@ export async function runAllSpecialistAgents(projectId: string) {
   }
 
   const runnableTasks = (tasks ?? []).filter((task) => {
-    const hasAgent = Boolean(task.assigned_agent);
-    const notAlreadyReviewed =
-      task.status !== "Review" &&
-      task.status !== "Validated" &&
-      task.status !== "Included in Memo";
-
-    return hasAgent && notAlreadyReviewed;
+    return Boolean(task.assigned_agent);
   });
 
+  console.log(
+    `[RunAllAgents] Running ${runnableTasks.length} tasks for project ${projectId}`
+  );
+
+  const results = [];
+
   for (const task of runnableTasks) {
-    await runSpecialistAgent(task.id);
+    try {
+      console.log(
+        `[RunAllAgents] Running task ${task.id}: ${task.title}`
+      );
+
+      await runSpecialistAgent(task.id);
+
+      results.push({
+        taskId: task.id,
+        status: "success",
+      });
+    } catch (error) {
+      console.error(
+        `[RunAllAgents] Failed task ${task.id}`,
+        error
+      );
+
+      results.push({
+        taskId: task.id,
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
+  console.log("[RunAllAgents] Results:", results);
+
   revalidatePath(`/projects/${projectId}`);
+
+  return results;
 }

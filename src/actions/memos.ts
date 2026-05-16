@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import OpenAI from "openai";
 import { revalidatePath } from "next/cache";
@@ -77,8 +77,10 @@ Return ONLY valid JSON:
 }
 `;
 
+  console.log("[Memo] Starting executive memo generation");
+
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: process.env.OPENAI_AGENT_MODEL || "gpt-5.4-mini",
     messages: [
       {
         role: "system",
