@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# NSML WorkDesk
 
-## Getting Started
+Private NSML operations workdesk for managing vessel correspondence, cases, evidence, decisions, and reviewed draft responses.
 
-First, run the development server:
+## Purpose
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The platform allows the user to manually paste emails, upload EMLs, upload documents, upload screenshots, and archive work items without directly connecting Outlook.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The system will eventually help:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- structure vessel and project work;
+- highlight urgent and pending matters;
+- organise evidence;
+- create operational cases;
+- draft email responses in the user's writing style;
+- red-team review every draft;
+- preserve decision trails.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Confirmed v1 constraints
 
-## Learn More
+- Single user only.
+- Deployed online.
+- Manual import only.
+- No Outlook connection.
+- No automatic email sending.
+- AI drafts must be reviewed before being marked ready.
+- Final replies are copied manually into Outlook by the user.
 
-To learn more about Next.js, take a look at the following resources:
+## Current sprint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sprint 000: Scaffold and product shell.
