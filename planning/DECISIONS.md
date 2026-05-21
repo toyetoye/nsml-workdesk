@@ -41,3 +41,15 @@ Reason: `/import` is the intake and staging area, not the permanent home for all
 Decision: Workspace-level correspondence should be shown inside the relevant vessel, project, or other workspace, with cases acting as later link targets.
 
 Reason: The product should support operations from the workspace where the issue belongs, while keeping imported correspondence traceable back to intake and then to cases.
+
+## D008 - Dashboard as command centre
+
+Decision: The dashboard must act as a command centre with work queues, status cards, filters, and drill-down links rather than as a pure KPI board.
+
+Reason: The user needs to see why each item matters, what is waiting, and what to do next.
+
+## D009 - Mock filtering only
+
+Decision: Sprint 001 dashboard filtering is client-side only and uses mock data only.
+
+Reason: This keeps the sprint within the approved shell scope while still making the dashboard useful for triage.

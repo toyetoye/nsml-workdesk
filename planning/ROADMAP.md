@@ -28,7 +28,29 @@ Notes:
 
 ## Sprint 001
 
-Dashboard and work queues.
+Complete.
+
+Delivered:
+
+- dashboard command centre
+- top status cards
+- urgent attention queue
+- pending my reply queue
+- waiting on others queue
+- decision required queue
+- drafts ready / failed red-team placeholder
+- needs evidence queue
+- recent import activity
+- vessel snapshot
+- workspace/status filters
+- drill-down links to existing pages
+- mock queue data only
+- client-side filtering only
+
+Notes:
+
+- No AI, API routes, database, persistence, Outlook integration, email sending, upload logic, or EML parsing.
+- The dashboard explains why each item matters and suggests a next action.
 
 ## Sprint 002
 

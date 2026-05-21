@@ -41,3 +41,15 @@ Mitigation: Treat `/import` as staging/unclassified intake only; once classified
 Risk: Sprint 000 mock correspondence surfaces could be mistaken for real parsing, email, or workflow automation.
 
 Mitigation: Keep all Sprint 000 correspondence surfaces clearly labeled as mock-only and avoid database, API, Outlook, or AI functionality until a later approved sprint.
+
+## R008 - KPI-only dashboard drift
+
+Risk: The dashboard could collapse into counts without operational context.
+
+Mitigation: Every queue item must explain why it matters, who is waiting, and the suggested next action.
+
+## R009 - Filter complexity
+
+Risk: Dashboard filters could become harder to scan if too many states are shown at once.
+
+Mitigation: Keep filtering client-side, use compact queue cards, and preserve the shell spacing so the CoS Assistant rail does not crowd the command centre.
