@@ -33,7 +33,7 @@ export function Dashboard() {
         </Link>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {dashboardStatuses.map((status) => (
           <DashboardCard key={status.label} status={status} />
         ))}
@@ -41,7 +41,7 @@ export function Dashboard() {
 
       <AttentionQueue items={attentionQueue} />
 
-      <section className="grid gap-4 xl:grid-cols-[1fr_22rem]">
+      <section className="grid gap-4 2xl:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>

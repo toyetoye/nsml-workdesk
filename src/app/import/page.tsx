@@ -1,14 +1,9 @@
-import { Upload } from "lucide-react";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { EmailWorkbench } from "@/components/EmailWorkbench";
 
 export default function ImportPage() {
   return (
-    <PlaceholderPage
-      eyebrow="Manual Import"
-      title="Import"
-      description="A future intake area for manually pasted emails, EMLs, screenshots, documents, and notes."
-      icon={Upload}
-      items={["Paste email", "Upload EML", "Attach evidence"]}
-    />
+    <section className="space-y-6">
+      <EmailWorkbench />
+    </section>
   );
 }

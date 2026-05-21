@@ -1,14 +1,9 @@
-import { ClipboardList } from "lucide-react";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { LinkedCorrespondencePanel } from "@/components/LinkedCorrespondencePanel";
 
 export default function CasesPage() {
   return (
-    <PlaceholderPage
-      eyebrow="Cases"
-      title="Cases"
-      description="A future case list for vessel, project, and general issue follow-up."
-      icon={ClipboardList}
-      items={["Open cases", "Decision required", "Needs evidence"]}
-    />
+    <section className="space-y-6">
+      <LinkedCorrespondencePanel />
+    </section>
   );
 }
