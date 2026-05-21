@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   ACCESS_COOKIE_NAME,
-  getAccessGateStatus,
   isPublicPath,
   verifySignedSessionToken,
 } from "@/lib/access-gate";
@@ -15,18 +14,22 @@ function withPathHeader(request: NextRequest) {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const gate = getAccessGateStatus();
   const requestHeaders = withPathHeader(request);
+  const appPassword = process.env.NSML_APP_PASSWORD?.trim() ?? "";
+  const sessionSecret = process.env.NSML_SESSION_SECRET?.trim() ?? "";
+  const isProduction = process.env.NODE_ENV === "production";
+  const configured = Boolean(appPassword && sessionSecret);
+  const developmentFallback = !configured && !isProduction;
 
   if (isPublicPath(pathname)) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  if (gate.mode === "development-fallback") {
+  if (developmentFallback) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  if (gate.mode === "production-misconfigured") {
+  if (!configured && isProduction) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("error", "setup");
@@ -46,7 +49,7 @@ export async function middleware(request: NextRequest) {
 
   const verification = await verifySignedSessionToken(
     token,
-    process.env.NSML_SESSION_SECRET?.trim() || "nsml-workdesk-dev-session-secret",
+    sessionSecret || "nsml-workdesk-dev-session-secret",
   );
 
   if (!verification.valid) {
@@ -61,5 +64,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/|login|favicon.ico|robots.txt|sitemap.xml).*)"],
+  matcher: ["/((?!_next/|favicon.ico|robots.txt|sitemap.xml).*)"],
 };

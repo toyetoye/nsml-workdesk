@@ -1,21 +1,27 @@
 import Link from "next/link";
-import { ArrowRight, LockKeyhole, ShieldAlert, ShieldCheck } from "lucide-react";
+import { redirect } from "next/navigation";
+import { ArrowRight, LockKeyhole, ShieldAlert } from "lucide-react";
 import { getAccessGateStatus, normalizeRedirectTarget } from "@/lib/access-gate";
 import { getAccessSessionState } from "@/lib/auth-session";
-import { loginAction, logoutAction } from "./actions";
+import { loginAction } from "./actions";
 
 type LoginPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     error?: string;
     status?: string;
     redirectTo?: string;
-  };
+  }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const gate = getAccessGateStatus();
   const session = await getAccessSessionState();
-  const redirectTo = normalizeRedirectTarget(searchParams?.redirectTo);
+  const resolvedSearchParams = await searchParams;
+  const redirectTo = normalizeRedirectTarget(resolvedSearchParams?.redirectTo);
+
+  if (session.authenticated) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
@@ -36,20 +42,20 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
 
-        {searchParams?.error === "invalid" ? (
+        {resolvedSearchParams?.error === "invalid" ? (
           <Alert tone="danger" title="Password not accepted">
             Check the app password and try again.
           </Alert>
         ) : null}
 
-        {searchParams?.error === "setup" || gate.mode === "production-misconfigured" ? (
+        {resolvedSearchParams?.error === "setup" || gate.mode === "production-misconfigured" ? (
           <Alert tone="warning" title="Setup required">
             {gate.warningMessage} The app will stay closed until the access-gate env vars are
             configured.
           </Alert>
         ) : null}
 
-        {searchParams?.status === "logged-out" ? (
+        {resolvedSearchParams?.status === "logged-out" ? (
           <Alert tone="neutral" title="Logged out">
             The session cookie has been cleared.
           </Alert>
@@ -62,28 +68,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </Alert>
         ) : null}
 
-        {session.authenticated ? (
-          <div className="mt-6 rounded-md border border-teal-200 bg-teal-50 p-4">
-            <div className="flex items-center gap-2 text-teal-900">
-              <ShieldCheck aria-hidden size={18} />
-              <p className="text-sm font-semibold">You are signed in.</p>
-            </div>
-            <p className="mt-2 text-sm leading-6 text-teal-950">
-              Continue to the dashboard or log out to clear the session cookie.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Link href={redirectTo} className="btn-primary">
-                Continue
-                <ArrowRight aria-hidden size={16} />
-              </Link>
-              <form action={logoutAction}>
-                <button type="submit" className="btn-secondary">
-                  Log out
-                </button>
-              </form>
-            </div>
-          </div>
-        ) : gate.mode === "configured" ? (
+        {gate.mode === "configured" ? (
           <form action={loginAction} className="mt-6 space-y-4">
             <input type="hidden" name="redirectTo" value={redirectTo} />
             <Field label="App password">

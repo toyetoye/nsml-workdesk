@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "NSML WorkDesk",
@@ -15,7 +14,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+          {children}
+        </div>
       </body>
     </html>
   );

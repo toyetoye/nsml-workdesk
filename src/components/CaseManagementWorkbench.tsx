@@ -31,7 +31,7 @@ import {
   type EmailStatus,
   type StatusTone,
 } from "@/lib/mock-data";
-import { saveCaseAction } from "@/app/cases/actions";
+import { saveCaseAction } from "@/app/(protected)/cases/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type CreateCaseFormState = {

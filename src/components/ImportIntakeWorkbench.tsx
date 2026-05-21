@@ -12,7 +12,7 @@ import {
   Upload,
   WandSparkles,
 } from "lucide-react";
-import { saveIntakeItemAction } from "@/app/import/actions";
+import { saveIntakeItemAction } from "@/app/(protected)/import/actions";
 import {
   buildIntakeItemFromSubmission,
   type IntakeSubmission,

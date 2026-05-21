@@ -110,7 +110,7 @@ export function getAccessGateStatus(env: NodeJS.ProcessEnv = process.env): Acces
 }
 
 export function isPublicPath(pathname: string) {
-  if (pathname === "/login") {
+  if (pathname === "/login" || pathname.startsWith("/login/")) {
     return true;
   }
 
@@ -133,6 +133,10 @@ export function normalizeRedirectTarget(value: string | null | undefined) {
   const candidate = safeTrim(value);
 
   if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) {
+    return DEFAULT_REDIRECT_TO;
+  }
+
+  if (candidate === "/login" || candidate.startsWith("/login/")) {
     return DEFAULT_REDIRECT_TO;
   }
 
