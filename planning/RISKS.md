@@ -29,3 +29,15 @@ Mitigation: Private deployment, no public file links, no direct Outlook connecti
 Risk: Dashboard may show counts without useful explanation.
 
 Mitigation: Every alert must include why it matters and suggested next action.
+
+## R006 - Import staging confusion
+
+Risk: Imported correspondence could be mistaken as permanently stored in `/import`.
+
+Mitigation: Treat `/import` as staging/unclassified intake only; once classified, show threads in the relevant vessel, project, or other workspace and later link them to cases.
+
+## R007 - Mock-to-real confusion
+
+Risk: Sprint 000 mock correspondence surfaces could be mistaken for real parsing, email, or workflow automation.
+
+Mitigation: Keep all Sprint 000 correspondence surfaces clearly labeled as mock-only and avoid database, API, Outlook, or AI functionality until a later approved sprint.

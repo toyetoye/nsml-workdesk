@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Initial build setup.
+Sprint 000 complete.
 
 ## Active sprint
 
@@ -18,7 +18,9 @@ Sprint 000 - Scaffold and Product Shell.
 - No Outlook connection in v1.
 - No automatic email sending.
 - Dashboard is the landing page.
+- Imported emails enter through `/import` first, then appear under the relevant vessel, project, or other workspace after classification, and can later be linked to a case.
+- Sprint 000 is mock-data only and includes the NSML WorkDesk shell, dashboard, workspaces, import staging, workspace correspondence surfaces, CoS Assistant placeholder, and linked correspondence placeholder.
 
 ## Next action
 
-Complete Sprint 000 app shell.
+Start the next approved sprint.

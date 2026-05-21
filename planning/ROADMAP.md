@@ -2,7 +2,29 @@
 
 ## Sprint 000
 
-Scaffold and product shell.
+Complete.
+
+Delivered:
+
+- NSML WorkDesk shell
+- Dashboard landing page
+- three separate vessel workspaces
+- Projects workspace
+- Other workspace
+- Import staging area
+- Cases placeholder
+- Drafts placeholder
+- Writing Style placeholder
+- CoS Assistant placeholder
+- mock Imported Email Workbench
+- workspace-level vessel/project/other correspondence surfaces
+- linked correspondence placeholder in Cases
+- mock data only
+
+Notes:
+
+- `/import` is staging/unclassified only, not permanent email storage.
+- No AI, Outlook integration, email sending, database runtime dependency, EML parsing, or persistence.
 
 ## Sprint 001
 

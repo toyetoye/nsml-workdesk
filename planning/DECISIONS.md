@@ -29,3 +29,15 @@ Reason: Prevent unsupported claims, liability exposure, wrong tone, or unsafe re
 Decision: LNG PORTHARCOURT II, LPG ALFRED TEMILE, and LPG ALFRED TEMILE 10 are treated as separate workspaces.
 
 Reason: Avoid accidental merging or misclassification.
+
+## D006 - Import staging first
+
+Decision: Imported emails enter through `/import` first, then move into the relevant vessel, project, or other workspace after classification.
+
+Reason: `/import` is the intake and staging area, not the permanent home for all imported correspondence. This preserves classification flow and keeps workspace correspondence organized.
+
+## D007 - Workspace correspondence surfaces
+
+Decision: Workspace-level correspondence should be shown inside the relevant vessel, project, or other workspace, with cases acting as later link targets.
+
+Reason: The product should support operations from the workspace where the issue belongs, while keeping imported correspondence traceable back to intake and then to cases.
