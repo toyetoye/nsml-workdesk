@@ -82,7 +82,28 @@ Notes:
 
 ## Sprint 003
 
-Cases and evidence.
+Complete.
+
+Delivered:
+
+- `/cases` case management workbench
+- mock case list
+- selected case detail pane
+- session-only Create Case drawer/form
+- case status, priority, category, owner/waiting party, age/due indicators
+- Decision Required / Next Action section
+- linked evidence cards
+- linked correspondence tied to selected case
+- timeline/activity rail
+- Attach evidence placeholder only
+- Create from intake item placeholder only
+- seeded mock `caseRecords` and `evidenceRecords`
+- session-only React state
+
+Notes:
+
+- No persistence, localStorage, API routes, database/Supabase, AI/OpenAI, import-to-case connection yet, real file storage, EML/PDF/OCR parsing, Outlook integration, or email sending.
+- A case is the operational working unit. Emails, documents, screenshots, notes, EMLs, quotes, and reports are evidence attached to a case. `/import` captures material; `/cases` manages the work.
 
 ## Sprint 004
 

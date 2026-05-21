@@ -65,3 +65,15 @@ Reason: Imported material should enter through a controlled intake surface first
 Decision: Sprint 002 intake state lives only in client-side React memory for the current session.
 
 Reason: This keeps the prototype lightweight and avoids implying persistence, backend storage, or retention behavior that has not been approved yet.
+
+## D012 - Case is the working unit
+
+Decision: Cases are the operational working unit; emails, documents, screenshots, notes, EMLs, quotes, and reports are evidence attached to a case.
+
+Reason: `/import` captures material, while `/cases` is where work is managed, decisions are made, and evidence is organized around the active case.
+
+## D013 - Session-only case prototype
+
+Decision: Sprint 003 case creation, selection, evidence display, and timeline state live only in client-side React memory for the current session.
+
+Reason: This keeps the case prototype lightweight while avoiding implied persistence, import linkage, or backend workflow before the next approved sprint.

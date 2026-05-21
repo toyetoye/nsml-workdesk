@@ -31,6 +31,60 @@ Prototype intake collections should support:
 
 No localStorage, persistence layer, backend routing, or real storage should be assumed for the Sprint 002 intake prototype.
 
+## Sprint 003 Case Prototype
+
+The cases surface uses session-only React state for seeded and newly created cases during the current browser session.
+
+Prototype case objects should include:
+
+- caseId
+- title
+- summary
+- workspaceKey
+- workspaceLabel
+- vessel/project/other
+- status
+- priority
+- category
+- openedDate
+- age
+- dueLabel
+- owner
+- waitingOn
+- nextAction
+- riskNote
+- linkedThreads
+- linkedEvidence
+- timelineEvents
+- decisionRequired
+- tags
+- sourceIntakeRef
+- workspaceHref
+
+Prototype evidence objects should include:
+
+- evidenceId
+- title
+- type
+- source
+- date
+- linkedCaseId
+- description
+- status
+
+Prototype case collections should support:
+
+- compact case lists
+- selected case detail panes
+- session-only Create Case drawers or forms
+- linked evidence cards
+- linked correspondence tied to the selected case
+- timeline or activity rails
+- placeholder attach evidence actions
+- placeholder create-from-intake references
+
+No persistence, localStorage, backend import connection, real file storage, or real case storage should be assumed for the Sprint 003 case prototype.
+
 ## Future Primary Objects
 
 - Workspace
@@ -54,6 +108,8 @@ No localStorage, persistence layer, backend routing, or real storage should be a
 - Audit Log
 - Intake Prototype Item
 - Intake Prototype Batch
+- Case Record
+- Evidence Record
 
 ## Future Relationships
 
@@ -64,6 +120,8 @@ Project -> Cases -> Tasks -> Decisions -> Evidence Items
 Import Batch -> Emails / EMLs / Files -> Parsed Records -> Cases / Threads / Evidence
 
 Import Intake Prototype -> Session State -> Intake List / Detail View -> Simulated Workspace Assignment -> Later Case Link
+
+Case Prototype -> Session State -> Case List / Detail View -> Evidence / Correspondence / Timeline -> Later Import Link
 
 Email Thread -> Messages -> Attachments -> Evidence Items
 

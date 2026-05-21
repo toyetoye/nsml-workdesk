@@ -71,3 +71,21 @@ Mitigation: Keep the simulated nature explicit in the UI and in the planning doc
 Risk: `/import` could be treated as permanent storage rather than a staging desk for pasted emails, notes, and future files.
 
 Mitigation: Reinforce that `/import` is capture/staging only; classification, routing, parsing, and case creation stay out of scope for Sprint 002.
+
+## R013 - Case-data sprawl
+
+Risk: The case workbench could become too dense if list, detail, evidence, correspondence, and timeline are not clearly separated.
+
+Mitigation: Keep the list compact, keep the detail pane structured, and place decision, next action, evidence, and correspondence in distinct sections.
+
+## R014 - Prototype linkage confusion
+
+Risk: Session-only case creation or the create-from-intake placeholder could be mistaken for a real import-to-case bridge.
+
+Mitigation: Label the controls as placeholders and keep the docs explicit that import-to-case connection is not active yet.
+
+## R015 - Case evidence misunderstanding
+
+Risk: Users could confuse cases with evidence rather than treating cases as the operational unit.
+
+Mitigation: Keep the product rule visible in planning and UI copy: `/import` captures material, `/cases` manages the work, and evidence stays attached to the case.

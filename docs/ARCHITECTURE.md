@@ -17,6 +17,31 @@ No AI is required yet.
 No external email integration is required.
 No file parsing is required.
 
+## Sprint 003 Case Prototype Architecture
+
+Sprint 003 adds a client-side case management prototype on `/cases`.
+
+The case surface is structured around:
+
+- a compact mock case list;
+- a selected case detail pane;
+- a session-only Create Case drawer or form;
+- linked evidence cards;
+- linked correspondence tied to the selected case;
+- a timeline or activity rail;
+- placeholder attach evidence and create-from-intake controls.
+
+All case state is kept in React memory for the current session only.
+
+No persistence, no localStorage, no API routes, no database/Supabase, no AI/OpenAI, no import-to-case connection yet, no real file storage, no EML/PDF/OCR parsing, no Outlook integration, and no email sending are required for this sprint.
+
+## Current Sprint 003 Notes
+
+- Cases are the operational working unit.
+- Emails, documents, screenshots, notes, EMLs, quotes, and reports are evidence attached to a case.
+- `/import` captures material.
+- `/cases` manages the work.
+
 ## Routes
 
 - /
@@ -42,6 +67,10 @@ No file parsing is required.
 - ProjectWorkspace
 - ImportPanel
 - CaseList
+- CaseManagementWorkbench
+- CaseDetailPanel
+- EvidenceList
+- TimelinePanel
 - DraftReviewPanel
 - StatusBadge
 - EvidenceList

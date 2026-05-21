@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 002 complete.
+Sprint 003 complete.
 
 ## Active sprint
 
-Sprint 003 - Cases and evidence.
+Sprint 004 - AI intake, drafting, and red-team.
 
 ## Confirmed decisions
 
@@ -24,6 +24,8 @@ Sprint 003 - Cases and evidence.
 - Sprint 001 remains mock-data only with client-side filtering only and no AI, API routes, database, persistence, Outlook integration, email sending, upload logic, or EML parsing.
 - Sprint 002 added a manual intake workbench on `/import` with a paste/snippet/manual note form, source type, workspace assignment, status, sender/source, received or created date-time, body/content, tags/topic, a file upload placeholder, a recent intake/import batch list, a selected intake detail view, a simulated route-to-workspace action, a disabled Create case from this placeholder action, and a separate imported correspondence viewer.
 - Sprint 002 uses session-only React state and no localStorage, persistence, API routes, database/Supabase, AI/OpenAI, Outlook integration, email sending, real file storage, or EML/PDF/OCR parsing.
+- Sprint 003 added a `/cases` case management workbench with a mock case list, selected case detail pane, session-only Create Case drawer/form, case status, priority, category, owner/waiting party, age and due indicators, a Decision Required / Next Action section, linked evidence cards, linked correspondence tied to the selected case, a timeline/activity rail, and placeholder Attach evidence and Create from intake item actions.
+- Sprint 003 is mock-data only and uses session-only React state with seeded `caseRecords` and `evidenceRecords`, no persistence, no localStorage, no API routes, no database/Supabase, no AI/OpenAI, no import-to-case connection yet, no real file storage, no EML/PDF/OCR parsing, no Outlook integration, and no email sending.
 
 ## Next action
 
