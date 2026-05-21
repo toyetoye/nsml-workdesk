@@ -127,6 +127,75 @@ export type LinkedCorrespondenceItem = {
   latestNote: string;
 };
 
+export type CasePriority = "High" | "Medium" | "Low";
+
+export type CaseStatus =
+  | "Decision Required"
+  | "Needs Evidence"
+  | "Waiting on Vessel"
+  | "Waiting on Vendor"
+  | "Waiting on Class"
+  | "Waiting on Management"
+  | "Pending My Reply"
+  | "Monitoring";
+
+export type CaseTimelineEvent = {
+  id: string;
+  dateTime: string;
+  title: string;
+  note: string;
+  tone: StatusTone;
+};
+
+export type CaseRecord = {
+  caseId: string;
+  title: string;
+  summary: string;
+  workspaceKey: EmailThreadScope;
+  workspaceLabel: string;
+  vesselProject: string;
+  owner: string;
+  status: CaseStatus;
+  priority: CasePriority;
+  category: string;
+  openedDate: string;
+  age: string;
+  dueLabel: string;
+  waitingOn: string;
+  nextAction: string;
+  riskNote: string;
+  linkedThreads: string[];
+  linkedEvidence: string[];
+  timelineEvents: CaseTimelineEvent[];
+  decisionRequired: string;
+  tags: string[];
+  sourceIntakeRef: string;
+  workspaceHref: string;
+};
+
+export type EvidenceType =
+  | "email"
+  | "document"
+  | "image"
+  | "screenshot"
+  | "note"
+  | "quote"
+  | "report"
+  | "eml-placeholder";
+
+export type EvidenceStatus = "Linked" | "Needs Review" | "Pending";
+
+export type EvidenceRecord = {
+  evidenceId: string;
+  title: string;
+  type: EvidenceType;
+  source: string;
+  date: string;
+  linkedCaseId: string;
+  description: string;
+  status: EvidenceStatus;
+};
+
 export type WaitingOnType = "vessel" | "vendor" | "class" | "management";
 
 export type DraftReviewState = "ready" | "failed-red-team";
@@ -947,6 +1016,325 @@ export const linkedCorrespondence: LinkedCorrespondenceItem[] = [
     status: "Needs Evidence",
     threadCount: 1,
     latestNote: "Commercial scope still missing.",
+  },
+];
+
+export const caseStatuses: { value: CaseStatus; tone: StatusTone; label: string }[] = [
+  { value: "Decision Required", tone: "warning", label: "Decision Required" },
+  { value: "Needs Evidence", tone: "danger", label: "Needs Evidence" },
+  { value: "Waiting on Vessel", tone: "neutral", label: "Waiting on Vessel" },
+  { value: "Waiting on Vendor", tone: "neutral", label: "Waiting on Vendor" },
+  { value: "Waiting on Class", tone: "neutral", label: "Waiting on Class" },
+  { value: "Waiting on Management", tone: "neutral", label: "Waiting on Management" },
+  { value: "Pending My Reply", tone: "warning", label: "Pending My Reply" },
+  { value: "Monitoring", tone: "accent", label: "Monitoring" },
+];
+
+export const casePriorities: { value: CasePriority; label: string; tone: StatusTone }[] = [
+  { value: "High", label: "High", tone: "danger" },
+  { value: "Medium", label: "Medium", tone: "warning" },
+  { value: "Low", label: "Low", tone: "neutral" },
+];
+
+export const caseRecords: CaseRecord[] = [
+  {
+    caseId: "CASE-24-019",
+    title: "Insulation repair follow-up",
+    summary:
+      "AT10 correspondence about insulation repair status, missing photos, and a holding response.",
+    workspaceKey: "lpg-alfred-temile-10",
+    workspaceLabel: "LPG ALFRED TEMILE 10",
+    vesselProject: "LPG ALFRED TEMILE 10",
+    owner: "Toye Omolade",
+    status: "Decision Required",
+    priority: "High",
+    category: "Class / Technical",
+    openedDate: "18 May 2026",
+    age: "3 days",
+    dueLabel: "Decision due today",
+    waitingOn: "User decision and class evidence",
+    nextAction: "Confirm the evidence pack and decide whether to send a technical holding reply.",
+    riskNote: "A weak reply could create technical or commercial exposure for the vessel.",
+    linkedThreads: ["thread-1", "thread-5"],
+    linkedEvidence: ["EVID-019-1", "EVID-019-2"],
+    timelineEvents: [
+      {
+        id: "case-019-opened",
+        dateTime: "18 May 2026, 09:15",
+        title: "Case opened",
+        note: "Created from the insulation repair correspondence stream.",
+        tone: "neutral",
+      },
+      {
+        id: "case-019-evidence",
+        dateTime: "20 May 2026, 14:30",
+        title: "Evidence requested",
+        note: "Requested repair photos and supporting notes before reply.",
+        tone: "danger",
+      },
+      {
+        id: "case-019-decision",
+        dateTime: "21 May 2026, 08:42",
+        title: "Decision required",
+        note: "Needs a clear reply path before the next outward response.",
+        tone: "warning",
+      },
+    ],
+    decisionRequired:
+      "Choose whether to hold position until the evidence pack is complete or draft a short technical acknowledgment first.",
+    tags: ["AT10", "class", "repair", "evidence"],
+    sourceIntakeRef: "From intake item: Class survey note awaiting evidence",
+    workspaceHref: "/vessels/lpg-alfred-temile-10",
+  },
+  {
+    caseId: "CASE-24-011",
+    title: "Docking measurement review",
+    summary:
+      "LNG PORTHARCOURT II dock report needs vessel confirmation before the measurements can be closed out.",
+    workspaceKey: "lng-portharcourt-ii",
+    workspaceLabel: "LNG PORTHARCOURT II",
+    vesselProject: "LNG PORTHARCOURT II",
+    owner: "Toye Omolade",
+    status: "Waiting on Vessel",
+    priority: "Medium",
+    category: "Operations / Technical",
+    openedDate: "19 May 2026",
+    age: "2 days",
+    dueLabel: "Due tomorrow",
+    waitingOn: "Vessel team confirmation",
+    nextAction: "Check the latest vessel feedback and attach the measurement evidence.",
+    riskNote: "The shipyard conversation can stall if the measurement comments remain unresolved.",
+    linkedThreads: ["thread-2"],
+    linkedEvidence: ["EVID-011-1", "EVID-011-2"],
+    timelineEvents: [
+      {
+        id: "case-011-opened",
+        dateTime: "19 May 2026, 10:05",
+        title: "Case opened",
+        note: "Docking measurement review started from the latest correspondence.",
+        tone: "neutral",
+      },
+      {
+        id: "case-011-follow-up",
+        dateTime: "20 May 2026, 15:18",
+        title: "Waiting on vessel",
+        note: "Requested confirmation from the vessel team.",
+        tone: "neutral",
+      },
+      {
+        id: "case-011-evidence",
+        dateTime: "21 May 2026, 08:50",
+        title: "Evidence pending",
+        note: "Measurement sheet still needs the latest supporting confirmation.",
+        tone: "danger",
+      },
+    ],
+    decisionRequired:
+      "Confirm whether the measured values are final or whether a follow-up correction is needed.",
+    tags: ["docking", "measurements", "vessel", "evidence"],
+    sourceIntakeRef: "From intake item: Screenshot placeholder for vessel follow-up",
+    workspaceHref: "/vessels/lng-portharcourt-ii",
+  },
+  {
+    caseId: "CASE-24-007",
+    title: "Vendor quotation clarification",
+    summary:
+      "Project quotation needs a commercial clarification before the scope can be answered cleanly.",
+    workspaceKey: "projects",
+    workspaceLabel: "Projects",
+    vesselProject: "Projects",
+    owner: "Toye Omolade",
+    status: "Needs Evidence",
+    priority: "Medium",
+    category: "Procurement / Project",
+    openedDate: "17 May 2026",
+    age: "4 days",
+    dueLabel: "Due this week",
+    waitingOn: "Vendor quote attachment",
+    nextAction: "Attach the missing commercial detail and then review the decision path.",
+    riskNote: "A loose response could create pricing or scope exposure.",
+    linkedThreads: ["thread-3"],
+    linkedEvidence: ["EVID-007-1"],
+    timelineEvents: [
+      {
+        id: "case-007-opened",
+        dateTime: "17 May 2026, 13:20",
+        title: "Case opened",
+        note: "Vendor quote moved from intake into the projects workspace.",
+        tone: "neutral",
+      },
+      {
+        id: "case-007-query",
+        dateTime: "19 May 2026, 11:30",
+        title: "Clarification requested",
+        note: "Requested delivery term clarification from the vendor.",
+        tone: "warning",
+      },
+      {
+        id: "case-007-evidence",
+        dateTime: "21 May 2026, 09:12",
+        title: "Evidence still missing",
+        note: "Commercial quote attachment still needs to be linked.",
+        tone: "danger",
+      },
+    ],
+    decisionRequired:
+      "Decide whether the current quote can be accepted or should be returned for clarification.",
+    tags: ["project", "quotation", "vendor", "decision"],
+    sourceIntakeRef: "From intake item: Vendor quotation note for project review",
+    workspaceHref: "/projects",
+  },
+  {
+    caseId: "CASE-24-003",
+    title: "Management review note",
+    summary: "General workspace note waiting on approval before a draft response is released.",
+    workspaceKey: "other",
+    workspaceLabel: "Other / General Issues",
+    vesselProject: "Other / General Issues",
+    owner: "Toye Omolade",
+    status: "Pending My Reply",
+    priority: "Low",
+    category: "Management / General",
+    openedDate: "16 May 2026",
+    age: "5 days",
+    dueLabel: "Monitor only",
+    waitingOn: "User approval",
+    nextAction: "Review the wording and decide whether it should become a draft response.",
+    riskNote: "The note could leave with the wrong tone if it is not checked.",
+    linkedThreads: ["thread-4"],
+    linkedEvidence: ["EVID-003-1"],
+    timelineEvents: [
+      {
+        id: "case-003-opened",
+        dateTime: "16 May 2026, 09:00",
+        title: "Case opened",
+        note: "General management note captured in the Other workspace.",
+        tone: "neutral",
+      },
+      {
+        id: "case-003-review",
+        dateTime: "18 May 2026, 17:44",
+        title: "Draft review ready",
+        note: "A draft response can be prepared after manual approval.",
+        tone: "accent",
+      },
+      {
+        id: "case-003-pending",
+        dateTime: "21 May 2026, 10:00",
+        title: "Pending reply",
+        note: "Still waiting on the user to approve the final posture.",
+        tone: "warning",
+      },
+    ],
+    decisionRequired: "Approve the final wording or keep the item as monitoring only.",
+    tags: ["management", "general", "draft", "review"],
+    sourceIntakeRef: "From intake item: Manual note for management review",
+    workspaceHref: "/other",
+  },
+  {
+    caseId: "CASE-24-021",
+    title: "Vendor follow-up for LPG ALFRED TEMILE",
+    summary:
+      "Separate LPG ALFRED TEMILE workspace item waiting on vendor clarification and vessel preference.",
+    workspaceKey: "lpg-alfred-temile",
+    workspaceLabel: "LPG ALFRED TEMILE",
+    vesselProject: "LPG ALFRED TEMILE",
+    owner: "Toye Omolade",
+    status: "Waiting on Vendor",
+    priority: "Medium",
+    category: "Vendor / Vessel",
+    openedDate: "20 May 2026",
+    age: "1 day",
+    dueLabel: "Follow-up pending",
+    waitingOn: "Vendor and vessel preference",
+    nextAction: "Capture the vessel preference and keep the vendor informed.",
+    riskNote: "The vendor cannot finalize the quote until the vessel confirms the direction.",
+    linkedThreads: [],
+    linkedEvidence: [],
+    timelineEvents: [
+      {
+        id: "case-021-opened",
+        dateTime: "20 May 2026, 12:15",
+        title: "Case opened",
+        note: "Created for a vessel/vendor follow-up on LPG ALFRED TEMILE.",
+        tone: "neutral",
+      },
+      {
+        id: "case-021-follow-up",
+        dateTime: "21 May 2026, 09:30",
+        title: "Waiting on vendor",
+        note: "Vendor has not yet confirmed the revised quotation direction.",
+        tone: "neutral",
+      },
+    ],
+    decisionRequired:
+      "Confirm the next reply path or keep the item open while the vendor waits.",
+    tags: ["vendor", "vessel", "follow-up"],
+    sourceIntakeRef: "From intake item: Screenshot placeholder for vessel follow-up",
+    workspaceHref: "/vessels/lpg-alfred-temile",
+  },
+];
+
+export const evidenceRecords: EvidenceRecord[] = [
+  {
+    evidenceId: "EVID-019-1",
+    title: "Class survey email",
+    type: "email",
+    source: "Class Surveyor <survey@class.example>",
+    date: "21 May 2026, 08:42",
+    linkedCaseId: "CASE-24-019",
+    description: "Imported email asking for the latest repair photos and summary note.",
+    status: "Linked",
+  },
+  {
+    evidenceId: "EVID-019-2",
+    title: "Repair photo placeholder",
+    type: "image",
+    source: "Manual intake",
+    date: "21 May 2026, 09:10",
+    linkedCaseId: "CASE-24-019",
+    description: "Placeholder for the repair photo pack that will later be attached manually.",
+    status: "Pending",
+  },
+  {
+    evidenceId: "EVID-011-1",
+    title: "Docking measurement report",
+    type: "report",
+    source: "Shipyard Coordinator <yard@example.com>",
+    date: "20 May 2026, 15:18",
+    linkedCaseId: "CASE-24-011",
+    description: "Dock report that needs the vessel team to confirm outstanding comments.",
+    status: "Linked",
+  },
+  {
+    evidenceId: "EVID-011-2",
+    title: "Measurement sheet",
+    type: "document",
+    source: "Operations Desk",
+    date: "20 May 2026, 16:02",
+    linkedCaseId: "CASE-24-011",
+    description: "Supporting measurement spreadsheet for the docking review.",
+    status: "Linked",
+  },
+  {
+    evidenceId: "EVID-007-1",
+    title: "Vendor quotation",
+    type: "quote",
+    source: "Vendor Representative <vendor@example.com>",
+    date: "19 May 2026, 11:30",
+    linkedCaseId: "CASE-24-007",
+    description: "Commercial quotation attached for project clarification.",
+    status: "Needs Review",
+  },
+  {
+    evidenceId: "EVID-003-1",
+    title: "Management note",
+    type: "note",
+    source: "Assistant Note",
+    date: "18 May 2026, 17:44",
+    linkedCaseId: "CASE-24-003",
+    description: "General workspace note that can later become a draft response.",
+    status: "Linked",
   },
 ];
 
