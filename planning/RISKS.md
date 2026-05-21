@@ -113,3 +113,15 @@ Mitigation: Protect the shell with middleware and a server-side guard, and fail 
 Risk: Intake or case writes could bypass the server repository boundary and talk to Supabase directly.
 
 Mitigation: Keep all write operations behind server actions or safe server utilities and leave client components on fallback/session state.
+
+## R020 - Private upload trust gap
+
+Risk: Evidence uploads could be mistaken for parsed, validated, or publicly viewable content even though Sprint 006 only stores private binaries plus metadata.
+
+Mitigation: Keep the UI explicit about storage state, metadata-only handling, and the lack of file parsing, previews, or public URLs.
+
+## R021 - Malware exposure
+
+Risk: Broader file ingestion without scanning could introduce virus or malware risk.
+
+Mitigation: Treat virus/malware scanning as a required future control before less-controlled ingestion or wider file acceptance.

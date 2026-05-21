@@ -125,6 +125,41 @@ Decision, draft placeholder, and audit log tables provide foundation records for
 
 The app must continue to work when Supabase is not configured. In that case, repository helpers fall back to mock/session-compatible behavior and do not crash.
 
+## Sprint 006 Private Evidence Storage
+
+The evidence model gains private storage metadata and upload-state tracking for file evidence.
+
+Evidence records should now also capture:
+
+- original filename
+- stored path or key
+- MIME type
+- file size
+- source type
+- workspace assignment
+- linked intake item placeholder
+- linked case placeholder
+- uploaded or created date
+- evidence status
+- description or note
+- storage state
+
+Storage state should distinguish at least:
+
+- staged
+- uploaded
+- metadata-only
+- fallback-prototype
+
+The private evidence bucket should be represented as `nsml-evidence-files` in storage configuration and deployment notes.
+
+Evidence remains metadata-first in this sprint. The system must not claim to understand, parse, summarise, or validate file contents yet.
+
+`/import` is the private evidence upload and staging area.
+`/cases` is where the evidence record can be attached to the working case.
+
+No public file URLs, no file preview, no direct client-side Supabase Storage writes, and no file parsing are assumed for this sprint.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

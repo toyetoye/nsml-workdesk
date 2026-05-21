@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 005 complete.
+Sprint 006 complete.
 
 ## Active sprint
 
-Sprint 006 - online deployment and hardening.
+Sprint 007 - online deployment and hardening.
 
 ## Confirmed decisions
 
@@ -34,6 +34,9 @@ Sprint 006 - online deployment and hardening.
 - Sprint 005 keeps local development usable with a clear fallback when access-gate or Supabase environment variables are missing.
 - Sprint 005 preserves mock/session fallback for intake and case workflows when persistence is unavailable.
 - Sprint 005 does not add AI, file parsing, real file storage, Outlook integration, email sending, multi-user accounts, roles, or Supabase Auth.
+- Sprint 006 added a private Supabase Storage bucket foundation for evidence files, a server-side evidence upload action, a server-side storage helper, evidence metadata persistence through the repository layer, an `/import` private evidence upload and staging area, a `/cases` attach-evidence panel, and fallback/prototype behavior when Supabase/storage is not configured.
+- Sprint 006 keeps evidence uploads private, metadata-first, and server-side only; no public file URLs or client-side Supabase Storage writes are allowed.
+- Sprint 006 does not add file preview, file parsing, AI, Outlook integration, or email sending.
 
 ## Next action
 

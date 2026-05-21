@@ -32,3 +32,15 @@ No public file URLs, no client-side Supabase keys, and no direct client writes s
 Production deployments must fail closed if the access-gate env vars are missing.
 
 Production auth and private upload handling remain later-sprint concerns.
+
+## Sprint 006 Notes
+
+Sprint 006 adds private evidence storage foundation but still does not require deployment execution.
+
+Evidence uploads must use the private Supabase Storage bucket `nsml-evidence-files` and remain server-side only.
+
+Deployment should keep evidence files private, use metadata-only records when storage is unavailable, and avoid public file URLs.
+
+No file preview or parsing should be enabled at deployment time for this sprint.
+
+Virus/malware scanning should be treated as a required future deployment control before broader or less-controlled file ingestion.

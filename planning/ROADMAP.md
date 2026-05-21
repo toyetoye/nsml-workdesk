@@ -150,4 +150,26 @@ Notes:
 
 ## Sprint 006
 
+Complete.
+
+Delivered:
+
+- private Supabase Storage bucket foundation for evidence files
+- private bucket name `nsml-evidence-files`
+- server-side evidence upload action
+- server-side storage helper
+- evidence metadata persistence through the repository layer
+- `/import` private evidence upload and staging area
+- `/cases` attach-evidence panel
+- evidence metadata fields for filename, stored path/key, MIME type, file size, source type, workspace assignment, linked intake/case placeholders, evidence status, description/note, and storage state
+- fallback/prototype behavior when Supabase/storage is not configured
+
+Notes:
+
+- No public file URLs, no client-side Supabase Storage writes, no file preview, no file parsing, no AI, no Outlook integration, and no email sending.
+- Files are evidence. In Sprint 006, files may be uploaded or staged as private evidence records, but the system must not claim to understand, parse, summarise, or validate file contents until a later parsing/AI sprint.
+- Virus/malware scanning remains a future risk to address before broader or less-controlled file ingestion.
+
+## Sprint 007
+
 Online deployment and hardening.

@@ -95,3 +95,15 @@ Reason: The app needs a small, safe gate for online use without introducing mult
 Decision: Intake and case writes must flow through server actions or safe server utilities before they reach the repository boundary.
 
 Reason: Client components should not write to Supabase directly, and fallback behavior must remain explicit when persistence is unavailable.
+
+## D017 - Private evidence storage foundation
+
+Decision: Sprint 006 evidence uploads use a private Supabase Storage bucket named `nsml-evidence-files`, with server-side upload and metadata persistence only.
+
+Reason: Evidence files must remain private and server-mediated, with durable storage separated from UI state and no public file URLs exposed.
+
+## D018 - File contents remain opaque
+
+Decision: Sprint 006 treats files as evidence metadata and private binary storage only; the system does not claim to parse, summarize, or validate file contents yet.
+
+Reason: Parsing, AI interpretation, and validation belong to later controlled sprints after the storage foundation is proven safe.

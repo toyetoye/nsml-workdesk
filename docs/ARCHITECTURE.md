@@ -125,6 +125,33 @@ The app must continue to run locally without requiring Supabase, and the login/a
 - Repository helpers should be the only approved path for future Supabase read/write operations.
 - Intake and case write actions should pass through server-side helpers before touching the repository.
 
+## Sprint 006 Private Evidence Storage Architecture
+
+Sprint 006 adds a private evidence storage foundation for uploaded files and metadata-only evidence records.
+
+The storage architecture is structured around:
+
+- a private Supabase Storage bucket named `nsml-evidence-files`;
+- a server-side evidence upload action;
+- a server-side storage helper that handles upload or fallback behavior;
+- repository-backed evidence metadata persistence;
+- private evidence staging and upload surfaces in `/import`;
+- case-scoped attach-evidence surfaces in `/cases`.
+
+Evidence uploads must remain server-side only.
+
+Client components must not write directly to Supabase Storage.
+
+The app must continue to run when Supabase storage is not configured, using explicit staged or fallback-prototype behavior rather than pretending durable storage exists.
+
+No public file URLs, no file previews, and no file parsing are required in this sprint.
+
+## Sprint 006 Notes
+
+Files are evidence. Sprint 006 stores files privately and records metadata only; it does not claim to understand, parse, summarise, or validate file contents yet.
+
+Virus/malware scanning is a future control that must be addressed before broader or less-controlled ingestion.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.

@@ -17,3 +17,8 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Make the app fall back safely when Supabase environment variables are missing.
 - Protect the app with a single-user gate using a signed HTTP-only session cookie.
 - Fail closed in production if the access-gate environment variables are missing.
+- Keep evidence uploads private and server-side only.
+- Do not expose public file URLs for evidence.
+- Do not let client components write directly to Supabase Storage.
+- Do not claim to understand, parse, summarize, or validate file contents until a later parsing/AI sprint.
+- Treat virus/malware scanning as a future control before broader or less-controlled file ingestion.
