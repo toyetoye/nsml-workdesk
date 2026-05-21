@@ -80,16 +80,24 @@ export type CaseRow = {
 
 export type EvidenceRow = {
   evidence_id: string;
-  case_id: string;
+  case_id: string | null;
   title: string;
   type: string;
   source: string;
   date: string;
   description: string;
   status: string;
+  storage_state: string;
+  source_type: string;
+  workspace_assignment: string;
+  linked_intake_item_ref: string | null;
+  linked_case_ref: string | null;
+  original_filename: string | null;
+  file_size_bytes: number | null;
   storage_bucket: string | null;
   storage_path: string | null;
   mime_type: string | null;
+  uploaded_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -217,13 +225,24 @@ export type CaseInput = Partial<CaseRow> & {
 
 export type EvidenceInput = Partial<EvidenceRow> & {
   evidence_id?: string;
-  case_id: string;
+  case_id?: string | null;
   title: string;
   type: string;
   source: string;
   date: string;
   description: string;
   status: string;
+  storage_state?: string;
+  source_type?: string;
+  workspace_assignment?: string;
+  linked_intake_item_ref?: string | null;
+  linked_case_ref?: string | null;
+  original_filename?: string | null;
+  file_size_bytes?: number | null;
+  storage_bucket?: string | null;
+  storage_path?: string | null;
+  mime_type?: string | null;
+  uploaded_at?: string | null;
 };
 
 export type CorrespondenceThreadInput = Partial<CorrespondenceThreadRow> & {

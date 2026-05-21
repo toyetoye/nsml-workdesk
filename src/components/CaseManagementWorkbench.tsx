@@ -13,6 +13,7 @@ import {
   Activity,
   ArrowRight,
   Clock3,
+  FileUp,
   Link2,
   Paperclip,
   PlusCircle,
@@ -22,16 +23,18 @@ import {
   allWorkspaces,
   casePriorities,
   caseStatuses,
-  evidenceRecords,
   importedEmailThreads,
   type CasePriority,
   type CaseRecord,
   type CaseStatus,
   type EvidenceRecord,
   type EmailStatus,
+  type ImportWorkspaceAssignment,
   type StatusTone,
 } from "@/lib/mock-data";
 import { saveCaseAction } from "@/app/(protected)/cases/actions";
+import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
+import { formatEvidenceSize } from "@/lib/workbench-data";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type CreateCaseFormState = {
@@ -81,15 +84,18 @@ const evidenceTypeTone: Record<EvidenceRecord["type"], StatusTone> = {
 
 export function CaseManagementWorkbench({
   initialCases,
+  initialEvidence,
   persistenceEnabled,
 }: {
   initialCases: CaseRecord[];
+  initialEvidence: EvidenceRecord[];
   persistenceEnabled: boolean;
 }) {
   const [cases, setCases] = useState<CaseRecord[]>(() => initialCases);
-  const [evidence] = useState<EvidenceRecord[]>(() => evidenceRecords);
+  const [evidence, setEvidence] = useState<EvidenceRecord[]>(() => initialEvidence);
   const [selectedCaseId, setSelectedCaseId] = useState<string>(initialCases[0]?.caseId ?? "");
   const [createOpen, setCreateOpen] = useState(false);
+  const [attachOpen, setAttachOpen] = useState(false);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createForm, setCreateForm] = useState<CreateCaseFormState>(() => ({
@@ -117,7 +123,10 @@ export function CaseManagementWorkbench({
       return [];
     }
 
-    return evidence.filter((item) => item.linkedCaseId === selectedCase.caseId);
+    return evidence.filter(
+      (item) =>
+        item.linkedCaseId === selectedCase.caseId || item.linkedCaseRef === selectedCase.caseId,
+    );
   }, [evidence, selectedCase]);
 
   const selectedThreads = useMemo(() => {
@@ -443,8 +452,13 @@ export function CaseManagementWorkbench({
                         Linked evidence
                       </h3>
                     </div>
-                    <button type="button" className="btn-secondary px-3 py-2 text-sm" disabled>
-                      Attach evidence
+                    <button
+                      type="button"
+                      className="btn-secondary px-3 py-2 text-sm"
+                      onClick={() => setAttachOpen((current) => !current)}
+                    >
+                      <FileUp aria-hidden size={14} />
+                      {attachOpen ? "Hide attach panel" : "Attach evidence"}
                     </button>
                   </div>
 
@@ -462,8 +476,29 @@ export function CaseManagementWorkbench({
                                 <StatusBadge tone={evidenceTypeTone[item.type]}>
                                   {item.type}
                                 </StatusBadge>
-                                <StatusBadge tone={item.status === "Needs Review" ? "warning" : item.status === "Pending" ? "neutral" : "accent"}>
+                                <StatusBadge
+                                  tone={
+                                    item.status === "Needs Review"
+                                      ? "warning"
+                                      : item.status === "Pending"
+                                        ? "neutral"
+                                        : "accent"
+                                  }
+                                >
                                   {item.status}
+                                </StatusBadge>
+                                <StatusBadge
+                                  tone={
+                                    item.storageState === "uploaded"
+                                      ? "accent"
+                                      : item.storageState === "fallback-prototype"
+                                        ? "danger"
+                                        : item.storageState === "staged"
+                                          ? "warning"
+                                          : "neutral"
+                                  }
+                                >
+                                  {item.storageState}
                                 </StatusBadge>
                               </div>
                               <p className="mt-1 text-xs text-slate-500">
@@ -477,6 +512,30 @@ export function CaseManagementWorkbench({
                           <p className="mt-2 text-sm leading-6 text-slate-600">
                             {item.description}
                           </p>
+                          <div className="mt-3 grid gap-2 md:grid-cols-2">
+                            <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                File / storage
+                              </p>
+                              <p className="mt-1 text-xs text-slate-700">
+                                {item.originalFilename ?? "No filename yet"}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                {item.mimeType ?? "Unknown MIME"} · {formatEvidenceSize(item.fileSizeBytes)}
+                              </p>
+                            </div>
+                            <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
+                              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                Links
+                              </p>
+                              <p className="mt-1 text-xs text-slate-700">
+                                Intake: {item.linkedIntakeItemRef}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-700">
+                                Case: {item.linkedCaseRef}
+                              </p>
+                            </div>
+                          </div>
                         </article>
                       ))
                     ) : (
@@ -537,6 +596,29 @@ export function CaseManagementWorkbench({
                   </div>
                 </section>
               </div>
+
+              {attachOpen && selectedCase ? (
+                <div className="mt-4">
+                  <EvidenceStorageWorkbench
+                    key={`${selectedCase.caseId}-attach`}
+                    initialEvidence={selectedEvidence}
+                    persistenceEnabled={persistenceEnabled}
+                    mode="case"
+                    selectedCaseId={selectedCase.caseId}
+                    selectedCaseLabel={selectedCase.title}
+                    defaultWorkspaceAssignment={
+                      selectedCase.workspaceLabel as ImportWorkspaceAssignment
+                    }
+                    compact
+                    onEvidenceSaved={(record) => {
+                      setEvidence((current) => [
+                        record,
+                        ...current.filter((item) => item.evidenceId !== record.evidenceId),
+                      ]);
+                    }}
+                  />
+                </div>
+              ) : null}
 
               <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
                 <div className="flex items-center gap-2">

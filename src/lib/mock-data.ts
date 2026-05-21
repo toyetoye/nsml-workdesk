@@ -185,15 +185,28 @@ export type EvidenceType =
 
 export type EvidenceStatus = "Linked" | "Needs Review" | "Pending";
 
+export type EvidenceStorageState = "staged" | "uploaded" | "metadata-only" | "fallback-prototype";
+
 export type EvidenceRecord = {
   evidenceId: string;
   title: string;
   type: EvidenceType;
   source: string;
   date: string;
-  linkedCaseId: string;
+  linkedCaseId: string | null;
   description: string;
   status: EvidenceStatus;
+  storageState: EvidenceStorageState;
+  sourceType: ImportSourceType;
+  workspaceAssignment: ImportWorkspaceAssignment;
+  linkedIntakeItemRef: string;
+  linkedCaseRef: string;
+  originalFilename: string | null;
+  fileSizeBytes: number | null;
+  storageBucket: string | null;
+  storagePath: string | null;
+  mimeType: string | null;
+  uploadedAt: string | null;
 };
 
 export type WaitingOnType = "vessel" | "vendor" | "class" | "management";
@@ -1285,6 +1298,17 @@ export const evidenceRecords: EvidenceRecord[] = [
     linkedCaseId: "CASE-24-019",
     description: "Imported email asking for the latest repair photos and summary note.",
     status: "Linked",
+    storageState: "metadata-only",
+    sourceType: "pasted-email",
+    workspaceAssignment: "LPG ALFRED TEMILE 10",
+    linkedIntakeItemRef: "Class survey note awaiting evidence",
+    linkedCaseRef: "CASE-24-019",
+    originalFilename: "class-survey-message.eml",
+    fileSizeBytes: 31744,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "message/rfc822",
+    uploadedAt: "21 May 2026, 08:42",
   },
   {
     evidenceId: "EVID-019-2",
@@ -1295,6 +1319,17 @@ export const evidenceRecords: EvidenceRecord[] = [
     linkedCaseId: "CASE-24-019",
     description: "Placeholder for the repair photo pack that will later be attached manually.",
     status: "Pending",
+    storageState: "metadata-only",
+    sourceType: "screenshot-placeholder",
+    workspaceAssignment: "LPG ALFRED TEMILE 10",
+    linkedIntakeItemRef: "Screenshot placeholder for vessel follow-up",
+    linkedCaseRef: "CASE-24-019",
+    originalFilename: "repair-photo-1.png",
+    fileSizeBytes: 224512,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "image/png",
+    uploadedAt: "21 May 2026, 09:10",
   },
   {
     evidenceId: "EVID-011-1",
@@ -1305,6 +1340,17 @@ export const evidenceRecords: EvidenceRecord[] = [
     linkedCaseId: "CASE-24-011",
     description: "Dock report that needs the vessel team to confirm outstanding comments.",
     status: "Linked",
+    storageState: "metadata-only",
+    sourceType: "document-placeholder",
+    workspaceAssignment: "LNG PORTHARCOURT II",
+    linkedIntakeItemRef: "Docking measurement review",
+    linkedCaseRef: "CASE-24-011",
+    originalFilename: "docking-measurement-report.pdf",
+    fileSizeBytes: 190412,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "application/pdf",
+    uploadedAt: "20 May 2026, 15:18",
   },
   {
     evidenceId: "EVID-011-2",
@@ -1315,6 +1361,17 @@ export const evidenceRecords: EvidenceRecord[] = [
     linkedCaseId: "CASE-24-011",
     description: "Supporting measurement spreadsheet for the docking review.",
     status: "Linked",
+    storageState: "metadata-only",
+    sourceType: "document-placeholder",
+    workspaceAssignment: "LNG PORTHARCOURT II",
+    linkedIntakeItemRef: "Screenshot placeholder for vessel follow-up",
+    linkedCaseRef: "CASE-24-011",
+    originalFilename: "measurement-sheet.xlsx",
+    fileSizeBytes: 93824,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    uploadedAt: "20 May 2026, 16:02",
   },
   {
     evidenceId: "EVID-007-1",
@@ -1325,6 +1382,17 @@ export const evidenceRecords: EvidenceRecord[] = [
     linkedCaseId: "CASE-24-007",
     description: "Commercial quotation attached for project clarification.",
     status: "Needs Review",
+    storageState: "metadata-only",
+    sourceType: "document-placeholder",
+    workspaceAssignment: "Projects",
+    linkedIntakeItemRef: "Vendor quotation note for project review",
+    linkedCaseRef: "CASE-24-007",
+    originalFilename: "vendor-quotation.pdf",
+    fileSizeBytes: 198912,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "application/pdf",
+    uploadedAt: "19 May 2026, 11:30",
   },
   {
     evidenceId: "EVID-003-1",
@@ -1335,6 +1403,80 @@ export const evidenceRecords: EvidenceRecord[] = [
     linkedCaseId: "CASE-24-003",
     description: "General workspace note that can later become a draft response.",
     status: "Linked",
+    storageState: "metadata-only",
+    sourceType: "manual-note",
+    workspaceAssignment: "Other",
+    linkedIntakeItemRef: "Manual note for management review",
+    linkedCaseRef: "CASE-24-003",
+    originalFilename: null,
+    fileSizeBytes: null,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: null,
+    uploadedAt: "18 May 2026, 17:44",
+  },
+  {
+    evidenceId: "EVID-STAGE-001",
+    title: "Incoming EML upload staging",
+    type: "eml-placeholder",
+    source: "Import staging",
+    date: "21 May 2026, 10:18",
+    linkedCaseId: null,
+    description: "A staged EML file waiting for private upload and later classification.",
+    status: "Pending",
+    storageState: "staged",
+    sourceType: "eml-placeholder",
+    workspaceAssignment: "Import/Staging",
+    linkedIntakeItemRef: "Class survey note awaiting evidence",
+    linkedCaseRef: "Evidence case placeholder",
+    originalFilename: "incoming-message.eml",
+    fileSizeBytes: 31744,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "message/rfc822",
+    uploadedAt: null,
+  },
+  {
+    evidenceId: "EVID-STAGE-002",
+    title: "Imported screenshot pending upload",
+    type: "screenshot",
+    source: "Import staging",
+    date: "21 May 2026, 10:28",
+    linkedCaseId: null,
+    description: "Screenshot evidence staged for future private upload.",
+    status: "Needs Review",
+    storageState: "staged",
+    sourceType: "screenshot-placeholder",
+    workspaceAssignment: "Import/Staging",
+    linkedIntakeItemRef: "Screenshot placeholder for vessel follow-up",
+    linkedCaseRef: "Evidence case placeholder",
+    originalFilename: "docking-note.png",
+    fileSizeBytes: 224512,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: "image/png",
+    uploadedAt: null,
+  },
+  {
+    evidenceId: "EVID-STAGE-003",
+    title: "Manual note metadata only",
+    type: "note",
+    source: "Import staging",
+    date: "21 May 2026, 10:41",
+    linkedCaseId: null,
+    description: "Metadata-only intake evidence with no attached file yet.",
+    status: "Pending",
+    storageState: "fallback-prototype",
+    sourceType: "manual-note",
+    workspaceAssignment: "Import/Staging",
+    linkedIntakeItemRef: "Manual note for management review",
+    linkedCaseRef: "Evidence case placeholder",
+    originalFilename: null,
+    fileSizeBytes: null,
+    storageBucket: null,
+    storagePath: null,
+    mimeType: null,
+    uploadedAt: null,
   },
 ];
 

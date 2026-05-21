@@ -4,6 +4,9 @@ import {
   type CaseRecord,
   type CaseStatus,
   type CaseTimelineEvent,
+  type EvidenceRecord,
+  type EvidenceStatus,
+  type EvidenceStorageState,
   type ImportIntakeItem,
   type ImportIntakeStatus,
   type ImportSourceType,
@@ -12,6 +15,7 @@ import {
 } from "@/lib/mock-data";
 import type {
   CaseRow,
+  EvidenceRow,
   IntakeItemRow,
   TimelineEventRow,
 } from "@/lib/persistence/types";
@@ -44,6 +48,26 @@ type CaseSubmission = {
   tags: string;
 };
 
+type EvidenceSubmission = {
+  evidenceId?: string;
+  title: string;
+  sourceType: ImportSourceType;
+  workspaceAssignment: ImportWorkspaceAssignment;
+  status: EvidenceStatus;
+  description: string;
+  linkedIntakeItemRef: string;
+  linkedCaseRef: string;
+  linkedCaseId: string | null;
+  sourceLabel: string;
+  fileName: string | null;
+  fileSizeBytes: number | null;
+  mimeType: string | null;
+  storageState: EvidenceStorageState;
+  storageBucket: string | null;
+  storagePath: string | null;
+  uploadedAt: string | null;
+};
+
 function formatDisplayDateTime(value: string) {
   const parsed = new Date(value);
 
@@ -55,6 +79,48 @@ function formatDisplayDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(parsed);
+}
+
+function formatEvidenceDate(value: string | null) {
+  if (!value) {
+    return "Not uploaded yet";
+  }
+
+  return formatDisplayDateTime(value);
+}
+
+function sourceTypeToEvidenceType(sourceType: ImportSourceType): EvidenceRecord["type"] {
+  switch (sourceType) {
+    case "manual-note":
+      return "note";
+    case "screenshot-placeholder":
+      return "screenshot";
+    case "document-placeholder":
+      return "document";
+    case "eml-placeholder":
+      return "eml-placeholder";
+    case "pasted-email":
+    default:
+      return "email";
+  }
+}
+
+export function formatEvidenceSize(bytes: number | null) {
+  if (!bytes || bytes <= 0) {
+    return "Unknown size";
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  const kib = bytes / 1024;
+
+  if (kib < 1024) {
+    return `${kib.toFixed(1)} KB`;
+  }
+
+  return `${(kib / 1024).toFixed(1)} MB`;
 }
 
 function createRouteNote(workspaceAssignment: ImportWorkspaceAssignment) {
@@ -219,4 +285,52 @@ export function mapCaseRowsToRecords(
   }));
 }
 
-export type { IntakeSubmission, CaseSubmission };
+export function buildEvidenceRecordFromSubmission(submission: EvidenceSubmission): EvidenceRecord {
+  return {
+    evidenceId: submission.evidenceId ?? `EVID-${Date.now()}`,
+    title: submission.title.trim() || "Untitled evidence",
+    type: sourceTypeToEvidenceType(submission.sourceType),
+    source: submission.sourceLabel.trim() || "Evidence upload",
+    date: formatEvidenceDate(submission.uploadedAt),
+    linkedCaseId: submission.linkedCaseId,
+    description: submission.description.trim() || "No description captured yet.",
+    status: submission.status,
+    storageState: submission.storageState,
+    sourceType: submission.sourceType,
+    workspaceAssignment: submission.workspaceAssignment,
+    linkedIntakeItemRef: submission.linkedIntakeItemRef.trim() || "Evidence intake placeholder",
+    linkedCaseRef: submission.linkedCaseRef.trim() || "Evidence case placeholder",
+    originalFilename: submission.fileName,
+    fileSizeBytes: submission.fileSizeBytes,
+    storageBucket: submission.storageBucket,
+    storagePath: submission.storagePath,
+    mimeType: submission.mimeType,
+    uploadedAt: submission.uploadedAt,
+  };
+}
+
+export function mapEvidenceRowsToRecords(rows: EvidenceRow[]): EvidenceRecord[] {
+  return rows.map((row) => ({
+    evidenceId: row.evidence_id,
+    title: row.title,
+    type: row.type as EvidenceRecord["type"],
+    source: row.source,
+    date: formatEvidenceDate(row.uploaded_at ?? row.created_at),
+    linkedCaseId: row.case_id,
+    description: row.description,
+    status: row.status as EvidenceStatus,
+    storageState: row.storage_state as EvidenceStorageState,
+    sourceType: row.source_type as ImportSourceType,
+    workspaceAssignment: row.workspace_assignment as ImportWorkspaceAssignment,
+    linkedIntakeItemRef: row.linked_intake_item_ref ?? "Evidence intake placeholder",
+    linkedCaseRef: row.linked_case_ref ?? row.case_id ?? "Evidence case placeholder",
+    originalFilename: row.original_filename ?? null,
+    fileSizeBytes: row.file_size_bytes ?? null,
+    storageBucket: row.storage_bucket ?? null,
+    storagePath: row.storage_path ?? null,
+    mimeType: row.mime_type ?? null,
+    uploadedAt: row.uploaded_at ?? null,
+  }));
+}
+
+export type { IntakeSubmission, CaseSubmission, EvidenceSubmission };

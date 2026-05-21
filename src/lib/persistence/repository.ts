@@ -176,16 +176,24 @@ function toCaseRow(item: CaseRecord): CaseRow {
 function toEvidenceRow(item: (typeof evidenceRecords)[number]): EvidenceRow {
   return {
     evidence_id: item.evidenceId,
-    case_id: item.linkedCaseId,
+    case_id: item.linkedCaseId || null,
     title: item.title,
     type: item.type,
     source: item.source,
     date: item.date,
     description: item.description,
     status: item.status,
+    storage_state: item.storageState,
+    source_type: item.sourceType,
+    workspace_assignment: item.workspaceAssignment,
+    linked_intake_item_ref: item.linkedIntakeItemRef,
+    linked_case_ref: item.linkedCaseRef,
+    original_filename: item.originalFilename,
+    file_size_bytes: item.fileSizeBytes,
     storage_bucket: null,
     storage_path: null,
     mime_type: null,
+    uploaded_at: item.uploadedAt,
     created_at: nowIso(),
     updated_at: nowIso(),
   };
@@ -265,13 +273,15 @@ function createFallbackStore(): PersistenceStore {
 
   const correspondence_messages = importedEmailThreads.flatMap(toMessageRows);
   const import_batches = recentImportActivity.map(toImportBatchRow);
-  const case_evidence_links = evidence_items.map((evidence) => ({
-    link_id: `link-${evidence.evidence_id}`,
-    case_id: evidence.case_id,
-    evidence_id: evidence.evidence_id,
-    link_role: "primary",
-    created_at: nowIso(),
-  }));
+  const case_evidence_links = evidence_items
+    .filter((evidence) => Boolean(evidence.case_id))
+    .map((evidence) => ({
+      link_id: `link-${evidence.evidence_id}`,
+      case_id: evidence.case_id ?? "",
+      evidence_id: evidence.evidence_id,
+      link_role: "primary",
+      created_at: nowIso(),
+    }));
   const case_correspondence_links = correspondence_threads
     .filter((thread) => thread.case_id)
     .map((thread) => ({
@@ -522,7 +532,10 @@ export async function listEvidence(caseId?: string) {
   }
 
   const client = getRepoClient();
-  let query = client.from("evidence_items").select("*").order("date", { ascending: false });
+  let query = client
+    .from("evidence_items")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (caseId) {
     query = query.eq("case_id", caseId);
@@ -537,26 +550,34 @@ export async function listEvidence(caseId?: string) {
   return data as EvidenceRow[];
 }
 
-export async function saveEvidence(input: EvidenceInput) {
+export async function saveEvidence(input: EvidenceInput): Promise<WriteResult<EvidenceRow>> {
   const row: EvidenceRow = {
     evidence_id: input.evidence_id ?? `evidence-${randomUUID()}`,
-    case_id: input.case_id,
+    case_id: input.case_id ?? null,
     title: input.title,
     type: input.type,
     source: input.source,
     date: input.date,
     description: input.description,
     status: input.status,
+    storage_state: input.storage_state ?? "metadata-only",
+    source_type: input.source_type ?? input.type,
+    workspace_assignment: input.workspace_assignment ?? "Import/Staging",
+    linked_intake_item_ref: input.linked_intake_item_ref ?? null,
+    linked_case_ref: input.linked_case_ref ?? null,
+    original_filename: input.original_filename ?? null,
+    file_size_bytes: input.file_size_bytes ?? null,
     storage_bucket: input.storage_bucket ?? null,
     storage_path: input.storage_path ?? null,
     mime_type: input.mime_type ?? null,
+    uploaded_at: input.uploaded_at ?? null,
     created_at: input.created_at ?? nowIso(),
     updated_at: nowIso(),
   };
 
   if (!isPersistenceAvailable()) {
     upsertById(fallbackStore.evidence_items, "evidence_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
   const client = getRepoClient();
@@ -564,10 +585,10 @@ export async function saveEvidence(input: EvidenceInput) {
 
   if (error || !data) {
     upsertById(fallbackStore.evidence_items, "evidence_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
-  return data as EvidenceRow;
+  return { row: data as EvidenceRow, persisted: true };
 }
 
 export async function listCorrespondenceThreads(caseId?: string) {

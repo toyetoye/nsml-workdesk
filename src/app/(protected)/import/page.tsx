@@ -1,18 +1,27 @@
 import { EmailWorkbench } from "@/components/EmailWorkbench";
+import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
-import { listIntakeItems } from "@/lib/persistence/repository";
-import { mapIntakeRowsToItems } from "@/lib/workbench-data";
+import { listEvidence, listIntakeItems } from "@/lib/persistence/repository";
+import { mapEvidenceRowsToRecords, mapIntakeRowsToItems } from "@/lib/workbench-data";
 
 export default async function ImportPage() {
-  const intakeRows = await listIntakeItems();
+  const [intakeRows, evidenceRows] = await Promise.all([listIntakeItems(), listEvidence()]);
   const initialItems = mapIntakeRowsToItems(intakeRows);
+  const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
 
   return (
     <section className="space-y-6">
       <ImportIntakeWorkbench
         initialItems={initialItems}
         persistenceEnabled={isPersistenceAvailable()}
+      />
+
+      <EvidenceStorageWorkbench
+        initialEvidence={initialEvidence}
+        persistenceEnabled={isPersistenceAvailable()}
+        mode="import"
+        defaultWorkspaceAssignment="Import/Staging"
       />
 
       <EmailWorkbench
