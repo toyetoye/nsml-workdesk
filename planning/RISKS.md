@@ -89,3 +89,15 @@ Mitigation: Label the controls as placeholders and keep the docs explicit that i
 Risk: Users could confuse cases with evidence rather than treating cases as the operational unit.
 
 Mitigation: Keep the product rule visible in planning and UI copy: `/import` captures material, `/cases` manages the work, and evidence stays attached to the case.
+
+## R016 - Unsafe Supabase access
+
+Risk: Direct client-side Supabase writes or queries could expose sensitive NSML material or create brittle runtime behavior.
+
+Mitigation: Keep persistence behind server-side repository utilities, use a no-op fallback when environment variables are missing, and avoid client components talking to Supabase directly.
+
+## R017 - Missing environment variables
+
+Risk: The app could crash or become unavailable when Supabase env vars are not configured.
+
+Mitigation: Make the persistence layer optional and keep mock/session behavior available as the default fallback.

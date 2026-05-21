@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 003 complete.
+Sprint 004 complete.
 
 ## Active sprint
 
-Sprint 004 - AI intake, drafting, and red-team.
+Sprint 005 - search, archive, and timeline.
 
 ## Confirmed decisions
 
@@ -26,6 +26,10 @@ Sprint 004 - AI intake, drafting, and red-team.
 - Sprint 002 uses session-only React state and no localStorage, persistence, API routes, database/Supabase, AI/OpenAI, Outlook integration, email sending, real file storage, or EML/PDF/OCR parsing.
 - Sprint 003 added a `/cases` case management workbench with a mock case list, selected case detail pane, session-only Create Case drawer/form, case status, priority, category, owner/waiting party, age and due indicators, a Decision Required / Next Action section, linked evidence cards, linked correspondence tied to the selected case, a timeline/activity rail, and placeholder Attach evidence and Create from intake item actions.
 - Sprint 003 is mock-data only and uses session-only React state with seeded `caseRecords` and `evidenceRecords`, no persistence, no localStorage, no API routes, no database/Supabase, no AI/OpenAI, no import-to-case connection yet, no real file storage, no EML/PDF/OCR parsing, no Outlook integration, and no email sending.
+- Sprint 004 added the Supabase persistence foundation with database migrations, seeded confirmed workspaces, RLS-enabled tables, typed persistence models, safe persistence config, a no-op/fallback persistence client, repository helpers, and neutralized old direct Supabase access paths.
+- Sprint 004 converted `src/lib/supabase.ts` into a compatibility shim and changed `src/lib/memory.ts` so it no longer directly queries Supabase.
+- Sprint 004 keeps the app usable without Supabase configured and preserves the current mock/session-based UI behavior.
+- Sprint 004 does not add AI, file parsing, real file storage, Outlook integration, email sending, or auth.
 
 ## Next action
 

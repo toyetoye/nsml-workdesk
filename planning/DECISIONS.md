@@ -77,3 +77,9 @@ Reason: `/import` captures material, while `/cases` is where work is managed, de
 Decision: Sprint 003 case creation, selection, evidence display, and timeline state live only in client-side React memory for the current session.
 
 Reason: This keeps the case prototype lightweight while avoiding implied persistence, import linkage, or backend workflow before the next approved sprint.
+
+## D014 - Safe persistence foundation
+
+Decision: Persistence must stay behind safe server-side repository utilities; client components must not write directly to Supabase.
+
+Reason: The foundation should support future persistence without exposing secrets, unsafe client-side writes, or crashes when Supabase environment variables are missing.

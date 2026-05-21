@@ -3,7 +3,7 @@
 ## Recommended Stack
 
 - Next.js frontend/app framework
-- Supabase Postgres for database, later sprint
+- Supabase Postgres for database foundation and later sprint persistence
 - Supabase Storage or S3-compatible storage, later sprint
 - OpenAI API for structured AI workflows, later sprint
 - Single-user authentication, deployment sprint
@@ -42,6 +42,26 @@ No persistence, no localStorage, no API routes, no database/Supabase, no AI/Open
 - `/import` captures material.
 - `/cases` manages the work.
 
+## Sprint 004 Persistence Foundation Architecture
+
+Sprint 004 adds a safe persistence foundation for imports, cases, evidence metadata, correspondence metadata, and timeline records.
+
+The persistence layer is structured around:
+
+- typed database models for the core tables;
+- server-side repository helpers for save and retrieve operations;
+- a safe persistence config reader;
+- a no-op/fallback persistence client when Supabase env vars are missing;
+- neutralized old direct Supabase access paths.
+
+The current UI remains mock/session-based when persistence is not configured.
+
+Client components must not write directly to Supabase.
+
+If Supabase environment variables are missing, the app must continue to run with fallback behavior rather than crash.
+
+No real file storage, EML/PDF/OCR parsing, Outlook integration, or AI is required in this sprint.
+
 ## Routes
 
 - /
@@ -74,6 +94,12 @@ No persistence, no localStorage, no API routes, no database/Supabase, no AI/Open
 - DraftReviewPanel
 - StatusBadge
 - EvidenceList
+
+## Persistence Notes
+
+- `src/lib/supabase.ts` is a compatibility shim rather than a direct client-side access path.
+- `src/lib/memory.ts` no longer queries Supabase directly.
+- Repository helpers should be the only approved path for future Supabase read/write operations.
 
 ## Future Architecture Notes
 

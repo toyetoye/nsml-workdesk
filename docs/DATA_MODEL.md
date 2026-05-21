@@ -85,6 +85,46 @@ Prototype case collections should support:
 
 No persistence, localStorage, backend import connection, real file storage, or real case storage should be assumed for the Sprint 003 case prototype.
 
+## Sprint 004 Persistence Foundation
+
+The persistence layer introduces typed database-backed records and safe repository helpers for the main work objects.
+
+Primary persisted tables and records should include:
+
+- `workspaces`
+- `import_batches`
+- `intake_items`
+- `cases`
+- `evidence_items`
+- `correspondence_threads`
+- `correspondence_messages`
+- `case_evidence_links`
+- `case_correspondence_links`
+- `timeline_events`
+- `decisions`
+- `draft_responses_placeholder`
+- `audit_logs`
+
+Workspace records should capture confirmed workspace slugs and labels.
+
+Import batch records should group intake activity and intake items.
+
+Intake items should preserve pasted or staged source metadata, workspace assignment, status, sender/source, received or created time, body/content, tags, and routing notes.
+
+Case records should preserve operational case metadata, status, priority, category, owner, waiting party, age/due indicators, next action, and decision state.
+
+Evidence records should preserve metadata only for now, including the evidence type, source, date, linked case, description, and status.
+
+Correspondence thread and message records should preserve subject, sender, recipients, cc, timestamps, message order, and links to cases.
+
+Timeline event records should preserve activity order, event type, label, note, and timestamp for the active case.
+
+Link tables should preserve case-to-evidence and case-to-correspondence relationships.
+
+Decision, draft placeholder, and audit log tables provide foundation records for later workflow stages.
+
+The app must continue to work when Supabase is not configured. In that case, repository helpers fall back to mock/session-compatible behavior and do not crash.
+
 ## Future Primary Objects
 
 - Workspace

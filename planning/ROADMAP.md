@@ -107,7 +107,27 @@ Notes:
 
 ## Sprint 004
 
-AI intake, drafting, and red-team.
+Complete.
+
+Delivered:
+
+- Supabase persistence foundation
+- database migration for workspaces, import batches, intake items, cases, evidence, correspondence, links, timeline events, decisions, draft placeholder, and audit logs
+- seeded confirmed workspaces
+- RLS enabled on tables
+- typed persistence models
+- safe persistence config
+- no-op/fallback persistence client
+- repository helpers
+- neutralized old direct Supabase access paths
+- `src/lib/supabase.ts` converted to a compatibility shim
+- `src/lib/memory.ts` no longer directly queries Supabase
+- app remains usable without Supabase configured
+
+Notes:
+
+- Current UI remains mock/session-based.
+- No AI, no file parsing, no real file storage, no Outlook integration, no email sending, and no auth were added.
 
 ## Sprint 005
 

@@ -18,3 +18,13 @@ Production requirements:
 - private uploads;
 - audit logs;
 - backup/export process.
+
+## Sprint 004 Notes
+
+Sprint 004 establishes the persistence foundation but does not require deployment changes.
+
+The app must continue to run when Supabase is not configured, using mock/session-compatible fallback behavior.
+
+No public file URLs, no client-side Supabase keys, and no direct client writes should be introduced in this sprint.
+
+Production auth and private upload handling remain later-sprint concerns.
