@@ -77,6 +77,47 @@ export type EmailThread = {
   suggestedNextAction: string;
 };
 
+export type ImportSourceType =
+  | "pasted-email"
+  | "manual-note"
+  | "screenshot-placeholder"
+  | "document-placeholder"
+  | "eml-placeholder";
+
+export type ImportWorkspaceAssignment =
+  | "Import/Staging"
+  | "LNG PORTHARCOURT II"
+  | "LPG ALFRED TEMILE"
+  | "LPG ALFRED TEMILE 10"
+  | "Projects"
+  | "Other";
+
+export type ImportIntakeStatus =
+  | "unclassified"
+  | "pending-my-reply"
+  | "waiting-on-vessel"
+  | "waiting-on-vendor"
+  | "waiting-on-class"
+  | "waiting-on-management"
+  | "decision-required"
+  | "needs-evidence"
+  | "monitoring";
+
+export type ImportIntakeItem = {
+  id: string;
+  title: string;
+  sourceType: ImportSourceType;
+  workspaceAssignment: ImportWorkspaceAssignment;
+  status: ImportIntakeStatus;
+  senderSource: string;
+  dateTime: string;
+  bodyContent: string;
+  tags: string[];
+  routeNote: string;
+  casePlaceholder: string;
+  createdLabel: string;
+};
+
 export type LinkedCorrespondenceItem = {
   caseRef: string;
   title: string;
@@ -906,5 +947,135 @@ export const linkedCorrespondence: LinkedCorrespondenceItem[] = [
     status: "Needs Evidence",
     threadCount: 1,
     latestNote: "Commercial scope still missing.",
+  },
+];
+
+export const importSourceTypes: { value: ImportSourceType; label: string; help: string }[] = [
+  { value: "pasted-email", label: "Pasted email", help: "Paste a message or header snippet." },
+  { value: "manual-note", label: "Manual note", help: "Freeform internal note or reminder." },
+  {
+    value: "screenshot-placeholder",
+    label: "Screenshot placeholder",
+    help: "Placeholder for a future image intake.",
+  },
+  {
+    value: "document-placeholder",
+    label: "Document placeholder",
+    help: "Placeholder for notes, PDF, or document intake.",
+  },
+  { value: "eml-placeholder", label: "EML placeholder", help: "Placeholder for imported email files." },
+];
+
+export const importWorkspaceAssignments: ImportWorkspaceAssignment[] = [
+  "Import/Staging",
+  "LNG PORTHARCOURT II",
+  "LPG ALFRED TEMILE",
+  "LPG ALFRED TEMILE 10",
+  "Projects",
+  "Other",
+];
+
+export const importIntakeStatuses: {
+  value: ImportIntakeStatus;
+  label: string;
+  tone: StatusTone;
+  hint: string;
+}[] = [
+  { value: "unclassified", label: "Unclassified", tone: "neutral", hint: "Still in staging." },
+  {
+    value: "pending-my-reply",
+    label: "Pending My Reply",
+    tone: "warning",
+    hint: "Waiting on the user.",
+  },
+  {
+    value: "waiting-on-vessel",
+    label: "Waiting on Vessel",
+    tone: "neutral",
+    hint: "Waiting on vessel input.",
+  },
+  {
+    value: "waiting-on-vendor",
+    label: "Waiting on Vendor",
+    tone: "neutral",
+    hint: "Waiting on vendor input.",
+  },
+  {
+    value: "waiting-on-class",
+    label: "Waiting on Class",
+    tone: "neutral",
+    hint: "Waiting on class input.",
+  },
+  {
+    value: "waiting-on-management",
+    label: "Waiting on Management",
+    tone: "neutral",
+    hint: "Waiting on management input.",
+  },
+  {
+    value: "decision-required",
+    label: "Decision Required",
+    tone: "warning",
+    hint: "Needs a clear decision.",
+  },
+  {
+    value: "needs-evidence",
+    label: "Needs Evidence",
+    tone: "danger",
+    hint: "Missing supporting material.",
+  },
+  {
+    value: "monitoring",
+    label: "Monitoring",
+    tone: "accent",
+    hint: "Track but do not act yet.",
+  },
+];
+
+export const importIntakeSeedItems: ImportIntakeItem[] = [
+  {
+    id: "intake-1",
+    title: "Class survey note awaiting evidence",
+    sourceType: "pasted-email",
+    workspaceAssignment: "Import/Staging",
+    status: "needs-evidence",
+    senderSource: "Class Surveyor <survey@class.example>",
+    dateTime: "21 May 2026, 08:14",
+    bodyContent:
+      "Please attach the latest repair photos and confirm whether the missing insulation note has been updated.",
+    tags: ["class", "evidence", "AT10"],
+    routeNote: "Not yet assigned. Ready for manual classification.",
+    casePlaceholder: "Case link placeholder: Unlinked",
+    createdLabel: "Created from pasted email",
+  },
+  {
+    id: "intake-2",
+    title: "Vendor quotation note for project review",
+    sourceType: "manual-note",
+    workspaceAssignment: "Projects",
+    status: "decision-required",
+    senderSource: "Projects Desk",
+    dateTime: "21 May 2026, 09:02",
+    bodyContent:
+      "Need to decide whether the quoted supply term should be accepted as-is or returned for clarification.",
+    tags: ["project", "quotation", "decision"],
+    routeNote: "Simulated assignment to Projects for follow-up.",
+    casePlaceholder: "Case link placeholder: CASE-24-007",
+    createdLabel: "Created as manual note",
+  },
+  {
+    id: "intake-3",
+    title: "Screenshot placeholder for vessel follow-up",
+    sourceType: "screenshot-placeholder",
+    workspaceAssignment: "LNG PORTHARCOURT II",
+    status: "waiting-on-vessel",
+    senderSource: "Operations Inbox",
+    dateTime: "20 May 2026, 16:20",
+    bodyContent:
+      "Placeholder intake for a screenshot that should later be attached to the docking comment trail.",
+    tags: ["screenshot", "docking", "vessel"],
+    routeNote: "Simulated assignment to LNG PORTHARCOURT II.",
+    casePlaceholder: "Case link placeholder: CASE-24-011",
+    createdLabel: "Created as screenshot placeholder",
   },
 ];
