@@ -3,8 +3,8 @@ import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
-  title: "Staff OS",
-  description: "Your online AI workforce for project research and execution.",
+  title: "NSML WorkDesk",
+  description: "Private NSML operations workdesk for vessel and project work.",
 };
 
 export default function RootLayout({

@@ -1,14 +1,19 @@
+import type { ReactNode } from "react";
 import { BottomNav } from "@/components/BottomNav";
-import { DesktopSidebar } from "@/components/DesktopSidebar";
+import { Sidebar } from "@/components/Sidebar";
+import { TopBar } from "@/components/TopBar";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#08111F] text-slate-50">
-      <DesktopSidebar />
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <Sidebar />
 
-      <main className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-24 pt-5 md:ml-72 md:px-10 md:pb-10 md:pt-8">
-        {children}
-      </main>
+      <div className="min-h-screen md:ml-72">
+        <TopBar />
+        <main className="mx-auto w-full max-w-7xl px-4 pb-28 pt-6 md:px-8 md:pb-10">
+          {children}
+        </main>
+      </div>
 
       <BottomNav />
     </div>

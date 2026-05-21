@@ -1,12 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #08111f;
-  --foreground: #f8fafc;
-  --panel: #101b2e;
-  --card: #142238;
-  --line: #233450;
-  --gold: #d8a84e;
+  --background: #f4f6f8;
+  --foreground: #17202a;
+  --panel: #ffffff;
+  --panel-muted: #eef3f6;
+  --line: #d7e0e7;
+  --muted: #667386;
+  --nav: #10212b;
+  --nav-soft: #17313f;
+  --nav-foreground: #f7fbfc;
+  --accent: #0f766e;
+  --accent-soft: #d9f2ee;
+  --warning: #b45309;
+  --warning-soft: #fff3d6;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
 }
 
 body {
@@ -15,30 +32,46 @@ body {
   color: var(--foreground);
 }
 
-* {
-  box-sizing: border-box;
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 .card {
-  border-radius: 1rem;
   border: 1px solid var(--line);
-  background: var(--card);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 12px 32px rgba(16, 33, 43, 0.07);
 }
 
 .btn-primary {
-  border-radius: 1rem;
-  background: var(--gold);
-  color: var(--background);
-  padding: 0.85rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  padding: 0.75rem 1rem;
   font-weight: 700;
 }
 
 .btn-secondary {
-  border-radius: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   border: 1px solid var(--line);
+  border-radius: 8px;
   background: var(--panel);
-  color: #f8fafc;
-  padding: 0.85rem 1rem;
+  color: var(--foreground);
+  padding: 0.75rem 1rem;
   font-weight: 700;
 }
