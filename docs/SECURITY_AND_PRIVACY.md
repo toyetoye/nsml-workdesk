@@ -15,3 +15,5 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Keep persistence behind safe server-side repository utilities.
 - Do not let client components write directly to Supabase.
 - Make the app fall back safely when Supabase environment variables are missing.
+- Protect the app with a single-user gate using a signed HTTP-only session cookie.
+- Fail closed in production if the access-gate environment variables are missing.

@@ -125,6 +125,28 @@ Decision, draft placeholder, and audit log tables provide foundation records for
 
 The app must continue to work when Supabase is not configured. In that case, repository helpers fall back to mock/session-compatible behavior and do not crash.
 
+## Sprint 005 Access Gate and Safe Persistence Wiring
+
+The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.
+
+Access gate records and helpers should support:
+
+- login session creation;
+- session verification;
+- logout / cookie clearing;
+- development fallback state;
+- production fail-closed handling when env vars are missing.
+
+The intake and case surfaces now use server actions plus repository helpers for write operations when safe.
+
+Write-flow records should support:
+
+- intake item submissions;
+- case submissions;
+- persisted save results with an explicit persisted-or-fallback distinction.
+
+Client-side state remains the visible fallback when Supabase is not configured.
+
 ## Future Primary Objects
 
 - Workspace

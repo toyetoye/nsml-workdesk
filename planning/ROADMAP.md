@@ -131,7 +131,22 @@ Notes:
 
 ## Sprint 005
 
-Search, archive, and timeline.
+Complete.
+
+Delivered:
+
+- single-user access gate
+- protected main app shell
+- .env.example placeholders for access gate
+- manual intake save through server actions and repository utilities
+- case save through server actions and repository utilities
+- safe missing-env fallback for development
+- mock/session behavior preserved when persistence is unavailable
+
+Notes:
+
+- No AI, no file parsing, no real file storage, no Outlook integration, no email sending, no multi-user accounts, no roles, and no Supabase Auth were added.
+- Client components do not write directly to Supabase.
 
 ## Sprint 006
 

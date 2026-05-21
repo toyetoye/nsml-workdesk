@@ -85,6 +85,11 @@ type RepoClient = {
   from: (table: string) => RepoQuery;
 };
 
+type WriteResult<Row> = {
+  row: Row;
+  persisted: boolean;
+};
+
 const nowIso = () => new Date().toISOString();
 
 function toIsoDateTime(display: string) {
@@ -381,7 +386,7 @@ export async function saveImportBatch(input: ImportBatchInput) {
 
   if (!isPersistenceAvailable()) {
     upsertById(fallbackStore.import_batches, "batch_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
   const client = getRepoClient();
@@ -389,10 +394,10 @@ export async function saveImportBatch(input: ImportBatchInput) {
 
   if (error || !data) {
     upsertById(fallbackStore.import_batches, "batch_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
-  return data as ImportBatchRow;
+  return { row: data as ImportBatchRow, persisted: true };
 }
 
 export async function listIntakeItems() {
@@ -413,7 +418,7 @@ export async function listIntakeItems() {
   return data as IntakeItemRow[];
 }
 
-export async function saveIntakeItem(input: IntakeItemInput) {
+export async function saveIntakeItem(input: IntakeItemInput): Promise<WriteResult<IntakeItemRow>> {
   const row: IntakeItemRow = {
     intake_id: input.intake_id ?? `intake-${randomUUID()}`,
     batch_id: input.batch_id ?? null,
@@ -434,7 +439,7 @@ export async function saveIntakeItem(input: IntakeItemInput) {
 
   if (!isPersistenceAvailable()) {
     upsertById(fallbackStore.intake_items, "intake_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
   const client = getRepoClient();
@@ -442,10 +447,10 @@ export async function saveIntakeItem(input: IntakeItemInput) {
 
   if (error || !data) {
     upsertById(fallbackStore.intake_items, "intake_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
-  return data as IntakeItemRow;
+  return { row: data as IntakeItemRow, persisted: true };
 }
 
 export async function listCases() {
@@ -463,7 +468,7 @@ export async function listCases() {
   return data as CaseRow[];
 }
 
-export async function saveCase(input: CaseInput) {
+export async function saveCase(input: CaseInput): Promise<WriteResult<CaseRow>> {
   const row: CaseRow = {
     case_id: input.case_id ?? `CASE-${randomUUID()}`,
     title: input.title,
@@ -493,7 +498,7 @@ export async function saveCase(input: CaseInput) {
 
   if (!isPersistenceAvailable()) {
     upsertById(fallbackStore.cases, "case_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
   const client = getRepoClient();
@@ -501,10 +506,10 @@ export async function saveCase(input: CaseInput) {
 
   if (error || !data) {
     upsertById(fallbackStore.cases, "case_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
-  return data as CaseRow;
+  return { row: data as CaseRow, persisted: true };
 }
 
 export async function listEvidence(caseId?: string) {
@@ -810,7 +815,7 @@ export async function listTimelineEvents(caseId?: string) {
   return data as TimelineEventRow[];
 }
 
-export async function saveTimelineEvent(input: TimelineEventInput) {
+export async function saveTimelineEvent(input: TimelineEventInput): Promise<WriteResult<TimelineEventRow>> {
   const row: TimelineEventRow = {
     event_id: input.event_id ?? `event-${randomUUID()}`,
     case_id: input.case_id,
@@ -826,7 +831,7 @@ export async function saveTimelineEvent(input: TimelineEventInput) {
 
   if (!isPersistenceAvailable()) {
     upsertById(fallbackStore.timeline_events, "event_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
   const client = getRepoClient();
@@ -834,10 +839,10 @@ export async function saveTimelineEvent(input: TimelineEventInput) {
 
   if (error || !data) {
     upsertById(fallbackStore.timeline_events, "event_id", row);
-    return row;
+    return { row, persisted: false };
   }
 
-  return data as TimelineEventRow;
+  return { row: data as TimelineEventRow, persisted: true };
 }
 
 export async function listDecisions(caseId?: string) {

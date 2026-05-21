@@ -12,8 +12,12 @@ import {
   Upload,
   WandSparkles,
 } from "lucide-react";
+import { saveIntakeItemAction } from "@/app/import/actions";
 import {
-  importIntakeSeedItems,
+  buildIntakeItemFromSubmission,
+  type IntakeSubmission,
+} from "@/lib/workbench-data";
+import {
   importIntakeStatuses,
   importSourceTypes,
   importWorkspaceAssignments,
@@ -34,6 +38,11 @@ type IntakeFormState = {
   dateTime: string;
   bodyContent: string;
   tags: string;
+};
+
+type ImportIntakeWorkbenchProps = {
+  initialItems: ImportIntakeItem[];
+  persistenceEnabled: boolean;
 };
 
 const statusTone: Record<ImportIntakeStatus, StatusTone> = {
@@ -58,52 +67,26 @@ function toDateTimeLocalValue(date: Date) {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-function formatDisplayDateTime(value: string) {
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(parsed);
+function itemStatusLabel(status: ImportIntakeStatus) {
+  return importIntakeStatuses.find((entry) => entry.value === status)?.label ?? status;
 }
 
-function buildIntakeItem(form: IntakeFormState): ImportIntakeItem {
-  const sourceLabel =
-    importSourceTypes.find((source) => source.value === form.sourceType)?.label ?? form.sourceType;
-
-  return {
-    id: `intake-${Date.now()}`,
-    title: form.title.trim() || "Untitled intake",
-    sourceType: form.sourceType,
-    workspaceAssignment: form.workspaceAssignment,
-    status: form.status,
-    senderSource: form.senderSource.trim() || "Unknown source",
-    dateTime: formatDisplayDateTime(form.dateTime),
-    bodyContent:
-      form.bodyContent.trim() || "No body provided yet. This is a placeholder intake entry.",
-    tags: form.tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean),
-    routeNote:
-      form.workspaceAssignment === "Import/Staging"
-        ? "Still staged for manual classification."
-        : `Simulated assignment to ${form.workspaceAssignment}.`,
-    casePlaceholder: "Case link placeholder: Unlinked",
-    createdLabel: `Created from ${sourceLabel}`,
-  };
+function itemSourceLabel(sourceType: ImportSourceType) {
+  return importSourceTypes.find((entry) => entry.value === sourceType)?.label ?? sourceType;
 }
 
-export function ImportIntakeWorkbench() {
-  const [items, setItems] = useState<ImportIntakeItem[]>(() => importIntakeSeedItems);
-  const [selectedId, setSelectedId] = useState<string>(importIntakeSeedItems[0]?.id ?? "");
+export function ImportIntakeWorkbench({
+  initialItems,
+  persistenceEnabled,
+}: ImportIntakeWorkbenchProps) {
+  const initialList = initialItems.length > 0 ? initialItems : [];
+  const [items, setItems] = useState<ImportIntakeItem[]>(() => initialList);
+  const [selectedId, setSelectedId] = useState<string>(initialList[0]?.id ?? "");
   const [routeTarget, setRouteTarget] = useState<ImportWorkspaceAssignment>(
-    importIntakeSeedItems[0]?.workspaceAssignment ?? "Import/Staging",
+    initialList[0]?.workspaceAssignment ?? "Import/Staging",
   );
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<IntakeFormState>(() => ({
     title: "",
     sourceType: "pasted-email",
@@ -133,15 +116,42 @@ export function ImportIntakeWorkbench() {
     [form.status],
   );
 
-  const itemCount = items.length;
-
-  function handleCreateItem(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreateItem(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSaving(true);
+    setSaveNotice(null);
 
-    const nextItem = buildIntakeItem(form);
-    setItems((current) => [nextItem, ...current]);
-    setSelectedId(nextItem.id);
-    setRouteTarget(nextItem.workspaceAssignment);
+    const submission: IntakeSubmission = {
+      title: form.title,
+      sourceType: form.sourceType,
+      workspaceAssignment: form.workspaceAssignment,
+      status: form.status,
+      senderSource: form.senderSource,
+      dateTime: form.dateTime,
+      bodyContent: form.bodyContent,
+      tags: form.tags,
+    };
+
+    try {
+      const result = await saveIntakeItemAction(submission);
+      setItems((current) => [result.item, ...current]);
+      setSelectedId(result.item.id);
+      setRouteTarget(result.item.workspaceAssignment);
+      setSaveNotice(
+        result.persisted
+          ? "Saved to the repository and added to the local intake view."
+          : "Saved locally for this session only.",
+      );
+    } catch {
+      const nextItem = buildIntakeItemFromSubmission(submission);
+      setItems((current) => [nextItem, ...current]);
+      setSelectedId(nextItem.id);
+      setRouteTarget(nextItem.workspaceAssignment);
+      setSaveNotice("Saved locally for this session only.");
+    } finally {
+      setSaving(false);
+    }
+
     setForm((current) => ({
       ...current,
       title: "",
@@ -192,9 +202,15 @@ export function ImportIntakeWorkbench() {
 
         <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
           <WandSparkles aria-hidden size={16} />
-          Session-only state
+          {persistenceEnabled ? "Repository connected" : "Session fallback only"}
         </div>
       </div>
+
+      {saveNotice ? (
+        <div className="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-950">
+          {saveNotice}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <div className="space-y-4">
@@ -326,8 +342,8 @@ export function ImportIntakeWorkbench() {
               </Field>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <button type="submit" className="btn-primary">
-                  Save intake item
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? "Saving..." : "Save intake item"}
                 </button>
                 <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
                   <span className="font-semibold text-slate-700">Preview:</span> {selectedSourceLabel} ·{" "}
@@ -381,7 +397,7 @@ export function ImportIntakeWorkbench() {
             </div>
 
             <div className="mt-3 space-y-2">
-              {itemCount > 0 ? (
+              {items.length > 0 ? (
                 items.map((item) => {
                   const active = item.id === selectedItem?.id;
 
@@ -440,13 +456,13 @@ export function ImportIntakeWorkbench() {
                   {selectedItem?.title ?? "No intake item selected"}
                 </h3>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  Selected items stay in session-only state so we can simulate intake without
-                  backend persistence.
+                  Selected items stay in memory so we can simulate intake without backend
+                  persistence.
                 </p>
               </div>
 
               <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {itemCount} item{itemCount === 1 ? "" : "s"} in session
+                {items.length} item{items.length === 1 ? "" : "s"} in session
               </div>
             </div>
 
@@ -613,12 +629,4 @@ function EmptyStateCard({ title, message }: { title: string; message: string }) 
       <p className="mt-2 text-sm leading-6 text-slate-600">{message}</p>
     </div>
   );
-}
-
-function itemStatusLabel(status: ImportIntakeStatus) {
-  return importIntakeStatuses.find((entry) => entry.value === status)?.label ?? status;
-}
-
-function itemSourceLabel(sourceType: ImportSourceType) {
-  return importSourceTypes.find((entry) => entry.value === sourceType)?.label ?? sourceType;
 }

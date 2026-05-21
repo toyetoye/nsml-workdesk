@@ -21,7 +21,6 @@ import {
 import {
   allWorkspaces,
   casePriorities,
-  caseRecords,
   caseStatuses,
   evidenceRecords,
   importedEmailThreads,
@@ -32,6 +31,7 @@ import {
   type EmailStatus,
   type StatusTone,
 } from "@/lib/mock-data";
+import { saveCaseAction } from "@/app/cases/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type CreateCaseFormState = {
@@ -79,11 +79,19 @@ const evidenceTypeTone: Record<EvidenceRecord["type"], StatusTone> = {
   "eml-placeholder": "warning",
 };
 
-export function CaseManagementWorkbench() {
-  const [cases, setCases] = useState<CaseRecord[]>(() => caseRecords);
+export function CaseManagementWorkbench({
+  initialCases,
+  persistenceEnabled,
+}: {
+  initialCases: CaseRecord[];
+  persistenceEnabled: boolean;
+}) {
+  const [cases, setCases] = useState<CaseRecord[]>(() => initialCases);
   const [evidence] = useState<EvidenceRecord[]>(() => evidenceRecords);
-  const [selectedCaseId, setSelectedCaseId] = useState<string>(caseRecords[0]?.caseId ?? "");
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(initialCases[0]?.caseId ?? "");
   const [createOpen, setCreateOpen] = useState(false);
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [createForm, setCreateForm] = useState<CreateCaseFormState>(() => ({
     title: "",
     summary: "",
@@ -120,87 +128,137 @@ export function CaseManagementWorkbench() {
     return importedEmailThreads.filter((thread) => selectedCase.linkedThreads.includes(thread.id));
   }, [selectedCase]);
 
-  function handleCreateCase(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateCase(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSaving(true);
+    setSaveNotice(null);
 
-    const workspace =
-      allWorkspaces.find((item) => item.slug === createForm.workspaceKey) ?? allWorkspaces[0];
-    const nextCaseNumber = String(cases.length + 1).padStart(3, "0");
-    const caseId = `CASE-NEW-${nextCaseNumber}`;
-    const openedDate = new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(new Date());
-    const openedTime = new Intl.DateTimeFormat("en-GB", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date());
+    try {
+      const result = await saveCaseAction({
+        title: createForm.title,
+        summary: createForm.summary,
+        workspaceKey: createForm.workspaceKey,
+        status: createForm.status,
+        priority: createForm.priority,
+        category: createForm.category,
+        owner: createForm.owner,
+        waitingOn: createForm.waitingOn,
+        dueLabel: createForm.dueLabel,
+        nextAction: createForm.nextAction,
+        riskNote: createForm.riskNote,
+        decisionRequired: createForm.decisionRequired,
+        sourceIntakeRef: createForm.sourceIntakeRef,
+        tags: createForm.tags,
+      });
 
-    const nextCase: CaseRecord = {
-      caseId,
-      title: createForm.title.trim() || "Untitled case",
-      summary: createForm.summary.trim() || "No summary captured yet.",
-      workspaceKey: workspace.slug as CaseRecord["workspaceKey"],
-      workspaceLabel: workspace.name,
-      vesselProject: workspace.name,
-      owner: createForm.owner.trim() || "Toye Omolade",
-      status: createForm.status,
-      priority: createForm.priority,
-      category: createForm.category.trim() || "Unclassified",
-      openedDate,
-      age: "New",
-      waitingOn: createForm.waitingOn.trim() || "TBD",
-      dueLabel: createForm.dueLabel.trim() || "Due soon",
-      nextAction: createForm.nextAction.trim() || "Define the next operational step.",
-      riskNote: createForm.riskNote.trim() || "No risk note captured yet.",
-      linkedThreads: [],
-      linkedEvidence: [],
-      timelineEvents: [
-        {
-          id: `${caseId}-created`,
-          dateTime: openedTime,
-          title: "Case created",
-          note: "Created in the client-side prototype case drawer.",
-          tone: "neutral",
-        },
-        {
-          id: `${caseId}-review`,
-          dateTime: openedTime,
-          title: "Ready for review",
-          note: "The new case is selected and ready for evidence to be attached.",
-          tone: "accent",
-        },
-      ],
-      decisionRequired:
-        createForm.decisionRequired.trim() || "No decision requirement captured yet.",
-      tags: createForm.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      sourceIntakeRef: createForm.sourceIntakeRef.trim() || "Create from intake item placeholder",
-      workspaceHref: workspace.href,
-    };
+      setCases((current) => [result.caseRecord, ...current]);
+      setSelectedCaseId(result.caseRecord.caseId);
+      setCreateOpen(false);
+      setSaveNotice(
+        result.persisted
+          ? "Saved to the repository and added to the local case view."
+          : "Saved locally for this session only.",
+      );
+      setCreateForm({
+        title: "",
+        summary: "",
+        workspaceKey: "lng-portharcourt-ii",
+        status: "Decision Required",
+        priority: "Medium",
+        category: "",
+        owner: "Toye Omolade",
+        waitingOn: "",
+        dueLabel: "",
+        nextAction: "",
+        riskNote: "",
+        decisionRequired: "",
+        sourceIntakeRef: "Create from intake item placeholder",
+        tags: "",
+      });
+    } catch {
+      const workspace =
+        allWorkspaces.find((item) => item.slug === createForm.workspaceKey) ?? allWorkspaces[0];
+      const nextCaseNumber = String(cases.length + 1).padStart(3, "0");
+      const caseId = `CASE-NEW-${nextCaseNumber}`;
+      const openedDate = new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date());
+      const openedTime = new Intl.DateTimeFormat("en-GB", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date());
 
-    setCases((current) => [nextCase, ...current]);
-    setSelectedCaseId(caseId);
-    setCreateOpen(false);
-    setCreateForm({
-      title: "",
-      summary: "",
-      workspaceKey: "lng-portharcourt-ii",
-      status: "Decision Required",
-      priority: "Medium",
-      category: "",
-      owner: "Toye Omolade",
-      waitingOn: "",
-      dueLabel: "",
-      nextAction: "",
-      riskNote: "",
-      decisionRequired: "",
-      sourceIntakeRef: "Create from intake item placeholder",
-      tags: "",
-    });
+      const nextCase: CaseRecord = {
+        caseId,
+        title: createForm.title.trim() || "Untitled case",
+        summary: createForm.summary.trim() || "No summary captured yet.",
+        workspaceKey: workspace.slug as CaseRecord["workspaceKey"],
+        workspaceLabel: workspace.name,
+        vesselProject: workspace.name,
+        owner: createForm.owner.trim() || "Toye Omolade",
+        status: createForm.status,
+        priority: createForm.priority,
+        category: createForm.category.trim() || "Unclassified",
+        openedDate,
+        age: "New",
+        waitingOn: createForm.waitingOn.trim() || "TBD",
+        dueLabel: createForm.dueLabel.trim() || "Due soon",
+        nextAction: createForm.nextAction.trim() || "Define the next operational step.",
+        riskNote: createForm.riskNote.trim() || "No risk note captured yet.",
+        linkedThreads: [],
+        linkedEvidence: [],
+        timelineEvents: [
+          {
+            id: `${caseId}-created`,
+            dateTime: openedTime,
+            title: "Case created",
+            note: "Created in the client-side prototype case drawer.",
+            tone: "neutral",
+          },
+          {
+            id: `${caseId}-review`,
+            dateTime: openedTime,
+            title: "Ready for review",
+            note: "The new case is selected and ready for evidence to be attached.",
+            tone: "accent",
+          },
+        ],
+        decisionRequired:
+          createForm.decisionRequired.trim() || "No decision requirement captured yet.",
+        tags: createForm.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        sourceIntakeRef:
+          createForm.sourceIntakeRef.trim() || "Create from intake item placeholder",
+        workspaceHref: workspace.href,
+      };
+
+      setCases((current) => [nextCase, ...current]);
+      setSelectedCaseId(caseId);
+      setCreateOpen(false);
+      setSaveNotice("Saved locally for this session only.");
+      setCreateForm({
+        title: "",
+        summary: "",
+        workspaceKey: "lng-portharcourt-ii",
+        status: "Decision Required",
+        priority: "Medium",
+        category: "",
+        owner: "Toye Omolade",
+        waitingOn: "",
+        dueLabel: "",
+        nextAction: "",
+        riskNote: "",
+        decisionRequired: "",
+        sourceIntakeRef: "Create from intake item placeholder",
+        tags: "",
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -219,6 +277,13 @@ export function CaseManagementWorkbench() {
           <PlusCircle aria-hidden size={16} />
           Create case
         </button>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <span className="font-semibold">
+          {persistenceEnabled ? "Repository connected" : "Session fallback only"}
+        </span>
+        {saveNotice ? <span>{saveNotice}</span> : <span>Case writes use the server repository first.</span>}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -520,6 +585,7 @@ export function CaseManagementWorkbench() {
           onClose={() => setCreateOpen(false)}
           onChange={setCreateForm}
           onSubmit={handleCreateCase}
+          saving={saving}
         />
       ) : null}
     </section>
@@ -531,11 +597,13 @@ function CreateCaseDrawer({
   onClose,
   onChange,
   onSubmit,
+  saving,
 }: {
   form: CreateCaseFormState;
   onClose: () => void;
   onChange: Dispatch<SetStateAction<CreateCaseFormState>>;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  saving: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/30 p-3">
@@ -743,8 +811,8 @@ function CreateCaseDrawer({
             <button type="button" className="btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
-              Save case
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? "Saving..." : "Save case"}
             </button>
           </div>
         </form>

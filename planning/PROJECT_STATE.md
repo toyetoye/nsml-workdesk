@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 004 complete.
+Sprint 005 complete.
 
 ## Active sprint
 
-Sprint 005 - search, archive, and timeline.
+Sprint 006 - online deployment and hardening.
 
 ## Confirmed decisions
 
@@ -30,6 +30,10 @@ Sprint 005 - search, archive, and timeline.
 - Sprint 004 converted `src/lib/supabase.ts` into a compatibility shim and changed `src/lib/memory.ts` so it no longer directly queries Supabase.
 - Sprint 004 keeps the app usable without Supabase configured and preserves the current mock/session-based UI behavior.
 - Sprint 004 does not add AI, file parsing, real file storage, Outlook integration, email sending, or auth.
+- Sprint 005 added a single-user app-password gate with a signed HTTP-only session cookie, protected the main app shell, and wired intake and case writes through server-side actions into the repository layer.
+- Sprint 005 keeps local development usable with a clear fallback when access-gate or Supabase environment variables are missing.
+- Sprint 005 preserves mock/session fallback for intake and case workflows when persistence is unavailable.
+- Sprint 005 does not add AI, file parsing, real file storage, Outlook integration, email sending, multi-user accounts, roles, or Supabase Auth.
 
 ## Next action
 

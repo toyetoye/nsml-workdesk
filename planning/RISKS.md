@@ -101,3 +101,15 @@ Mitigation: Keep persistence behind server-side repository utilities, use a no-o
 Risk: The app could crash or become unavailable when Supabase env vars are not configured.
 
 Mitigation: Make the persistence layer optional and keep mock/session behavior available as the default fallback.
+
+## R018 - Public access without gate
+
+Risk: The deployed app could be exposed without passing the access gate if the protection is not enforced consistently.
+
+Mitigation: Protect the shell with middleware and a server-side guard, and fail closed in production when access-gate env vars are missing.
+
+## R019 - Unsafe write path
+
+Risk: Intake or case writes could bypass the server repository boundary and talk to Supabase directly.
+
+Mitigation: Keep all write operations behind server actions or safe server utilities and leave client components on fallback/session state.

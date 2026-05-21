@@ -1,10 +1,19 @@
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
+import { isPersistenceAvailable } from "@/lib/persistence/client";
+import { listIntakeItems } from "@/lib/persistence/repository";
+import { mapIntakeRowsToItems } from "@/lib/workbench-data";
 
-export default function ImportPage() {
+export default async function ImportPage() {
+  const intakeRows = await listIntakeItems();
+  const initialItems = mapIntakeRowsToItems(intakeRows);
+
   return (
     <section className="space-y-6">
-      <ImportIntakeWorkbench />
+      <ImportIntakeWorkbench
+        initialItems={initialItems}
+        persistenceEnabled={isPersistenceAvailable()}
+      />
 
       <EmailWorkbench
         scope="import"

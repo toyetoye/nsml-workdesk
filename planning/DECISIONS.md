@@ -83,3 +83,15 @@ Reason: This keeps the case prototype lightweight while avoiding implied persist
 Decision: Persistence must stay behind safe server-side repository utilities; client components must not write directly to Supabase.
 
 Reason: The foundation should support future persistence without exposing secrets, unsafe client-side writes, or crashes when Supabase environment variables are missing.
+
+## D015 - Single-user access gate
+
+Decision: Use a simple app-password gate with a signed HTTP-only session cookie for deployed access.
+
+Reason: The app needs a small, safe gate for online use without introducing multi-user account complexity or Supabase Auth scope creep.
+
+## D016 - Server-side writes only
+
+Decision: Intake and case writes must flow through server actions or safe server utilities before they reach the repository boundary.
+
+Reason: Client components should not write to Supabase directly, and fallback behavior must remain explicit when persistence is unavailable.
