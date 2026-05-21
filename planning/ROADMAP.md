@@ -54,7 +54,31 @@ Notes:
 
 ## Sprint 002
 
-Paste email and upload intake.
+Complete.
+
+Delivered:
+
+- manual intake workbench on `/import`
+- paste/snippet/manual note intake form
+- source type field
+- workspace assignment field
+- status assignment field
+- sender/source field
+- received or created date-time field
+- body/content field
+- tags/topic field
+- file upload placeholder only
+- recent intake/import batch list
+- selected intake detail view
+- simulated route-to-workspace action
+- disabled Create case from this placeholder action
+- imported correspondence viewer remains separate
+- session-only React state
+
+Notes:
+
+- No localStorage, persistence, API routes, database/Supabase, AI/OpenAI, Outlook integration, email sending, real file storage, or EML/PDF/OCR parsing.
+- Import is the capture/staging desk. It can accept pasted emails, notes, and future files, but real routing, persistence, parsing, and case creation belong to later sprints.
 
 ## Sprint 003
 

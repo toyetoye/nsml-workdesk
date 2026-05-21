@@ -53,3 +53,15 @@ Reason: The user needs to see why each item matters, what is waiting, and what t
 Decision: Sprint 001 dashboard filtering is client-side only and uses mock data only.
 
 Reason: This keeps the sprint within the approved shell scope while still making the dashboard useful for triage.
+
+## D010 - Import capture desk
+
+Decision: `/import` is the capture and staging desk for pasted emails, notes, and future files, while routing, persistence, parsing, and case creation remain later-sprint concerns.
+
+Reason: Imported material should enter through a controlled intake surface first, then be classified into the relevant workspace before any case link is created.
+
+## D011 - Session-only intake prototype
+
+Decision: Sprint 002 intake state lives only in client-side React memory for the current session.
+
+Reason: This keeps the prototype lightweight and avoids implying persistence, backend storage, or retention behavior that has not been approved yet.

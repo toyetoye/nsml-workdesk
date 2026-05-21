@@ -53,3 +53,21 @@ Mitigation: Every queue item must explain why it matters, who is waiting, and th
 Risk: Dashboard filters could become harder to scan if too many states are shown at once.
 
 Mitigation: Keep filtering client-side, use compact queue cards, and preserve the shell spacing so the CoS Assistant rail does not crowd the command centre.
+
+## R010 - Session reset confusion
+
+Risk: Sprint 002 intake items disappear on refresh because the prototype uses session-only React state.
+
+Mitigation: Label the intake surface clearly as a prototype and avoid implying persistence until a later sprint.
+
+## R011 - Simulated routing confusion
+
+Risk: Route-to-workspace controls could be mistaken for real routing or workflow automation.
+
+Mitigation: Keep the simulated nature explicit in the UI and in the planning docs until backend routing is approved.
+
+## R012 - Import desk scope drift
+
+Risk: `/import` could be treated as permanent storage rather than a staging desk for pasted emails, notes, and future files.
+
+Mitigation: Reinforce that `/import` is capture/staging only; classification, routing, parsing, and case creation stay out of scope for Sprint 002.
