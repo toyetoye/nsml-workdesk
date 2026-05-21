@@ -1,9 +1,27 @@
 import Link from "next/link";
 import { ArrowLeft, ClipboardList, Upload } from "lucide-react";
-import type { WorkspaceSummary as WorkspaceSummaryData } from "@/lib/mock-data";
+import type {
+  EmailThreadScope,
+  WorkspaceSummary as WorkspaceSummaryData,
+} from "@/lib/mock-data";
+import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { WorkspaceSummary } from "@/components/WorkspaceSummary";
 
-export function WorkspacePage({ workspace }: { workspace: WorkspaceSummaryData }) {
+export function WorkspacePage({
+  workspace,
+  correspondenceScope,
+  correspondenceLabel,
+  correspondenceDescription,
+  emptyStateTitle,
+  emptyStateMessage,
+}: {
+  workspace: WorkspaceSummaryData;
+  correspondenceScope: EmailThreadScope;
+  correspondenceLabel: string;
+  correspondenceDescription: string;
+  emptyStateTitle: string;
+  emptyStateMessage: string;
+}) {
   return (
     <section className="space-y-6">
       <Link
@@ -70,6 +88,14 @@ export function WorkspacePage({ workspace }: { workspace: WorkspaceSummaryData }
           </Link>
         </div>
       </section>
+
+      <EmailWorkbench
+        scope={correspondenceScope}
+        sectionLabel={correspondenceLabel}
+        sectionDescription={correspondenceDescription}
+        emptyStateTitle={emptyStateTitle}
+        emptyStateMessage={emptyStateMessage}
+      />
     </section>
   );
 }

@@ -29,6 +29,15 @@ export type WorkspaceSummary = {
   focusAreas: string[];
 };
 
+export type EmailThreadScope =
+  | "import"
+  | "unclassified"
+  | "lng-portharcourt-ii"
+  | "lpg-alfred-temile"
+  | "lpg-alfred-temile-10"
+  | "projects"
+  | "other";
+
 export type EmailStatus = "Pending My Reply" | "Waiting on Vessel" | "Needs Evidence" | "Draft Ready";
 
 export type EmailAttachment = {
@@ -45,6 +54,7 @@ export type EmailMessage = {
 
 export type EmailThread = {
   id: string;
+  workspaceKey: EmailThreadScope;
   subject: string;
   sender: string;
   recipients: string[];
@@ -227,6 +237,7 @@ export const recentImports = [
 export const importedEmailThreads: EmailThread[] = [
   {
     id: "thread-1",
+    workspaceKey: "lpg-alfred-temile-10",
     subject: "Request for updated insulation repair status",
     sender: "Class Surveyor <survey@class.example>",
     recipients: ["Toye Omolade <toye@nsml.example>"],
@@ -257,6 +268,7 @@ export const importedEmailThreads: EmailThread[] = [
   },
   {
     id: "thread-2",
+    workspaceKey: "lng-portharcourt-ii",
     subject: "Docking measurement report and outstanding comments",
     sender: "Shipyard Coordinator <yard@example.com>",
     recipients: ["Operations Desk <ops@nsml.example>"],
@@ -287,6 +299,7 @@ export const importedEmailThreads: EmailThread[] = [
   },
   {
     id: "thread-3",
+    workspaceKey: "projects",
     subject: "Fuel vendor quotation requires clarification",
     sender: "Vendor Representative <vendor@example.com>",
     recipients: ["Projects Desk <projects@nsml.example>"],
@@ -308,6 +321,7 @@ export const importedEmailThreads: EmailThread[] = [
   },
   {
     id: "thread-4",
+    workspaceKey: "other",
     subject: "Draft response for management review",
     sender: "Assistant Note <system@nsml.example>",
     recipients: ["Toye Omolade <toye@nsml.example>"],
@@ -326,6 +340,52 @@ export const importedEmailThreads: EmailThread[] = [
     ],
     linkedCase: "CASE-24-003",
     suggestedNextAction: "Review the draft and mark it ready only after manual approval.",
+  },
+  {
+    id: "thread-5",
+    workspaceKey: "import",
+    subject: "Manual intake awaiting classification",
+    sender: "Operations Inbox <import@nsml.example>",
+    recipients: ["Toye Omolade <toye@nsml.example>"],
+    cc: [],
+    dateTime: "21 May 2026, 10:18",
+    vesselProject: "Unclassified",
+    status: "Needs Evidence",
+    attachments: [{ name: "incoming-email.eml", kind: "EML", size: "31 KB" }],
+    messages: [
+      {
+        sender: "Operations Inbox",
+        body:
+          "This item is still in the intake queue and has not yet been classified into a workspace.",
+        timestamp: "21 May 2026, 10:18",
+      },
+    ],
+    linkedCase: "Unlinked",
+    suggestedNextAction:
+      "Classify the thread into the correct vessel, project, or general workspace.",
+  },
+  {
+    id: "thread-6",
+    workspaceKey: "unclassified",
+    subject: "Imported note without assigned workspace",
+    sender: "Archive Import <archive@nsml.example>",
+    recipients: ["Toye Omolade <toye@nsml.example>"],
+    cc: [],
+    dateTime: "21 May 2026, 10:41",
+    vesselProject: "Unclassified",
+    status: "Pending My Reply",
+    attachments: [{ name: "import-note.txt", kind: "TXT", size: "6 KB" }],
+    messages: [
+      {
+        sender: "Archive Import",
+        body:
+          "The imported correspondence has not yet been assigned to a permanent workspace.",
+        timestamp: "21 May 2026, 10:41",
+      },
+    ],
+    linkedCase: "Unlinked",
+    suggestedNextAction:
+      "Review the content and decide whether it belongs in a vessel, project, or other workspace.",
   },
 ];
 
