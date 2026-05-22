@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 009B complete.
+Sprint 009C complete.
 
 ## Active sprint
 
-Sprint 009C - next approved sprint.
+Sprint 009D - next approved sprint.
 
 ## Confirmed decisions
 
@@ -55,6 +55,10 @@ Sprint 009C - next approved sprint.
 - Sprint 009B keeps drafts advisory only and never ready: draft statuses are limited to `pending_red_team`, `needs_evidence`, and `blocked`; `must_be_red_teamed` is always true; copy remains disabled until red-team review exists; and there is no send button or mark-ready action.
 - Sprint 009B preserves source/evidence traceability, stores source IDs and evidence basis with drafts, and shows persisted drafts when available or session-only drafts when persistence is unavailable.
 - Sprint 009B does not add red-team review, sending, Outlook integration, automatic routing/status changes, automatic case creation, automatic record mutation, PDF/OCR AI extraction, or background processing.
+- Sprint 009C added the server-side AI red-team review foundation with selected-draft red-team builders, a protected red-team server action, `draft_red_team_reviews` persistence, red-team review from `DraftResultPanel` and `/drafts`, a structured red-team review schema, and source -> draft -> red-team traceability.
+- Sprint 009C keeps copy disabled unless `safe_to_copy` is true, and only `pass` or `pass_with_caution` may unlock `Copy reviewed draft`; there is still no send button or mark-ready action outside the review gate.
+- Sprint 009C preserves source IDs reviewed in the UI and in persisted review metadata when available, while keeping session-only review display available when persistence is unavailable.
+- Sprint 009C does not add sending, Outlook integration, automatic reply sending, automatic case/status/routing changes, automatic draft replacement, PDF/OCR extraction, or background/bulk review.
 
 ## Product rules
 

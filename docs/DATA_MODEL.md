@@ -308,6 +308,38 @@ Draft results must remain traceable to the selected intake item, thread, or case
 
 Draft output must not mutate the source records automatically; any application of recommendations remains a later user-approved action after red-team review.
 
+## Sprint 009C Red-Team Review
+
+The red-team layer stores structured review results for generated drafts.
+
+Red-team review records should preserve:
+
+- review_id;
+- draft_id;
+- source_ids_reviewed;
+- verdict;
+- readiness_status;
+- summary;
+- unsupported_claims;
+- liability_risks;
+- technical_risks;
+- tone_risks;
+- missing_information;
+- evidence_gaps;
+- confidentiality_concerns;
+- recommended_revisions;
+- required_user_checks;
+- safe_to_copy;
+- confidence;
+- reviewed_at;
+- persisted or session-only state.
+
+Red-team review records must preserve the same source references used for the draft so the trace from source -> draft -> red-team review stays visible.
+
+Only `pass` and `pass_with_caution` may set `safe_to_copy` true. `revise`, `reject`, and `needs_more_evidence` must keep it false.
+
+The review UI must show source IDs reviewed and the review findings before copy can be enabled.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

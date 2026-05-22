@@ -266,6 +266,24 @@ Draft output must remain advisory. It must not change workspace, case, status, o
 
 The Drafts workbench remains a protected review surface, not a send queue. Copy remains disabled until red-team review exists.
 
+## Sprint 009C Red-Team Review Architecture
+
+Sprint 009C adds a server-side red-team review layer for generated drafts.
+
+The red-team architecture is structured around:
+
+- selected-draft review builders that use the draft plus its selected source/evidence snapshot;
+- a protected server-side red-team action;
+- a structured review schema with verdict, readiness status, risks, gaps, and recommended revisions;
+- `draft_red_team_reviews` persistence when available and session-only display when persistence is unavailable;
+- source -> draft -> red-team traceability;
+- UI surfaces that show reviewed source IDs and gate copy behind `safe_to_copy`;
+- a `Copy reviewed draft` control that unlocks only after a passing verdict.
+
+Red-team review must remain server-side only and selected-context-only. It must not send unrelated vessels, projects, or the whole evidence library.
+
+Red-team review must not mutate the source draft automatically. It only determines whether the draft may be copied manually by the user.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.
@@ -273,3 +291,4 @@ AI drafts must pass red-team review.
 Original evidence must be preserved unchanged.
 AI outputs must remain separate from original evidence.
 Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
+Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.

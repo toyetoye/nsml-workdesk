@@ -94,3 +94,15 @@ Deployment should keep draft controls disabled or clearly marked as unavailable 
 Draft requests must remain selected-context-only and protected by the existing access gate.
 
 Production deployments should continue to keep drafts advisory-only, preserve traceability back to source material, and avoid automatic record mutation, ready-state marking, or sending.
+
+## Sprint 009C Notes
+
+Sprint 009C adds server-side red-team review but still does not require deployment execution.
+
+Red-team configuration must remain server-side only and must fail safely when the required env vars are missing.
+
+Deployment should keep red-team controls disabled or clearly marked as unavailable when AI is not configured, and it must not fabricate review output.
+
+Red-team requests must remain selected-draft only and protected by the existing access gate.
+
+Production deployments should continue to keep red-team review advisory-only, preserve traceability back to source material, and avoid automatic record mutation, send-state changes, or copy enabling without a passing review.

@@ -149,3 +149,9 @@ Reason: The system must not send the whole evidence library or unrelated vessels
 Decision: Sprint 009B adds AI draft generation as a server-side advisory layer that prepares draft wording from selected intake items, correspondence threads, or cases, but always keeps drafts in `pending_red_team`, `needs_evidence`, or `blocked` states and never marks them ready.
 
 Reason: Drafts can help accelerate work, but they are not safe to send until red-team review exists. The user must remain the final approver, and no draft may be treated as ready or sent automatically.
+
+## D026 - Red-team copy gate
+
+Decision: Sprint 009C adds a server-side red-team review layer for generated drafts, and a draft may only become copyable when the review verdict is `pass` or `pass_with_caution` and `safe_to_copy` is true.
+
+Reason: A generated draft is not safe to reuse externally until it passes red-team review or passes with caution. The system may prepare wording, but it must not approve, send, or mark a response ready on its own.

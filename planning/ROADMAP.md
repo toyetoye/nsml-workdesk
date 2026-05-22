@@ -289,3 +289,35 @@ Notes:
 
 - No red-team review, no Outlook integration, no email sending, and no automatic case/status/routing changes.
 - Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
+
+## Sprint 009C
+
+Complete.
+
+Delivered:
+
+- server-side AI red-team review foundation
+- selected-draft red-team builders
+- protected red-team server action
+- `draft_red_team_reviews` persistence foundation
+- red-team review from `DraftResultPanel`
+- red-team review from `/drafts`
+- structured red-team review schema
+- source -> draft -> red-team traceability
+- source IDs reviewed shown in UI
+- verdicts: `pass`, `pass_with_caution`, `revise`, `reject`, `needs_more_evidence`
+- readiness statuses: `ready_to_copy`, `not_ready`
+- `safe_to_copy` enforcement
+- copy disabled unless `safe_to_copy` is true
+- `Copy reviewed draft` button only after `pass` or `pass_with_caution`
+- no send button
+- no Outlook integration
+- no automatic reply sending
+- no automatic case/status/routing changes
+- no automatic draft replacement
+- no background or bulk review
+
+Notes:
+
+- No draft may be copied or treated as usable until it passes red-team review or passes with caution.
+- Red-team review checks unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.

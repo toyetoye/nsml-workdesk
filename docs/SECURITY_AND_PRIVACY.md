@@ -32,3 +32,6 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - AI triage must preserve traceability to source type, source IDs, and evidence_used.
 - Draft generation must also be server-side only, selected-context-only, and must not include unrelated vessels, projects, or the whole evidence library.
 - Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
+- Red-team review must be server-side only, selected-draft only, and must not include unrelated vessels, projects, or the whole evidence library.
+- Red-team review must preserve source -> draft -> red-team traceability and must keep copy disabled unless `safe_to_copy` is true.
+- Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.

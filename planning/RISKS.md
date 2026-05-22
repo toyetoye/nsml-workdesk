@@ -173,3 +173,9 @@ Mitigation: Keep AI server-side, selected-context-only, and strictly tied to sou
 Risk: Users could mistake AI recommendations for automatic changes to workspace, case, or status.
 
 Mitigation: Keep AI output advisory only, display suggestions without applying them automatically, and preserve explicit user approval for any downstream action.
+
+## R029 - Unsafe draft reuse
+
+Risk: A generated draft could be treated as safe to paste externally before red-team review has passed.
+
+Mitigation: Keep drafts locked behind the red-team review gate, require `safe_to_copy` for copy, label any copied text as reviewed and manual-paste only, and surface review findings prominently before the user can reuse the text.
