@@ -144,6 +144,11 @@ export function CaseManagementWorkbench({
     );
   }, [evidence, selectedCase]);
 
+  const evidenceById = useMemo(
+    () => new Map(evidence.map((item) => [item.evidenceId, item] as const)),
+    [evidence],
+  );
+
   const selectedThreads = useMemo(() => {
     if (!selectedCase) {
       return [];
@@ -601,6 +606,14 @@ export function CaseManagementWorkbench({
                                 <StatusBadge tone={threadStatusTone(thread.status)}>
                                   {thread.status}
                                 </StatusBadge>
+                                <StatusBadge tone={evidenceParseTone[thread.parseStatus ?? "not parsed"]}>
+                                  {formatParseStatusLabel(thread.parseStatus ?? "not parsed")}
+                                </StatusBadge>
+                                <StatusBadge tone={thread.sourceEvidenceId ? "accent" : "neutral"}>
+                                  {thread.sourceEvidenceId
+                                    ? evidenceById.get(thread.sourceEvidenceId)?.status ?? "Source evidence linked"
+                                    : "No source evidence"}
+                                </StatusBadge>
                               </div>
                               <p className="mt-1 truncate text-xs text-slate-500">
                                 {thread.sender}
@@ -610,7 +623,11 @@ export function CaseManagementWorkbench({
                           </div>
                           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                             <span>{thread.vesselProject}</span>
-                            <span>Linked case: {thread.linkedCase}</span>
+                            <span>
+                              {thread.linkedCase === "Unlinked" || thread.linkedCase.includes("placeholder")
+                                ? "Not linked to case"
+                                : `Linked case: ${thread.linkedCase}`}
+                            </span>
                           </div>
                         </article>
                       ))

@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 import {
   getCaseById,
   getEvidenceById,
+  listCorrespondenceMessages,
+  listCorrespondenceThreads,
   linkCorrespondenceToCase,
   saveCorrespondenceMessage,
   saveCorrespondenceThread,
@@ -20,6 +22,7 @@ import {
 } from "./shared";
 import { parseEmlBuffer } from "./parser";
 import type { EmailIngestionOutcome } from "./types";
+import { matchParsedThreadToExistingThreads } from "@/lib/correspondence/threading";
 
 const MAX_EML_BYTES = 10 * 1024 * 1024;
 
@@ -204,15 +207,35 @@ export async function ingestEmlEvidence(evidenceId: string): Promise<EmailIngest
 
   try {
     const parsed = await parseEmlBuffer(Buffer.from(file.buffer));
+    const [existingThreadRows, existingMessageRows] = await Promise.all([
+      listCorrespondenceThreads(),
+      listCorrespondenceMessages(),
+    ]);
     const linkedCase = staged.row.case_id ? await getCaseById(staged.row.case_id) : null;
     const workspaceKey = linkedCase?.workspace_key ?? resolveWorkspaceKey(staged.row.workspace_assignment);
     const workspaceLabel = linkedCase?.workspace_label ?? resolveWorkspaceLabel(workspaceKey, staged.row.workspace_assignment);
     const sourceCaseId = linkedCase?.case_id ?? staged.row.case_id ?? null;
+    const threadingMatch = matchParsedThreadToExistingThreads(
+      {
+        messageId: parsed.messageId,
+        inReplyTo: parsed.inReplyTo,
+        references: parsed.references,
+        subject: parsed.subject,
+        from: parsed.from,
+        sentAtIso: parsed.sentAtIso,
+        workspaceKey,
+        caseId: sourceCaseId,
+      },
+      existingThreadRows,
+      existingMessageRows,
+    );
     const parseStatus = "parsed";
     const threadStatus = deriveThreadStatus(parseStatus, sourceCaseId);
-    const threadId = staged.row.parsed_thread_id ?? `thread-${randomUUID()}`;
+    const threadId = threadingMatch.threadId ?? staged.row.parsed_thread_id ?? `thread-${randomUUID()}`;
     const messageId = staged.row.parsed_message_id ?? `message-${randomUUID()}`;
     const references = parsed.references;
+    const nextSortOrder =
+      existingMessageRows.filter((message) => message.thread_id === threadId).length + 1;
 
     const threadRow = await saveCorrespondenceThread({
       thread_id: threadId,
@@ -247,7 +270,7 @@ export async function ingestEmlEvidence(evidenceId: string): Promise<EmailIngest
       sender: parsed.from,
       body: parsed.bodyText,
       timestamp: parsed.sentAtIso,
-      sort_order: 1,
+      sort_order: nextSortOrder,
       recipients: parsed.to,
       cc_recipients: parsed.cc,
       bcc_recipients: parsed.bcc,
@@ -283,7 +306,10 @@ export async function ingestEmlEvidence(evidenceId: string): Promise<EmailIngest
       parseError: null,
       supported: true,
       storageAvailable: true,
-      note: "Parsed EML metadata and created structured correspondence records.",
+      note:
+        threadingMatch.threadId !== null
+          ? `Parsed EML metadata and added the message to an existing thread via ${threadingMatch.matchKind}.`
+          : "Parsed EML metadata and created a new structured correspondence thread.",
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to parse the EML file.";

@@ -24,9 +24,7 @@ export default async function ImportPage() {
   ]);
   const initialItems = mapIntakeRowsToItems(intakeRows);
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
-  const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows).filter(
-    (thread) => thread.workspaceKey === "import" || thread.workspaceKey === "unclassified",
-  );
+  const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows);
 
   return (
     <section className="space-y-6">
@@ -50,6 +48,7 @@ export default async function ImportPage() {
         emptyStateTitle="No imported threads yet"
         emptyStateMessage="Imported correspondence waiting for classification will appear here after it enters staging."
         parsedThreads={parsedThreads}
+        sourceEvidenceRecords={initialEvidence}
       />
     </section>
   );

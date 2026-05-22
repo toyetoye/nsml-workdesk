@@ -914,6 +914,14 @@ export const importedEmailThreads: EmailThread[] = [
     ],
     linkedCase: "CASE-24-019",
     suggestedNextAction: "Confirm evidence, then prepare a short holding reply.",
+    parseStatus: "parsed",
+    sourceEvidenceId: "EVID-019-1",
+    originalFilename: "class-survey-message.eml",
+    messageIdHeader: "<thread-1@class.example>",
+    inReplyTo: null,
+    references: ["<case-24-019-root@class.example>"],
+    bodyText:
+      "Please send the latest update on insulation repair completion and any supporting photos before the close of business.",
   },
   {
     id: "thread-2",
@@ -1012,6 +1020,14 @@ export const importedEmailThreads: EmailThread[] = [
     linkedCase: "Unlinked",
     suggestedNextAction:
       "Classify the thread into the correct vessel, project, or general workspace.",
+    parseStatus: "not parsed",
+    sourceEvidenceId: "EVID-STAGE-001",
+    originalFilename: "incoming-message.eml",
+    messageIdHeader: null,
+    inReplyTo: null,
+    references: [],
+    bodyText:
+      "This item is still in the intake queue and has not yet been classified into a workspace.",
   },
   {
     id: "thread-6",

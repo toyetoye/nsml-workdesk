@@ -6,8 +6,12 @@ import type {
 } from "@/lib/mock-data";
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { WorkspaceSummary } from "@/components/WorkspaceSummary";
-import { listCorrespondenceMessages, listCorrespondenceThreads } from "@/lib/persistence/repository";
-import { mapParsedCorrespondenceRowsToThreads } from "@/lib/workbench-data";
+import {
+  listCorrespondenceMessages,
+  listCorrespondenceThreads,
+  listEvidence,
+} from "@/lib/persistence/repository";
+import { mapEvidenceRowsToRecords, mapParsedCorrespondenceRowsToThreads } from "@/lib/workbench-data";
 
 export async function WorkspacePage({
   workspace,
@@ -24,10 +28,12 @@ export async function WorkspacePage({
   emptyStateTitle: string;
   emptyStateMessage: string;
 }) {
-  const [threadRows, messageRows] = await Promise.all([
+  const [threadRows, messageRows, evidenceRows] = await Promise.all([
     listCorrespondenceThreads(),
     listCorrespondenceMessages(),
+    listEvidence(),
   ]);
+  const evidenceRecords = mapEvidenceRowsToRecords(evidenceRows);
   const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows).filter(
     (thread) =>
       correspondenceScope === "import"
@@ -109,6 +115,7 @@ export async function WorkspacePage({
         emptyStateTitle={emptyStateTitle}
         emptyStateMessage={emptyStateMessage}
         parsedThreads={parsedThreads}
+        sourceEvidenceRecords={evidenceRecords}
       />
     </section>
   );
