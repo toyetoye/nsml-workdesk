@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 008 complete.
+Sprint 009A complete.
 
 ## Active sprint
 
-Sprint 009 - online deployment and hardening.
+Sprint 009B - next approved sprint.
 
 ## Confirmed decisions
 
@@ -47,6 +47,14 @@ Sprint 009 - online deployment and hardening.
 - Sprint 008 improved correspondence threading and workspace correspondence UX with deterministic `message-id` / `in-reply-to` / `references` matching, conservative normalized-subject fallback, possible-related surfacing for uncertain matches, an operational thread console in `EmailWorkbench`, attachment metadata display, parse state and parse error visibility, source evidence linkage visibility, linked/unlinked case state, placeholder link/create-case actions, workspace-scoped correspondence views, `/import` staging/unclassified correspondence, workspace/status/sender/attachment/parse/case-link filters, and a ZIP/PST/archive import placeholder UX.
 - Sprint 008 keeps threading deterministic and conservative: a false merge is worse than leaving related emails separate.
 - Sprint 008 does not add archive extraction, AI, drafting, red-team agent, Outlook integration, email sending, unsafe HTML rendering, or remote asset loading.
+- Sprint 009A added the server-side AI intake/triage foundation with an AI config helper, selected-context-only triage builders, a server-side triage service, protected AI server actions, a structured triage schema, triage from selected intake items/threads/cases, the advisory-only `TriageResultPanel`, and a triage-aware CoS Assistant status panel that is not a general chatbot.
+- Sprint 009A keeps AI advisory only: source type and source IDs are always included, `evidence_used` is shown in the result, persisted triage output is stored as an audit-style record when available, and session-only display remains available when persistence is not.
+- Sprint 009A disables AI controls when env vars are missing and does not fabricate AI output.
+- Sprint 009A does not add drafting, red-team review, Outlook integration, email sending, automatic routing/classification, automatic record mutation, PDF/OCR AI extraction, or background processing.
+
+## Product rules
+
+- AI can recommend but cannot act. AI triage output is advisory only and must remain traceable to selected source material.
 
 ## Next action
 

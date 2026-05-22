@@ -70,3 +70,15 @@ Deployment should keep the thread console, parse state, attachment metadata, sou
 Archive planning UX should remain placeholder-only until archive extraction is explicitly approved.
 
 Production deployments should continue to enforce the access gate and preserve server-side repository boundaries for correspondence data.
+
+## Sprint 009A Notes
+
+Sprint 009A adds server-side AI triage foundation but still does not require deployment execution.
+
+AI configuration must remain server-side only and must fail safely when the required env vars are missing.
+
+Deployment should keep triage controls disabled or clearly marked as unavailable when AI is not configured, and it must not fabricate AI output.
+
+AI requests must remain selected-context-only and protected by the existing access gate.
+
+Production deployments should continue to keep AI advisory-only, preserve traceability back to source material, and avoid automatic record mutation.

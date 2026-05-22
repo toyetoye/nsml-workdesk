@@ -228,3 +228,34 @@ Notes:
 
 - No archive extraction, no AI, no drafting, no red-team agent, no Outlook integration, no email sending, no unsafe HTML rendering, and no remote asset loading.
 - Threading must be deterministic and conservative. A false merge is worse than leaving related emails separate. When uncertain, preserve separate threads and surface possible relationship only.
+
+## Sprint 009A
+
+Complete.
+
+Delivered:
+
+- server-side AI intake/triage foundation
+- AI config helper
+- selected-context-only triage builders
+- server-side triage service
+- protected AI server actions
+- structured triage schema
+- triage from selected intake item
+- triage from selected correspondence thread
+- triage from selected case
+- advisory-only `TriageResultPanel`
+- CoS Assistant triage-aware status only, not a general chatbot
+- traceability to source type and source IDs
+- `evidence_used` shown in result
+- persistence/audit-style storage when available
+- session-only triage display when persistence is unavailable
+- disabled AI controls when env vars are missing
+- no fake AI output
+- no automatic record mutation
+
+Notes:
+
+- No drafting, no red-team agent, no Outlook integration, no email sending, no automatic routing/classification, no PDF/OCR AI extraction, and no background processing.
+- AI can recommend but cannot act. AI triage output is advisory only and must remain traceable to selected source material.
+- AI calls must be server-side, selected-context-only, and must not send unrelated vessels/projects or the whole evidence library.

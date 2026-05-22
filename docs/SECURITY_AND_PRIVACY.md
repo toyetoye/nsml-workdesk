@@ -26,3 +26,7 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Treat virus/malware scanning as a future control before broader or less-controlled file ingestion.
 - Threading must remain deterministic and conservative; uncertain relationships should stay separate instead of being force-merged.
 - Placeholder case-link and create-case actions must not imply automatic case creation or linking.
+- AI calls must be server-side only.
+- AI requests must be selected-context-only and must not include unrelated vessels, projects, or the whole evidence library.
+- AI output must remain advisory only and must not automatically mutate records.
+- AI triage must preserve traceability to source type, source IDs, and evidence_used.

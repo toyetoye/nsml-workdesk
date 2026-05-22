@@ -155,3 +155,15 @@ Mitigation: Use exact header matching first, fall back conservatively, and keep 
 Risk: Parsed threads could still feel like a flat message list or a mail client instead of operational correspondence.
 
 Mitigation: Keep the thread console explicit with timeline, attachments, parse state, case linkage, and workspace-scoped views.
+
+## R027 - AI context bleed
+
+Risk: AI triage could accidentally include unrelated vessels, projects, or the whole evidence library and produce advice without traceability.
+
+Mitigation: Keep AI server-side, selected-context-only, and strictly tied to source type and source IDs with evidence_used shown in the result.
+
+## R028 - Advisory-to-action confusion
+
+Risk: Users could mistake AI recommendations for automatic changes to workspace, case, or status.
+
+Mitigation: Keep AI output advisory only, display suggestions without applying them automatically, and preserve explicit user approval for any downstream action.

@@ -226,6 +226,26 @@ Parsed correspondence must continue to respect the Sprint 007 security posture:
 - no client-side Supabase writes;
 - no AI-driven classification.
 
+## Sprint 009A AI Triage Architecture
+
+Sprint 009A adds a server-side AI triage layer for selected intake items, correspondence threads, and cases.
+
+The AI architecture is structured around:
+
+- an AI config helper that reports whether structured triage is enabled;
+- selected-context-only triage builders for intake items, threads, and cases;
+- a server-side triage service that calls the model and validates structured JSON output;
+- protected AI server actions for intake, thread, and case triage;
+- an advisory-only triage result component;
+- audit-style persistence when available and session-only display when persistence is not available;
+- traceability through source type, source IDs, and evidence-used references.
+
+AI requests must be server-side only and must only send the selected item plus directly linked evidence or correspondence. Unrelated vessels, projects, and the full evidence library must never be sent.
+
+AI output must remain advisory. It must not change workspace, case, status, or routing automatically.
+
+The CoS Assistant remains a structured triage aide only; it is not a general chatbot yet.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.

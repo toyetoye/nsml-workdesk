@@ -131,3 +131,15 @@ Reason: A false merge is worse than leaving related emails separate because it c
 Decision: Sprint 008 should present correspondence as an operational thread console with visible parse state, source evidence linkage, linked/unlinked case state, attachment metadata, and placeholder case-linking actions.
 
 Reason: Parsed email files need to be usable in daily operations, not just technically ingested.
+
+## D023 - Advisory AI triage only
+
+Decision: Sprint 009A adds AI as a server-side advisory triage layer that analyses only selected intake items, correspondence threads, or cases and returns structured output without mutating records automatically.
+
+Reason: The app needs AI help to surface likely workspace, case, urgency, and follow-up signals, but the user must remain the final decision-maker and the result must stay traceable to the selected source material.
+
+## D024 - Selected-context AI only
+
+Decision: AI requests must include source type and source IDs and must only use the selected item/thread/case context plus directly linked evidence or correspondence.
+
+Reason: The system must not send the whole evidence library or unrelated vessels and projects to the model, and every output must remain auditable back to the source material used.

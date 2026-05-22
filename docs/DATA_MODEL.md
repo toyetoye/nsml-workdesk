@@ -249,6 +249,32 @@ The UI should continue to distinguish:
 - archive planning placeholders without extraction;
 - operational thread timeline view rather than a flat message dump.
 
+## Sprint 009A AI Triage
+
+The AI triage layer stores structured advisory results for selected source material.
+
+Triage records should preserve:
+
+- source type;
+- source IDs;
+- source label;
+- source snapshot or trace payload;
+- evidence_used references;
+- suggested workspace, case title, and status;
+- urgency level;
+- missing information;
+- recommended follow-up questions;
+- suggested tags;
+- should-create-case / should-prepare-draft-later flags;
+- confidence;
+- caution notes;
+- provider and model metadata when persisted;
+- persisted or session-only state.
+
+Triage results must remain traceable to the selected intake item, thread, or case and any directly linked evidence or correspondence used in the request.
+
+AI output must not mutate the source records automatically; any application of recommendations remains a later user-approved action.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.
