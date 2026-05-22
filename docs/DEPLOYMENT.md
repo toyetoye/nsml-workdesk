@@ -44,3 +44,17 @@ Deployment should keep evidence files private, use metadata-only records when st
 No file preview or parsing should be enabled at deployment time for this sprint.
 
 Virus/malware scanning should be treated as a required future deployment control before broader or less-controlled file ingestion.
+
+## Sprint 007 Notes
+
+Sprint 007 adds server-side EML ingestion foundation but still does not require deployment execution.
+
+Parsed email ingestion must remain server-side only and preserve the original EML as private evidence.
+
+Deployment should keep parsed correspondence traceable back to source evidence, avoid public file URLs, and never render raw email HTML.
+
+Remote email assets must not be fetched automatically.
+
+When Supabase/storage is unavailable, parsing should be disabled or fall back clearly without crashing the app.
+
+Production deployments should continue to keep the access gate, private evidence storage, and repository-backed persistence boundaries intact.

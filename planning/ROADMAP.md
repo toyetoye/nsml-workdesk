@@ -172,4 +172,31 @@ Notes:
 
 ## Sprint 007
 
-Online deployment and hardening.
+Complete.
+
+Delivered:
+
+- server-side EML ingestion foundation
+- mailparser-based parsing
+- original EML preserved as private evidence
+- parse status fields on evidence records
+- `parsed_thread_id` and `parsed_message_id` linkage
+- `source_evidence_id` linkage from parsed correspondence
+- deterministic workspace routing without AI
+- case workspace wins if evidence is linked to a case
+- assigned workspace used when no case link exists
+- unclassified/import staging used when workspace is unclear
+- subject/from/to/cc/bcc/date/message-id/in-reply-to/references extraction
+- safe body text extraction
+- raw HTML not rendered
+- remote email assets not fetched
+- attachment metadata only
+- visible parse states: not parsed, parsing, parsed, failed, unsupported
+- parse errors visible and non-destructive
+- parsing disabled/fallback when Supabase/storage is unavailable
+
+Notes:
+
+- No AI, no drafting, no red-team agent, no Outlook integration, no email sending, no unsafe HTML rendering, and no PDF/OCR parsing.
+- EML ingestion converts uploaded email files into structured correspondence metadata while preserving the original EML as evidence. It does not interpret, classify by AI, draft responses, or validate the truth of the email content.
+- Email HTML must never be rendered raw. Remote email resources must not be fetched automatically.

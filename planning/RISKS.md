@@ -125,3 +125,21 @@ Mitigation: Keep the UI explicit about storage state, metadata-only handling, an
 Risk: Broader file ingestion without scanning could introduce virus or malware risk.
 
 Mitigation: Treat virus/malware scanning as a required future control before less-controlled ingestion or wider file acceptance.
+
+## R022 - Unsafe EML rendering
+
+Risk: Parsed email HTML could be rendered unsafely or could pull remote content automatically.
+
+Mitigation: Never render raw email HTML, reduce HTML to safe text only, and never auto-fetch remote email resources.
+
+## R023 - Parsing fallback ambiguity
+
+Risk: Users could assume parsing worked when Supabase/storage is missing and the system falls back.
+
+Mitigation: Show clear parsing-disabled or fallback messaging and keep parse status visible as non-destructive metadata state.
+
+## R024 - Unsupported archive overreach
+
+Risk: Archive ingestion could drift into broad ZIP/extraction logic before the parsing spine is ready.
+
+Mitigation: Keep archive extraction optional and deferred; only expand it after a safe, explicit proposal.

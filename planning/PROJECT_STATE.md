@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 006 complete.
+Sprint 007 complete.
 
 ## Active sprint
 
-Sprint 007 - online deployment and hardening.
+Sprint 008 - online deployment and hardening.
 
 ## Confirmed decisions
 
@@ -37,6 +37,13 @@ Sprint 007 - online deployment and hardening.
 - Sprint 006 added a private Supabase Storage bucket foundation for evidence files, a server-side evidence upload action, a server-side storage helper, evidence metadata persistence through the repository layer, an `/import` private evidence upload and staging area, a `/cases` attach-evidence panel, and fallback/prototype behavior when Supabase/storage is not configured.
 - Sprint 006 keeps evidence uploads private, metadata-first, and server-side only; no public file URLs or client-side Supabase Storage writes are allowed.
 - Sprint 006 does not add file preview, file parsing, AI, Outlook integration, or email sending.
+- Sprint 007 added a server-side EML ingestion foundation using `mailparser`, preserving original EML files as private evidence while creating structured correspondence thread and message records.
+- Sprint 007 adds parse status fields on evidence records, `parsed_thread_id` and `parsed_message_id` linkage, and `source_evidence_id` linkage on parsed correspondence.
+- Sprint 007 uses deterministic workspace routing without AI: case workspace wins when linked, assigned workspace is used when no case link exists, and unclassified/import staging is used when workspace is unclear.
+- Sprint 007 extracts subject, from, to, cc, bcc, date, message-id, in-reply-to, references, safe body text, and attachment metadata only.
+- Sprint 007 keeps raw HTML unrendered, remote email assets unfetched, and parse errors visible and non-destructive.
+- Sprint 007 disables parsing or falls back clearly when Supabase/storage is unavailable.
+- Sprint 007 does not add AI, drafting, red-team agent, Outlook integration, email sending, unsafe HTML rendering, or PDF/OCR parsing.
 
 ## Next action
 

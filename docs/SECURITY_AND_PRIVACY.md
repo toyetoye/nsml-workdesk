@@ -21,4 +21,6 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Do not expose public file URLs for evidence.
 - Do not let client components write directly to Supabase Storage.
 - Do not claim to understand, parse, summarize, or validate file contents until a later parsing/AI sprint.
+- Email HTML must never be rendered raw.
+- Remote email resources must not be fetched automatically.
 - Treat virus/malware scanning as a future control before broader or less-controlled file ingestion.

@@ -107,3 +107,15 @@ Reason: Evidence files must remain private and server-mediated, with durable sto
 Decision: Sprint 006 treats files as evidence metadata and private binary storage only; the system does not claim to parse, summarize, or validate file contents yet.
 
 Reason: Parsing, AI interpretation, and validation belong to later controlled sprints after the storage foundation is proven safe.
+
+## D019 - Server-side EML ingestion
+
+Decision: Sprint 007 ingests uploaded `.eml` files server-side using `mailparser`, preserves the original EML as private evidence, and creates structured correspondence metadata and message records from the parsed content.
+
+Reason: The product needs a safe path from uploaded email files to structured correspondence without exposing raw HTML, remote assets, or client-side file handling.
+
+## D020 - Deterministic correspondence routing
+
+Decision: Sprint 007 routes parsed correspondence deterministically without AI: a linked case workspace wins, otherwise the assigned workspace is used, and otherwise the item stays in Import/Staging or unclassified.
+
+Reason: Correspondence must remain explainable and traceable while avoiding automatic classification or workflow guesses.

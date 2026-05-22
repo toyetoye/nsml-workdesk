@@ -152,6 +152,52 @@ Files are evidence. Sprint 006 stores files privately and records metadata only;
 
 Virus/malware scanning is a future control that must be addressed before broader or less-controlled ingestion.
 
+## Sprint 007 EML Ingestion Architecture
+
+Sprint 007 adds a server-side EML ingestion foundation for private evidence files.
+
+The ingestion architecture is structured around:
+
+- a server-side parser based on `mailparser`;
+- private EML evidence as the preserved source artifact;
+- deterministic correspondence creation from parsed metadata;
+- evidence parse state and error tracking;
+- correspondence thread and message records linked back to source evidence;
+- workspace routing without AI;
+- fallback or disabled parsing when Supabase/storage is unavailable.
+
+Parsed metadata should capture:
+
+- subject;
+- from;
+- to;
+- cc;
+- bcc when present;
+- sent / received date;
+- message-id;
+- in-reply-to;
+- references;
+- safe body text only;
+- attachment metadata only.
+
+HTML email bodies must never be rendered raw. HTML should be reduced to safe text only, and remote email resources must not be fetched automatically.
+
+Routing is deterministic:
+
+- if evidence is linked to a case, that case workspace wins;
+- otherwise, the assigned workspace is used;
+- otherwise, the thread remains in Import/Staging or unclassified.
+
+The UI should expose parse states:
+
+- not parsed;
+- parsing;
+- parsed;
+- failed;
+- unsupported.
+
+Parse failures must be visible and non-destructive. The original EML remains preserved as evidence regardless of parse outcome.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.

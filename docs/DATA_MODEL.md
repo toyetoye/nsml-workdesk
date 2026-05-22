@@ -160,6 +160,66 @@ Evidence remains metadata-first in this sprint. The system must not claim to und
 
 No public file URLs, no file preview, no direct client-side Supabase Storage writes, and no file parsing are assumed for this sprint.
 
+## Sprint 007 EML Ingestion
+
+The evidence and correspondence models gain parse-state tracking and source-linkage fields for server-side EML ingestion.
+
+Evidence records should now also capture:
+
+- parse status
+- parse error
+- parsed thread reference
+- parsed message reference
+- parsed timestamp
+
+Correspondence thread records should now also capture:
+
+- source evidence reference
+- parse status
+- parse error
+- original filename
+- message-id header
+- in-reply-to
+- references
+- bcc
+- safe body text
+- sanitized or text-only HTML placeholder
+- attachment metadata
+- parsed timestamp
+
+Correspondence message records should now also capture:
+
+- source evidence reference
+- recipients
+- cc recipients
+- bcc recipients
+- subject
+- message-id header
+- in-reply-to
+- references
+- safe body text
+- sanitized or text-only HTML placeholder
+- attachment metadata
+- parsed timestamp
+
+Parse state should be represented with:
+
+- not parsed
+- parsing
+- parsed
+- failed
+- unsupported
+
+Evidence-to-thread linkage should preserve the original EML as the source artifact while making the parsed correspondence traceable back to the source evidence record.
+
+Routing should remain deterministic and metadata-driven:
+
+- case workspace wins if evidence is linked to a case;
+- assigned workspace is used if no case link exists;
+- Import/Staging or unclassified is used when workspace is unclear.
+
+Parsed correspondence records must not imply raw HTML rendering or remote asset loading.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.
