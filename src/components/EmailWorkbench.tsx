@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
+import Link from "next/link";
 import {
   Archive,
   ArrowRight,
@@ -1037,6 +1038,29 @@ function EmptyThreads({ title, message }: { title: string; message: string }) {
       </p>
       <h3 className="mt-2 text-2xl font-bold text-slate-950">{title}</h3>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{message}</p>
+      <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Next best action
+        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-700">
+          If this thread should exist, stage the source material in Import first, then move it
+          into the correct workspace or case.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link href="/import" className="btn-secondary">
+            Open Import
+          </Link>
+          <Link href="/cases" className="btn-secondary">
+            Open Cases
+          </Link>
+          <Link href="/drafts" className="btn-secondary">
+            Open Drafts
+          </Link>
+          <Link href="/settings/writing-style" className="btn-secondary">
+            Writing Style
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

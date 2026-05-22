@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ClipboardList, Upload } from "lucide-react";
+import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import type {
   EmailThreadScope,
   WorkspaceSummary as WorkspaceSummaryData,
@@ -64,6 +65,40 @@ export async function WorkspacePage({
       </header>
 
       <WorkspaceSummary workspace={workspace} />
+
+      <WorkflowChecklist
+        title="Workflow path for this workspace"
+        description="Use this workspace as the operational thread view, then jump to cases or drafts when the thread needs action."
+        note="Workspace-specific correspondence only"
+        items={[
+          {
+            title: "Review the current thread list",
+            description:
+              "Use this workspace view to inspect parsed threads, parse states, and evidence links in context.",
+          },
+          {
+            title: "Move work into cases",
+            description:
+              "When a thread needs ownership, open the case workbench and link the relevant evidence or correspondence.",
+            href: "/cases",
+            actionLabel: "Open Cases",
+          },
+          {
+            title: "Generate a draft when the source is clear",
+            description:
+              "Drafts stay pending red-team until they are reviewed. Use the drafts workbench to continue that path.",
+            href: "/drafts",
+            actionLabel: "Open Drafts",
+          },
+          {
+            title: "Tune writing style before drafting",
+            description:
+              "If the wording sounds off, refine the profile so the next draft matches your tone more closely.",
+            href: "/settings/writing-style",
+            actionLabel: "Open Writing Style",
+          },
+        ]}
+      />
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="card p-4">

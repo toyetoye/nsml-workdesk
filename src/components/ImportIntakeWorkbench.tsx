@@ -52,6 +52,7 @@ type ImportIntakeWorkbenchProps = {
   initialEvidence: EvidenceRecord[];
   persistenceEnabled: boolean;
   aiConfig: AiConfigStatus;
+  writingStyleProfileName?: string | null;
 };
 
 const statusTone: Record<ImportIntakeStatus, StatusTone> = {
@@ -89,6 +90,7 @@ export function ImportIntakeWorkbench({
   initialEvidence,
   persistenceEnabled,
   aiConfig,
+  writingStyleProfileName,
 }: ImportIntakeWorkbenchProps) {
   const initialList = initialItems.length > 0 ? initialItems : [];
   const [items, setItems] = useState<ImportIntakeItem[]>(() => initialList);
@@ -318,6 +320,28 @@ export function ImportIntakeWorkbench({
           <WandSparkles aria-hidden size={16} />
           {persistenceEnabled ? "Repository connected" : "Session fallback only"}
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          Current intake state
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {selectedItem
+            ? selectedItem.workspaceAssignment === "Import/Staging"
+              ? "Staged"
+              : `Linked to ${selectedItem.workspaceAssignment}`
+            : "No intake item selected"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {selectedItem ? itemStatusLabel(selectedItem.status) : "No intake item selected"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {activeTriageOutcome ? "Triaged" : "Pending triage"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {writingStyleProfileName ?? "Default safe writing style"}
+        </span>
       </div>
 
       {saveNotice ? (
@@ -601,6 +625,34 @@ export function ImportIntakeWorkbench({
                   <DetailRow label="Linked case" value={selectedItem.casePlaceholder} />
                 </div>
 
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <InfoCallout
+                    title="Workflow state"
+                    value={
+                      selectedItem.workspaceAssignment === "Import/Staging"
+                        ? "Staged for review"
+                        : `Linked to ${selectedItem.workspaceAssignment}`
+                    }
+                    icon={Route}
+                  />
+                  <InfoCallout
+                    title="Next best action"
+                    value={
+                      selectedEvidenceRecords.length > 0
+                        ? activeTriageOutcome
+                          ? "Draft a reply, then run red-team review before copying."
+                          : "Run triage so the item has a clearer case and response path."
+                        : "Upload evidence or add context first, then triage."
+                    }
+                    icon={ArrowRight}
+                  />
+                  <InfoCallout
+                    title="Draft style"
+                    value={writingStyleProfileName ?? "Default safe writing style"}
+                    icon={WandSparkles}
+                  />
+                </div>
+
                 <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
                   <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -763,6 +815,7 @@ export function ImportIntakeWorkbench({
                   provider={activeDraftOutcome?.provider ?? null}
                   model={activeDraftOutcome?.model ?? null}
                   triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
+                  writingStyleProfileName={writingStyleProfileName ?? null}
                 />
                   {activeDraftError ? (
                     <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">

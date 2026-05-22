@@ -108,6 +108,7 @@ export function CaseManagementWorkbench({
   persistenceEnabled,
   parsingEnabled = false,
   aiConfig,
+  writingStyleProfileName,
 }: {
   initialCases: CaseRecord[];  
   initialEvidence: EvidenceRecord[];
@@ -115,6 +116,7 @@ export function CaseManagementWorkbench({
   persistenceEnabled: boolean;
   parsingEnabled?: boolean;
   aiConfig: AiConfigStatus;
+  writingStyleProfileName?: string | null;
 }) {
   const [cases, setCases] = useState<CaseRecord[]>(() => initialCases);
   const [evidence, setEvidence] = useState<EvidenceRecord[]>(() => initialEvidence);
@@ -434,6 +436,28 @@ export function CaseManagementWorkbench({
         {saveNotice ? <span>{saveNotice}</span> : <span>Case writes use the server repository first.</span>}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          Current case state
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {selectedCase?.status ?? "No case selected"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {selectedCase
+            ? selectedCase.linkedEvidence.length > 0
+              ? "Linked to case"
+              : "Needs evidence"
+            : "No case selected"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {triageOutcome ? "Triaged" : "Pending triage"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+          {writingStyleProfileName ?? "Default safe writing style"}
+        </span>
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="card min-h-[42rem] p-3">
           <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
@@ -544,6 +568,31 @@ export function CaseManagementWorkbench({
                 <InfoCard label="Opened" value={selectedCase.openedDate} />
                 <InfoCard label="Age" value={selectedCase.age} />
                 <InfoCard label="Due" value={selectedCase.dueLabel} />
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <InfoCard
+                  label="Workflow state"
+                  value={
+                    selectedCase.linkedEvidence.length > 0
+                      ? "Case has evidence linked"
+                      : "Needs evidence"
+                  }
+                />
+                <InfoCard
+                  label="Next best action"
+                  value={
+                    selectedEvidence.length > 0
+                      ? selectedThreads.length > 0
+                        ? "Triage the case or draft a reply, then review the draft in /drafts."
+                        : "Triage the case and attach the remaining evidence or correspondence."
+                      : "Attach evidence first, then triage the case and build the response path."
+                  }
+                />
+                <InfoCard
+                  label="Draft style"
+                  value={writingStyleProfileName ?? "Default safe writing style"}
+                />
               </div>
 
               <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
@@ -669,6 +718,7 @@ export function CaseManagementWorkbench({
                   provider={activeDraftOutcome?.provider ?? null}
                   model={activeDraftOutcome?.model ?? null}
                   triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
+                  writingStyleProfileName={writingStyleProfileName ?? null}
                 />
                 {activeDraftError ? (
                   <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
@@ -1191,6 +1241,17 @@ function EmptyCases({ title, message }: { title: string; message: string }) {
       </p>
       <h2 className="mt-2 text-2xl font-bold text-slate-950">{title}</h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{message}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link href="/import" className="btn-secondary">
+          Open Import
+        </Link>
+        <Link href="/drafts" className="btn-secondary">
+          Open Drafts
+        </Link>
+        <Link href="/settings/writing-style" className="btn-secondary">
+          Writing Style
+        </Link>
+      </div>
     </div>
   );
 }

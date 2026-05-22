@@ -6,6 +6,7 @@ import { ArrowRight, Filter } from "lucide-react";
 import { AttentionQueue } from "@/components/AttentionQueue";
 import { DashboardCard } from "@/components/DashboardCard";
 import { StatusBadge } from "@/components/StatusBadge";
+import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import {
   allWorkspaces,
   dashboardQueueItems,
@@ -80,11 +81,11 @@ const queueSectionOrder: Array<{
   },
   {
     key: "drafts",
-    title: "Drafts Ready / Drafts Failed Red-Team",
-    description: "Drafts waiting for approval plus a placeholder view for drafts that need red-team revision.",
+    title: "Drafts pending red-team / reviewed drafts",
+    description:
+      "Generated drafts waiting for red-team review plus the reviewed-draft path when copy is safe.",
     emptyStateTitle: "No drafts in view",
-    emptyStateMessage:
-      "There are no draft items under the current filters.",
+    emptyStateMessage: "There are no draft items under the current filters. Open Drafts to continue the review path.",
   },
   {
     key: "needs-evidence",
@@ -149,9 +150,57 @@ export function DashboardCommandCenter() {
 
         <Link href="/import" className="btn-primary">
           <ArrowRight aria-hidden size={18} />
-          Open Import
+          Start at Import
         </Link>
       </header>
+
+      <WorkflowChecklist
+        title="Workflow path"
+        description="Follow the same path every time so intake, correspondence, cases, drafts, and review stay in sync."
+        note="Copy is only available after red-team review"
+        items={[
+          {
+            title: "Start with intake",
+            description:
+              "Paste a note or email, stage evidence, and parse EML metadata when a file is eligible.",
+            href: "/import",
+            actionLabel: "Open Import",
+          },
+          {
+            title: "Review correspondence by workspace",
+            description:
+              "Move between vessel, project, and general correspondence pages to keep threads in the right operational context.",
+            links: [
+              { href: "/vessels/lng-portharcourt-ii", label: "LNG PORTHARCOURT II" },
+              { href: "/vessels/lpg-alfred-temile", label: "LPG ALFRED TEMILE" },
+              { href: "/vessels/lpg-alfred-temile-10", label: "LPG ALFRED TEMILE 10" },
+              { href: "/projects", label: "Projects" },
+              { href: "/other", label: "Other" },
+            ],
+          },
+          {
+            title: "Manage cases and decisions",
+            description:
+              "Open the case workbench to attach evidence, inspect linked correspondence, and keep the next action visible.",
+            href: "/cases",
+            actionLabel: "Open Cases",
+          },
+          {
+            title: "Draft, review, and copy safely",
+            description:
+              "Generate drafts, run red-team review, and only copy reviewed text when it is marked safe to copy.",
+            href: "/drafts",
+            actionLabel: "Open Drafts",
+          },
+          {
+            title: "Tune writing style",
+            description:
+              "Adjust greeting, closing, tone, brevity, and stakeholder framing before generating the next draft.",
+            href: "/settings/writing-style",
+            actionLabel: "Open Writing Style",
+          },
+        ]}
+      />
 
       <section className="card p-4">
         <div className="flex items-start justify-between gap-3">

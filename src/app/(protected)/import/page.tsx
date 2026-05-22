@@ -1,9 +1,11 @@
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
+import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
+import { getActiveWritingStyleProfile } from "@/lib/persistence/repository";
 import {
   listCorrespondenceMessages,
   listCorrespondenceThreads,
@@ -17,11 +19,12 @@ import {
 } from "@/lib/workbench-data";
 
 export default async function ImportPage() {
-  const [intakeRows, evidenceRows, threadRows, messageRows] = await Promise.all([
+  const [intakeRows, evidenceRows, threadRows, messageRows, writingStyleProfile] = await Promise.all([
     listIntakeItems(),
     listEvidence(),
     listCorrespondenceThreads(),
     listCorrespondenceMessages(),
+    getActiveWritingStyleProfile(),
   ]);
   const initialItems = mapIntakeRowsToItems(intakeRows);
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
@@ -30,11 +33,45 @@ export default async function ImportPage() {
 
   return (
     <section className="space-y-6">
+      <WorkflowChecklist
+        title="Import flow"
+        description="Start with intake, stage evidence, then decide whether the item belongs in correspondence, a case, or a draft path."
+        note="AI and persistence may fall back"
+        items={[
+          {
+            title: "Stage the item",
+            description:
+              "Paste a note or email, or save a manual intake record so the source material is captured first.",
+          },
+          {
+            title: "Upload or parse evidence",
+            description:
+              "Attach private files here, then parse EML metadata only when the file is eligible.",
+          },
+          {
+            title: "Move the work forward",
+            description:
+              "Use workspace correspondence, cases, drafts, and writing style settings to keep the response path coherent.",
+            links: [
+              { href: "/vessels/lng-portharcourt-ii", label: "LNG PORTHARCOURT II" },
+              { href: "/vessels/lpg-alfred-temile", label: "LPG ALFRED TEMILE" },
+              { href: "/vessels/lpg-alfred-temile-10", label: "LPG ALFRED TEMILE 10" },
+              { href: "/projects", label: "Projects" },
+              { href: "/other", label: "Other" },
+              { href: "/cases", label: "Cases" },
+              { href: "/drafts", label: "Drafts" },
+              { href: "/settings/writing-style", label: "Writing Style" },
+            ],
+          },
+        ]}
+      />
+
       <ImportIntakeWorkbench
         initialItems={initialItems}
         initialEvidence={initialEvidence}
         persistenceEnabled={isPersistenceAvailable()}
         aiConfig={aiConfig}
+        writingStyleProfileName={writingStyleProfile.profile_name}
       />
 
       <EvidenceStorageWorkbench

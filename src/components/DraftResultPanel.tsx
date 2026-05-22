@@ -23,6 +23,18 @@ function confidenceLabel(value: number) {
   return `${Math.round(clamped * 100)}%`;
 }
 
+function draftStatusLabel(value: DraftStatus) {
+  if (value === "pending_red_team") {
+    return "Pending red-team";
+  }
+
+  if (value === "needs_evidence") {
+    return "Needs evidence";
+  }
+
+  return "Blocked";
+}
+
 type DraftResultPanelProps = {
   sourceType: string;
   sourceLabel: string;
@@ -37,6 +49,7 @@ type DraftResultPanelProps = {
   model?: string | null;
   triageAuditLogId?: string | null;
   reviewDisabledReason?: string | null;
+  writingStyleProfileName?: string | null;
 };
 
 export function DraftResultPanel(props: DraftResultPanelProps) {
@@ -59,6 +72,7 @@ function DraftResultPanelBody({
   model,
   triageAuditLogId,
   reviewDisabledReason,
+  writingStyleProfileName,
 }: DraftResultPanelProps) {
   const [reviewOutcome, setReviewOutcome] = useState<RedTeamRunOutcome | null>(null);
   const [reviewRunning, setReviewRunning] = useState(false);
@@ -121,8 +135,11 @@ function DraftResultPanelBody({
             <StatusBadge tone={persisted ? "accent" : "neutral"}>
               {persisted ? "Persisted draft" : "Session-only"}
             </StatusBadge>
+            <StatusBadge tone={writingStyleProfileName ? "accent" : "warning"}>
+              {writingStyleProfileName ?? "Default safe style"}
+            </StatusBadge>
             {result ? (
-              <StatusBadge tone={statusTone[result.status]}>{result.status}</StatusBadge>
+              <StatusBadge tone={statusTone[result.status]}>{draftStatusLabel(result.status)}</StatusBadge>
             ) : null}
           </div>
           <h3 className="mt-2 text-xl font-bold text-slate-950">{sourceLabel}</h3>
@@ -152,7 +169,7 @@ function DraftResultPanelBody({
         ) : null}
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <MiniStat label="Source IDs" value={sourceIds.length > 0 ? sourceIds.join(", ") : "None"} />
         <MiniStat
           label="Reviewed source IDs"
@@ -163,6 +180,7 @@ function DraftResultPanelBody({
         <MiniStat label="Provider" value={provider ?? "Not configured"} />
         <MiniStat label="Model" value={model ?? "Not configured"} />
         <MiniStat label="Triage ref" value={triageAuditLogId ?? "None"} />
+        <MiniStat label="Writing style" value={writingStyleProfileName ?? "Default safe style"} />
       </div>
 
       <div className="mt-4 rounded-md border border-slate-200 bg-white p-4">

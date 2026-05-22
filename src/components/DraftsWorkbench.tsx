@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Copy, FileSearch, Layers3, ShieldCheck } from "lucide-react";
 import { runRedTeamReviewAction } from "@/app/(protected)/ai/actions";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -21,6 +22,22 @@ function statusTone(status: string): "danger" | "warning" | "accent" | "neutral"
 
 function persistenceTone(value: string) {
   return value === "persisted" ? "accent" : "neutral";
+}
+
+function draftStatusLabel(status: string) {
+  if (status === "pending_red_team") {
+    return "Pending red-team";
+  }
+
+  if (status === "needs_evidence") {
+    return "Needs evidence";
+  }
+
+  if (status === "blocked") {
+    return "Blocked";
+  }
+
+  return status;
 }
 
 function confidenceLabel(value: number) {
@@ -101,11 +118,13 @@ export function DraftsWorkbench({
   initialReviews,
   caseTitles,
   aiConfig,
+  writingStyleProfileName,
 }: {
   drafts: DraftResponsePlaceholderRow[];
   initialReviews: DraftRedTeamReviewRow[];
   caseTitles: Map<string, string>;
   aiConfig: AiConfigStatus;
+  writingStyleProfileName?: string | null;
 }) {
   const [draftRows] = useState<DraftResponsePlaceholderRow[]>(() => [...drafts]);
   const [reviewsByDraftId, setReviewsByDraftId] = useState<Record<string, DraftRedTeamReviewRow>>(() =>
@@ -131,6 +150,7 @@ export function DraftsWorkbench({
   );
 
   const pendingCount = sortedDrafts.filter((item) => !reviewMap.get(item.draft_id)).length;
+  const safeCount = sortedDrafts.filter((item) => reviewMap.get(item.draft_id)?.safe_to_copy).length;
   const passedCount = sortedDrafts.filter((item) => reviewMap.get(item.draft_id)?.verdict === "pass").length;
   const cautionCount = sortedDrafts.filter(
     (item) => reviewMap.get(item.draft_id)?.verdict === "pass_with_caution",
@@ -224,14 +244,22 @@ export function DraftsWorkbench({
             Drafts are generated replies only. They stay pending red-team review until a review
             verdict says they can be copied.
           </p>
+          <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            <span className="font-semibold">Writing style:</span>
+            <span>{writingStyleProfileName ?? "Default safe style"}</span>
+            <Link href="/settings/writing-style" className="font-semibold text-teal-700 hover:text-teal-800">
+              Tune profile
+            </Link>
+          </div>
         </div>
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-950">
           This draft has not passed red-team review and is not ready to send.
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-6">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <StatCard label="Pending red-team" value={pendingCount} />
+        <StatCard label="Reviewed safe to copy" value={safeCount} />
         <StatCard label="Passed red-team" value={passedCount} />
         <StatCard label="Passed with caution" value={cautionCount} />
         <StatCard label="Needs revision" value={reviseCount} />
@@ -271,7 +299,7 @@ export function DraftsWorkbench({
                       <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                         {draft.source_type.replace(/_/g, " ")}
                       </p>
-                      <StatusBadge tone={statusTone(draft.status)}>{draft.status}</StatusBadge>
+                      <StatusBadge tone={statusTone(draft.status)}>{draftStatusLabel(draft.status)}</StatusBadge>
                       <StatusBadge tone={persistenceTone(draft.persistence_state)}>
                         {draft.persistence_state}
                       </StatusBadge>
@@ -505,6 +533,17 @@ function EmptyDrafts() {
             Generate a draft from import, correspondence, or case workbench to create a not-ready
             draft record. Session-only drafts will appear here when persistence is unavailable.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/import" className="btn-secondary">
+              Open Import
+            </Link>
+            <Link href="/cases" className="btn-secondary">
+              Open Cases
+            </Link>
+            <Link href="/settings/writing-style" className="btn-secondary">
+              Writing Style
+            </Link>
+          </div>
         </div>
       </div>
     </div>

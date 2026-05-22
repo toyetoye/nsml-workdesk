@@ -118,3 +118,21 @@ Deployment should keep the writing-style editor usable with a safe default profi
 Writing-style requests must remain protected by the access gate and must only calibrate draft tone, greeting, closing, brevity, stakeholder framing, and phrase choice.
 
 Production deployments should continue to keep style calibration advisory-only, preserve traceability to the active style profile in draft trace payloads, and avoid any interpretation that style can override evidence, safety, missing information, liability controls, or red-team review.
+
+## Sprint 011 Notes
+
+Sprint 011 hardens the existing workflow and does not add new capability.
+
+Manual smoke-test checklist:
+
+1. Log in through the single-user gate.
+2. Open `/import`, create or stage an intake item, and confirm the next-step prompts appear.
+3. Stage an evidence record, parse eligible EML metadata, and confirm the parsed state is visible.
+4. Open a workspace correspondence page and confirm the thread view shows parse, case-link, and source evidence state clearly.
+5. Open `/cases`, confirm the case detail shows the next best action, and verify evidence and correspondence cross-links.
+6. Open `/drafts`, generate a draft, run red-team review, and confirm `Copy reviewed draft` remains disabled until `safe_to_copy` is true.
+7. Open `/settings/writing-style` and confirm the active style profile is visible in the draft workflow context.
+
+Deployment should keep AI-unavailable and persistence-unavailable states obvious but non-blocking, and it should not imply durable state where only session fallback exists.
+
+No send button should appear anywhere in the deployed app, and copy should remain gated by the red-team verdict and `safe_to_copy`.
