@@ -106,3 +106,15 @@ Deployment should keep red-team controls disabled or clearly marked as unavailab
 Red-team requests must remain selected-draft only and protected by the existing access gate.
 
 Production deployments should continue to keep red-team review advisory-only, preserve traceability back to source material, and avoid automatic record mutation, send-state changes, or copy enabling without a passing review.
+
+## Sprint 010 Notes
+
+Sprint 010 adds the writing-style profile layer but still does not require deployment execution.
+
+Writing-style persistence must remain server-side only and must fall back safely when persistence is unavailable.
+
+Deployment should keep the writing-style editor usable with a safe default profile and session/mock fallback, and it must not depend on localStorage or a hard Supabase connection to keep the app usable.
+
+Writing-style requests must remain protected by the access gate and must only calibrate draft tone, greeting, closing, brevity, stakeholder framing, and phrase choice.
+
+Production deployments should continue to keep style calibration advisory-only, preserve traceability to the active style profile in draft trace payloads, and avoid any interpretation that style can override evidence, safety, missing information, liability controls, or red-team review.

@@ -284,6 +284,32 @@ Red-team review must remain server-side only and selected-context-only. It must 
 
 Red-team review must not mutate the source draft automatically. It only determines whether the draft may be copied manually by the user.
 
+## Sprint 010 Writing Style Profile Architecture
+
+Sprint 010 adds a writing-style profile layer that calibrates draft voice without weakening safety or red-team controls.
+
+The writing-style architecture is structured around:
+
+- a protected `/settings/writing-style` profile editor;
+- a server-side save action for the active writing style profile;
+- a persisted style profile schema with a safe default profile;
+- session/mock fallback when persistence is unavailable;
+- controlled style guidance injected into draft-generation builders;
+- style profile trace payload data carried with generated drafts.
+
+The writing-style layer should influence:
+
+- default greeting and closing;
+- preferred tone and brevity;
+- use of `kindly` and `please note`;
+- technical directness and caution level;
+- stakeholder-specific tone notes;
+- preferred phrases and phrases to avoid;
+- liability-sensitive wording rules;
+- draft-mode guidance for supported draft modes.
+
+The writing-style layer must remain bounded guidance only. It must not override evidence, missing information, liability controls, or the red-team gate. If style conflicts with safety, the safety rule wins.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.
@@ -292,3 +318,4 @@ Original evidence must be preserved unchanged.
 AI outputs must remain separate from original evidence.
 Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
 Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.
+Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.

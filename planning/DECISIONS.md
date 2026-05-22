@@ -155,3 +155,9 @@ Reason: Drafts can help accelerate work, but they are not safe to send until red
 Decision: Sprint 009C adds a server-side red-team review layer for generated drafts, and a draft may only become copyable when the review verdict is `pass` or `pass_with_caution` and `safe_to_copy` is true.
 
 Reason: A generated draft is not safe to reuse externally until it passes red-team review or passes with caution. The system may prepare wording, but it must not approve, send, or mark a response ready on its own.
+
+## D027 - Writing style as bounded calibration
+
+Decision: Sprint 010 adds a persisted writing style profile that the draft builders use as bounded guidance for tone, greeting, closing, brevity, stakeholder framing, and phrase choice.
+
+Reason: The user wants drafts to sound more like the user while remaining safe, evidence-based, and red-team controlled. Style can calibrate phrasing, but it must not override evidence, safety, missing information, liability controls, or review gates.

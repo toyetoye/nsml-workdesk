@@ -340,6 +340,54 @@ Only `pass` and `pass_with_caution` may set `safe_to_copy` true. `revise`, `reje
 
 The review UI must show source IDs reviewed and the review findings before copy can be enabled.
 
+## Sprint 010 Writing Style Profile
+
+The writing-style layer stores structured profile data that is used as bounded guidance for draft calibration.
+
+Writing style profile records should preserve:
+
+- profile_id;
+- profile_name;
+- default_greeting;
+- default_closing;
+- preferred_tone;
+- preferred_brevity;
+- use_kindly;
+- use_please_note;
+- technical_directness;
+- caution_level;
+- stakeholder_tone_notes;
+- preferred_phrases;
+- phrases_to_avoid;
+- liability_sensitive_wording_rules;
+- draft_mode_guidance;
+- is_active;
+- persisted or session-only state;
+- created_at;
+- updated_at.
+
+Stakeholder tone notes should support at least:
+
+- vessel / captain / chief engineer;
+- owner / charterer;
+- class / surveyor;
+- vendor / procurement;
+- management.
+
+Draft mode guidance should support at least:
+
+- holding_statement;
+- normal_technical_reply;
+- firm_but_polite;
+- management_summary;
+- vessel_instruction;
+- vendor_clarification;
+- owner_charterer_sensitive.
+
+Draft records should preserve style trace payload metadata so the selected writing style profile used for generation remains visible alongside the draft record.
+
+The writing-style profile must remain a bounded calibration layer. It must not override evidence, missing information, liability controls, or red-team review.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

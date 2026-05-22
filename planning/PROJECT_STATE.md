@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 009C complete.
+Sprint 010 complete.
 
 ## Active sprint
 
-Sprint 009D - next approved sprint.
+Sprint 011 - next approved sprint.
 
 ## Confirmed decisions
 
@@ -59,11 +59,16 @@ Sprint 009D - next approved sprint.
 - Sprint 009C keeps copy disabled unless `safe_to_copy` is true, and only `pass` or `pass_with_caution` may unlock `Copy reviewed draft`; there is still no send button or mark-ready action outside the review gate.
 - Sprint 009C preserves source IDs reviewed in the UI and in persisted review metadata when available, while keeping session-only review display available when persistence is unavailable.
 - Sprint 009C does not add sending, Outlook integration, automatic reply sending, automatic case/status/routing changes, automatic draft replacement, PDF/OCR extraction, or background/bulk review.
+- Sprint 010 added the Writing Style Profile page, a protected writing-style save action, a persisted writing style profile schema, a safe default writing profile, and session/mock fallback when persistence is unavailable.
+- Sprint 010 adds configurable style controls for default greeting, default closing, preferred tone and brevity, use of kindly and please note, technical directness, caution level, stakeholder tone notes, preferred phrases, phrases to avoid, liability-sensitive wording rules, and draft mode guidance for the supported stakeholder profiles.
+- Sprint 010 makes draft generation consume the active writing style profile, carries the style profile in the draft trace payload, and keeps safety rules above style preferences.
+- Sprint 010 does not add localStorage, hard Supabase dependency, email sending, Outlook integration, mailbox connection, red-team bypass, or ready-state override.
 
 ## Product rules
 
 - AI can recommend but cannot act. AI triage output is advisory only and must remain traceable to selected source material.
 - Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
+- Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
 
 ## Next action
 

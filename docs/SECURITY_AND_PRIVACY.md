@@ -35,3 +35,5 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Red-team review must be server-side only, selected-draft only, and must not include unrelated vessels, projects, or the whole evidence library.
 - Red-team review must preserve source -> draft -> red-team traceability and must keep copy disabled unless `safe_to_copy` is true.
 - Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.
+- Writing style is bounded calibration only; it may shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it must never override evidence, safety, missing information, liability controls, or red-team review.
+- Writing-style persistence must not rely on localStorage and must not require a hard Supabase dependency to keep the app usable.

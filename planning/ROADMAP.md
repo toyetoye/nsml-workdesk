@@ -321,3 +321,43 @@ Notes:
 
 - No draft may be copied or treated as usable until it passes red-team review or passes with caution.
 - Red-team review checks unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.
+
+## Sprint 010
+
+Complete.
+
+Delivered:
+
+- Writing Style Profile page
+- protected writing-style save action
+- persisted writing style profile schema
+- safe default writing profile
+- session/mock fallback when persistence is unavailable
+- default greeting
+- default closing
+- preferred tone
+- preferred brevity
+- use of kindly
+- use of please note
+- technical directness
+- caution level
+- stakeholder tone notes
+- preferred phrases
+- phrases to avoid
+- liability-sensitive wording rules
+- draft mode guidance
+- stakeholder profiles for vessel/captain/chief engineer, owner/charterer, class/surveyor, vendor/procurement, and management
+- draft generation now consumes the active writing style profile
+- style profile carried in draft trace payload
+- no localStorage
+- no hard Supabase dependency
+- no email sending
+- no Outlook integration
+- no mailbox connection
+- no red-team bypass
+- no ready-state override
+
+Notes:
+
+- Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
+- The writing-style profile remains a calibration layer, not a permission to relax safety or claim unsupported facts.

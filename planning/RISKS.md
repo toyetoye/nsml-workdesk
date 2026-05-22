@@ -179,3 +179,9 @@ Mitigation: Keep AI output advisory only, display suggestions without applying t
 Risk: A generated draft could be treated as safe to paste externally before red-team review has passed.
 
 Mitigation: Keep drafts locked behind the red-team review gate, require `safe_to_copy` for copy, label any copied text as reviewed and manual-paste only, and surface review findings prominently before the user can reuse the text.
+
+## R030 - Style override confusion
+
+Risk: Writing-style preferences could be mistaken as permission to weaken evidence, safety, or liability controls.
+
+Mitigation: Treat writing style as bounded calibration only; safety, missing information, liability controls, and red-team review always win over style preferences.
