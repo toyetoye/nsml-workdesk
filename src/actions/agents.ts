@@ -34,7 +34,7 @@ export async function runChiefOfStaff(projectId: string, userCommand: string) {
   });
 
   const prompt = `
-You are the Chief of Staff for Staff OS.
+You are the workflow orchestration lead for NSML WorkDesk.
 
 Use organizational memory where relevant, but do not blindly copy it. Identify reusable lessons, prior risks, and similar project patterns.
 
@@ -73,7 +73,7 @@ Return ONLY valid JSON:
       {
         role: "system",
         content:
-          "You are an elite Chief of Staff specializing in operational decomposition and institutional memory reuse.",
+          "You are an elite workflow orchestration lead specializing in operational decomposition and institutional memory reuse.",
       },
       {
         role: "user",
@@ -97,7 +97,7 @@ Return ONLY valid JSON:
 
   await supabase.from("tasks").insert(inserts);
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 }
 
 export async function runSpecialistAgent(taskId: string) {
@@ -160,7 +160,7 @@ Return detailed operational analysis in markdown.
       {
         role: "system",
         content:
-          "You are a world-class specialist advisor operating inside an institutional intelligence system.",
+          "You are a world-class specialist advisor operating inside NSML WorkDesk.",
       },
       {
         role: "user",
@@ -245,7 +245,7 @@ ${output}
     })
     .eq("id", taskId);
 
-  revalidatePath(`/projects/${task.project_id}`);
+  revalidatePath("/projects");
 }
 
 export async function runAllSpecialistAgents(projectId: string) {
@@ -297,7 +297,7 @@ export async function runAllSpecialistAgents(projectId: string) {
 
   console.log("[RunAllAgents] Results:", results);
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 
   return results;
 }

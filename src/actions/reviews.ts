@@ -31,7 +31,7 @@ export async function runRedTeamReview(formData: FormData) {
   });
 
   const prompt = `
-You are the Red Team Critic inside Staff OS.
+You are the Red Team Critic inside NSML WorkDesk.
 
 Challenge the project before a decision is made.
 
@@ -98,5 +98,5 @@ Return detailed markdown.
     used_in_memo: false,
   });
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 }

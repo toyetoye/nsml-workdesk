@@ -34,7 +34,7 @@ export async function generateExecutiveMemo(projectId: string) {
   });
 
   const prompt = `
-You are the Executive Writer inside Staff OS.
+You are the Executive Writer inside NSML WorkDesk.
 
 Synthesize a decision-ready executive memo using:
 - project data
@@ -129,6 +129,6 @@ ${memo.rationale}
 
   if (error) throw new Error(error.message);
 
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/memos");
+  revalidatePath("/projects");
+  revalidatePath("/drafts");
 }

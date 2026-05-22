@@ -27,6 +27,5 @@ export async function createTask(formData: FormData) {
     throw new Error(error.message);
   }
 
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/tasks");
+  revalidatePath("/projects");
 }

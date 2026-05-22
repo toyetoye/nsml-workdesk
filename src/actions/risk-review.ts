@@ -56,7 +56,7 @@ export async function generateRiskReview(projectId: string) {
     .join("\n\n");
 
   const prompt = `
-You are the Strategic Risk and Contradiction Engine for Staff OS.
+You are the Strategic Risk and Contradiction Engine for NSML WorkDesk.
 
 Your role:
 Critically challenge the project's conclusions.
@@ -127,5 +127,5 @@ Return:
     throw new Error(error.message);
   }
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 }

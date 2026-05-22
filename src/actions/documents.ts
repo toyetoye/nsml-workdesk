@@ -47,7 +47,7 @@ export async function uploadProjectDocument(formData: FormData) {
       throw new Error(`Document record insert failed: ${insertError.message}`);
     }
 
-    revalidatePath(`/projects/${projectId}`);
+    revalidatePath("/projects");
   } catch (error) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);
     throw new Error(`Document upload failed: ${message}`);

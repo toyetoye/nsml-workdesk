@@ -55,7 +55,7 @@ export async function generateExecutiveSynthesis(projectId: string) {
     .join("\n");
 
   const prompt = `
-You are the Executive Strategic Synthesis layer of Staff OS.
+You are the Executive Strategic Synthesis layer of NSML WorkDesk.
 
 Your task:
 Generate a concise executive-level operational synthesis.
@@ -121,5 +121,5 @@ Keep it highly strategic and concise.
     throw new Error(error.message);
   }
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 }

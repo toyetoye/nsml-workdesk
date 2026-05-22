@@ -19,13 +19,12 @@ export function ParkedRoute({ name }: { name: string }) {
           </div>
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-              Parked Route
+              Parked Page
             </p>
             <h1 className="mt-2 text-3xl font-bold text-slate-950">{name}</h1>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              This inherited route is not part of NSML WorkDesk Sprint 000. It has
-              been neutralized so the app shell stays limited to approved mock-data
-              workflows.
+              This page is parked while the surrounding workflow is completed.
+              Use the dashboard to continue with the active NSML WorkDesk flow.
             </p>
           </div>
         </div>

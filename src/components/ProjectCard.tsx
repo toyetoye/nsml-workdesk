@@ -16,7 +16,11 @@ export function ProjectCard({
   confidence,
 }: ProjectCardProps) {
   return (
-    <Link href={`/projects/${id}`} className="card block p-4 transition hover:-translate-y-0.5 hover:border-[#D8A84E]/50">
+    <Link
+      href="/projects"
+      data-project-id={id}
+      className="card block p-4 transition hover:-translate-y-0.5 hover:border-[#D8A84E]/50"
+    >
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-white">{name}</h3>
         <span className="shrink-0 rounded-full border border-[#233450] px-3 py-1 text-xs text-slate-300">

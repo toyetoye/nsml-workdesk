@@ -24,11 +24,11 @@ export async function ExecutiveMemoPanel({
             </p>
 
             <h2 className="mt-1 text-2xl font-bold text-white">
-              Decision Memo Engine
+              Decision Summary Engine
             </h2>
 
             <p className="mt-1 text-sm text-slate-400">
-              Synthesizes tasks, agent outputs, and evidence into a decision-ready memo.
+              Synthesizes project context, outputs, and evidence into a decision-ready summary.
             </p>
           </div>
 
@@ -39,7 +39,7 @@ export async function ExecutiveMemoPanel({
       {!latestMemo && (
         <div className="card p-5">
           <p className="text-sm text-slate-400">
-            No memo generated yet. Run specialist agents first, then generate a memo.
+            No summary generated yet. Run the project workflow first, then generate a summary.
           </p>
         </div>
       )}
@@ -70,11 +70,11 @@ export async function ExecutiveMemoPanel({
             {latestMemo && (
               <div className="mt-6 flex gap-3">
                 <a
-                  href={`/print/memo/${latestMemo.id}`}
+                  href="/drafts"
                   target="_blank"
                   className="rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#142238]"
                 >
-                  Open Printable Version
+                  Review Drafts
                 </a>
               </div>
             )}
@@ -87,11 +87,11 @@ export async function ExecutiveMemoPanel({
             {latestMemo && (
               <div className="mt-6 flex gap-3">
                 <a
-                  href={`/print/memo/${latestMemo.id}`}
+                  href="/drafts"
                   target="_blank"
                   className="rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#142238]"
                 >
-                  Open Printable Version
+                  Review Drafts
                 </a>
               </div>
             )}
@@ -104,11 +104,11 @@ export async function ExecutiveMemoPanel({
             {latestMemo && (
               <div className="mt-6 flex gap-3">
                 <a
-                  href={`/print/memo/${latestMemo.id}`}
+                  href="/drafts"
                   target="_blank"
                   className="rounded-2xl border border-[#233450] bg-[#101B2E] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#142238]"
                 >
-                  Open Printable Version
+                  Review Drafts
                 </a>
               </div>
             )}

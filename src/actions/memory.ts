@@ -53,5 +53,5 @@ export async function indexProjectMemory(projectId: string) {
     if (error) throw new Error(error.message);
   }
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
 }

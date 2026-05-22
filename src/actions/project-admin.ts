@@ -32,7 +32,6 @@ export async function updateProject(formData: FormData) {
   }
 
   revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
 }
 
 export async function deleteProject(projectId: string) {

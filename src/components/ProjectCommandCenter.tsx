@@ -42,7 +42,7 @@ type Task = {
 const workflowSteps = [
   "Brief",
   "Workplan",
-  "Staff Runs",
+  "Analysis Runs",
   "Evidence",
   "Red Team",
   "Memo",
@@ -85,7 +85,7 @@ function ProjectHealth({ project, agents, tasks }: { project: Project; agents: A
       </div>
 
       <div className="card p-4">
-        <p className="text-sm text-slate-400">Staff Available</p>
+        <p className="text-sm text-slate-400">Team Available</p>
         <p className="mt-2 text-2xl font-bold text-white">{agents.length}</p>
       </div>
 
@@ -106,11 +106,11 @@ function ManualTaskForm({ projectId, agents }: { projectId: string; agents: Agen
   return (
     <section className="card p-5">
       <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#D8A84E]">
-        Manual Override
+        Direct Action
       </p>
       <h2 className="mt-1 text-2xl font-bold text-white">Add Task</h2>
       <p className="mt-1 text-sm text-slate-400">
-        Use this when you want to directly assign work without waiting for the Chief of Staff.
+        Use this when you want to directly assign work without waiting for the workflow coordinator.
       </p>
 
       <form action={createTask} className="mt-5 grid gap-3 md:grid-cols-[1fr_220px_160px_auto]">
@@ -155,9 +155,9 @@ function StaffDirectory({ agents }: { agents: Agent[] }) {
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-2xl font-bold text-white">Available Staff</h2>
+        <h2 className="text-2xl font-bold text-white">Available Team</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Permanent staff members available for assignment across projects.
+          Team members available for assignment across projects.
         </p>
       </div>
 
@@ -194,7 +194,7 @@ export function ProjectCommandCenter({
     <section className="space-y-6">
       <header className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#D8A84E]">
-          Project Command Center
+          Project Workspace
         </p>
 
         <h1 className="text-4xl font-bold text-white">{project.name}</h1>
