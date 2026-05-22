@@ -71,6 +71,15 @@ export type DraftMode =
 
 export type DraftStatus = "pending_red_team" | "needs_evidence" | "blocked";
 
+export type DraftReviewVerdict =
+  | "pass"
+  | "pass_with_caution"
+  | "revise"
+  | "reject"
+  | "needs_more_evidence";
+
+export type DraftReadinessStatus = "ready_to_copy" | "not_ready";
+
 export type StructuredDraftResult = {
   draft_id: string;
   source_type: DraftSourceType;
@@ -120,4 +129,44 @@ export type DraftRunOutcome = {
   provider: AiProvider | null;
   model: string | null;
   triageAuditLogId: string | null;
+};
+
+export type StructuredRedTeamReview = {
+  review_id: string;
+  draft_id: string;
+  source_ids_reviewed: string[];
+  verdict: DraftReviewVerdict;
+  readiness_status: DraftReadinessStatus;
+  summary: string;
+  unsupported_claims: string[];
+  liability_risks: string[];
+  technical_risks: string[];
+  tone_risks: string[];
+  missing_information: string[];
+  evidence_gaps: string[];
+  confidentiality_concerns: string[];
+  recommended_revisions: string[];
+  required_user_checks: string[];
+  safe_to_copy: boolean;
+  confidence: number;
+  reviewed_at: string;
+};
+
+export type RedTeamRequest = {
+  draftId: string;
+};
+
+export type RedTeamRunOutcome = {
+  aiEnabled: boolean;
+  persisted: boolean;
+  note: string;
+  draftId: string;
+  sourceType: DraftSourceType | null;
+  sourceIds: string[];
+  sourceLabel: string | null;
+  reviewResult: StructuredRedTeamReview | null;
+  reviewRecordId: string | null;
+  auditLogId: string | null;
+  provider: AiProvider | null;
+  model: string | null;
 };

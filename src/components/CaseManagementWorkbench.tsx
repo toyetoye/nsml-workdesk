@@ -659,10 +659,12 @@ export function CaseManagementWorkbench({
                   sourceType="case"
                   sourceLabel={selectedCase.title}
                   sourceIds={selectedTriageSourceIds}
+                  draftRecordId={activeDraftOutcome?.draftRecordId ?? null}
                   result={activeDraftOutcome?.draftResult ?? null}
                   running={activeDraftRunning}
                   note={activeDraftNote}
                   disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  reviewDisabledReason={aiConfig.enabled ? null : aiConfig.message}
                   persisted={activeDraftOutcome?.persisted}
                   provider={activeDraftOutcome?.provider ?? null}
                   model={activeDraftOutcome?.model ?? null}

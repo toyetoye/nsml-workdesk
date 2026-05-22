@@ -4,17 +4,21 @@ import { requireWritableAccess } from "@/lib/auth-session";
 import { buildCaseTriageRequest, buildIntakeTriageRequest, buildThreadTriageRequest } from "@/lib/ai/builders";
 import { buildCaseDraftRequest, buildIntakeDraftRequest, buildThreadDraftRequest } from "@/lib/ai/draft-builders";
 import { runDraftGeneration } from "@/lib/ai/drafts";
+import { runRedTeamReview } from "@/lib/ai/red-team";
 import { runTriageAnalysis } from "@/lib/ai/triage";
 import type {
   DraftMode,
   DraftRunOutcome,
+  RedTeamRunOutcome,
   TriageRunOutcome,
   StructuredTriageResult,
 } from "@/lib/ai/types";
+import { getDraftResponseById } from "@/lib/persistence/repository";
 import type { CaseRecord, EmailThread, EvidenceRecord, ImportIntakeItem } from "@/lib/mock-data";
 
 type TriageActionResponse = TriageRunOutcome;
 type DraftActionResponse = DraftRunOutcome;
+type RedTeamActionResponse = RedTeamRunOutcome;
 
 export async function triageIntakeItemAction(input: {
   item: ImportIntakeItem;
@@ -129,4 +133,16 @@ export async function generateCaseDraftAction(input: {
         : null,
     ),
   );
+}
+
+export async function runRedTeamReviewAction(input: { draftId: string }): Promise<RedTeamActionResponse> {
+  await requireWritableAccess("/drafts");
+
+  const draft = await getDraftResponseById(input.draftId);
+
+  if (!draft) {
+    throw new Error("Draft not found.");
+  }
+
+  return runRedTeamReview(draft);
 }

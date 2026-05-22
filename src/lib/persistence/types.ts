@@ -227,6 +227,32 @@ export type DraftResponsePlaceholderRow = {
   updated_at: string;
 };
 
+export type DraftRedTeamReviewRow = {
+  review_id: string;
+  draft_id: string;
+  source_type: string;
+  source_label: string;
+  source_ids_reviewed: string[];
+  source_snapshot: Json;
+  verdict: string;
+  readiness_status: string;
+  summary: string;
+  unsupported_claims: string[];
+  liability_risks: string[];
+  technical_risks: string[];
+  tone_risks: string[];
+  missing_information: string[];
+  evidence_gaps: string[];
+  confidentiality_concerns: string[];
+  recommended_revisions: string[];
+  required_user_checks: string[];
+  safe_to_copy: boolean;
+  confidence: number;
+  reviewed_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AuditLogRow = {
   audit_id: string;
   actor: string | null;
@@ -323,6 +349,30 @@ export type DraftResponseInput = Partial<DraftResponsePlaceholderRow> & {
   persistence_state?: string;
 };
 
+export type DraftRedTeamReviewInput = Partial<DraftRedTeamReviewRow> & {
+  review_id?: string;
+  draft_id: string;
+  source_type: string;
+  source_label: string;
+  source_ids_reviewed: string[];
+  source_snapshot: Json;
+  verdict: string;
+  readiness_status: string;
+  summary: string;
+  unsupported_claims?: string[];
+  liability_risks?: string[];
+  technical_risks?: string[];
+  tone_risks?: string[];
+  missing_information?: string[];
+  evidence_gaps?: string[];
+  confidentiality_concerns?: string[];
+  recommended_revisions?: string[];
+  required_user_checks?: string[];
+  safe_to_copy: boolean;
+  confidence: number;
+  reviewed_at: string;
+};
+
 export type CorrespondenceThreadInput = Partial<CorrespondenceThreadRow> & {
   thread_id?: string;
   workspace_key: string;
@@ -403,6 +453,7 @@ export interface Database {
       timeline_events: Table<TimelineEventRow>;
       decisions: Table<DecisionRow>;
       draft_responses_placeholder: Table<DraftResponsePlaceholderRow>;
+      draft_red_team_reviews: Table<DraftRedTeamReviewRow>;
       audit_logs: Table<AuditLogRow>;
     };
     Views: Record<string, never>;

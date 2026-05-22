@@ -748,19 +748,21 @@ export function ImportIntakeWorkbench({
                 </div>
 
                 <div className="mt-4">
-                  <DraftResultPanel
-                    sourceType="intake_item"
-                    sourceLabel={selectedItem.title}
-                    sourceIds={selectedTriageSourceIds}
-                    result={activeDraftOutcome?.draftResult ?? null}
-                    running={activeDraftRunning}
-                    note={activeDraftNote}
-                    disabledReason={aiConfig.enabled ? null : aiConfig.message}
-                    persisted={activeDraftOutcome?.persisted}
-                    provider={activeDraftOutcome?.provider ?? null}
-                    model={activeDraftOutcome?.model ?? null}
-                    triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
-                  />
+                <DraftResultPanel
+                  sourceType="intake_item"
+                  sourceLabel={selectedItem.title}
+                  sourceIds={selectedTriageSourceIds}
+                  draftRecordId={activeDraftOutcome?.draftRecordId ?? null}
+                  result={activeDraftOutcome?.draftResult ?? null}
+                  running={activeDraftRunning}
+                  note={activeDraftNote}
+                  disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  reviewDisabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  persisted={activeDraftOutcome?.persisted}
+                  provider={activeDraftOutcome?.provider ?? null}
+                  model={activeDraftOutcome?.model ?? null}
+                  triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
+                />
                   {activeDraftError ? (
                     <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
                       {activeDraftError}

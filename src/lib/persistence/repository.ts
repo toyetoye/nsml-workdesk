@@ -28,6 +28,8 @@ import type {
   DecisionRow,
   DraftResponsePlaceholderRow,
   DraftResponseInput,
+  DraftRedTeamReviewInput,
+  DraftRedTeamReviewRow,
   EvidenceInput,
   EvidenceRow,
   ImportBatchInput,
@@ -52,6 +54,7 @@ type PersistenceStore = {
   timeline_events: TimelineEventRow[];
   decisions: DecisionRow[];
   draft_responses_placeholder: DraftResponsePlaceholderRow[];
+  draft_red_team_reviews: DraftRedTeamReviewRow[];
   audit_logs: AuditLogRow[];
 };
 
@@ -336,6 +339,7 @@ function createFallbackStore(): PersistenceStore {
     timeline_events,
     decisions: [],
     draft_responses_placeholder: [],
+    draft_red_team_reviews: [],
     audit_logs: [],
   };
 }
@@ -344,6 +348,21 @@ const fallbackStore = createFallbackStore();
 
 function getRepoClient() {
   return createPersistenceClient() as unknown as RepoClient;
+}
+
+function upsertByDraftId<Row extends Record<string, unknown>>(
+  rows: Row[],
+  draftIdKey: keyof Row,
+  row: Row,
+) {
+  const index = rows.findIndex((item) => item[draftIdKey] === row[draftIdKey]);
+
+  if (index >= 0) {
+    rows[index] = row;
+    return;
+  }
+
+  rows.unshift(row);
 }
 
 function clone<T>(value: T): T {
@@ -1027,6 +1046,27 @@ export async function listDraftResponses(caseId?: string) {
   return data as DraftResponsePlaceholderRow[];
 }
 
+export async function getDraftResponseById(draftId: string) {
+  const fallback = fallbackStore.draft_responses_placeholder.find((item) => item.draft_id === draftId) ?? null;
+
+  if (!isPersistenceAvailable()) {
+    return fallback ? clone(fallback) : null;
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("draft_responses_placeholder")
+    .select("*")
+    .eq("draft_id", draftId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return fallback ? clone(fallback) : null;
+  }
+
+  return data as DraftResponsePlaceholderRow;
+}
+
 export async function saveDraftResponse(
   input: DraftResponseInput,
 ): Promise<WriteResult<DraftResponsePlaceholderRow>> {
@@ -1074,6 +1114,116 @@ export async function saveDraftResponse(
   }
 
   return { row: data as DraftResponsePlaceholderRow, persisted: true };
+}
+
+export async function listDraftRedTeamReviews(draftId?: string) {
+  const fallback = draftId
+    ? fallbackStore.draft_red_team_reviews.filter((item) => item.draft_id === draftId)
+    : fallbackStore.draft_red_team_reviews;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  let query = client
+    .from("draft_red_team_reviews")
+    .select("*")
+    .order("reviewed_at", { ascending: false });
+
+  if (draftId) {
+    query = query.eq("draft_id", draftId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as DraftRedTeamReviewRow[];
+}
+
+export async function saveDraftRedTeamReview(
+  input: DraftRedTeamReviewInput,
+): Promise<WriteResult<DraftRedTeamReviewRow>> {
+  const row: DraftRedTeamReviewRow = {
+    review_id: input.review_id ?? `review-${randomUUID()}`,
+    draft_id: input.draft_id,
+    source_type: input.source_type,
+    source_label: input.source_label,
+    source_ids_reviewed: input.source_ids_reviewed,
+    source_snapshot: input.source_snapshot,
+    verdict: input.verdict,
+    readiness_status: input.readiness_status,
+    summary: input.summary,
+    unsupported_claims: input.unsupported_claims ?? [],
+    liability_risks: input.liability_risks ?? [],
+    technical_risks: input.technical_risks ?? [],
+    tone_risks: input.tone_risks ?? [],
+    missing_information: input.missing_information ?? [],
+    evidence_gaps: input.evidence_gaps ?? [],
+    confidentiality_concerns: input.confidentiality_concerns ?? [],
+    recommended_revisions: input.recommended_revisions ?? [],
+    required_user_checks: input.required_user_checks ?? [],
+    safe_to_copy: input.safe_to_copy,
+    confidence: input.confidence,
+    reviewed_at: input.reviewed_at,
+    created_at: input.created_at ?? nowIso(),
+    updated_at: input.updated_at ?? nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertByDraftId(fallbackStore.draft_red_team_reviews, "draft_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("draft_red_team_reviews").upsert(row).select().single();
+
+  if (error || !data) {
+    upsertByDraftId(fallbackStore.draft_red_team_reviews, "draft_id", row);
+    return { row, persisted: false };
+  }
+
+  const draftReviewMirror = {
+    review_id: row.review_id,
+    source_ids_reviewed: row.source_ids_reviewed,
+    verdict: row.verdict,
+    readiness_status: row.readiness_status,
+    review_summary: row.summary,
+    unsupported_claims: row.unsupported_claims,
+    liability_risks: row.liability_risks,
+    technical_risks: row.technical_risks,
+    tone_risks: row.tone_risks,
+    review_missing_information: row.missing_information,
+    evidence_gaps: row.evidence_gaps,
+    confidentiality_concerns: row.confidentiality_concerns,
+    recommended_revisions: row.recommended_revisions,
+    required_user_checks: row.required_user_checks,
+    safe_to_copy: row.safe_to_copy,
+    red_team_confidence: row.confidence,
+    reviewed_at: row.reviewed_at,
+    red_team_updated_at: nowIso(),
+    updated_at: nowIso(),
+  };
+
+  const { error: draftMirrorError } = await client
+    .from("draft_responses_placeholder")
+    .update(draftReviewMirror)
+    .eq("draft_id", row.draft_id);
+
+  if (draftMirrorError) {
+    const fallbackDraft = fallbackStore.draft_responses_placeholder.find(
+      (item) => item.draft_id === row.draft_id,
+    );
+
+    if (fallbackDraft) {
+      Object.assign(fallbackDraft, draftReviewMirror);
+    }
+  }
+
+  return { row: data as DraftRedTeamReviewRow, persisted: true };
 }
 
 export async function appendAuditLog(

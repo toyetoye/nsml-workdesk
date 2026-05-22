@@ -1,8 +1,12 @@
 "use client";
-import { Copy, FileEdit } from "lucide-react";
+
+import { useState } from "react";
+import { Copy, FileEdit, ShieldCheck } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
+import { describeReadinessStatus, describeRedTeamVerdict } from "@/lib/ai/red-team-builders";
 import { describeDraftMode } from "@/lib/ai/draft-builders";
-import type { DraftStatus, StructuredDraftResult } from "@/lib/ai/types";
+import { runRedTeamReviewAction } from "@/app/(protected)/ai/actions";
+import type { DraftStatus, RedTeamRunOutcome, StructuredDraftResult } from "@/lib/ai/types";
 
 const statusTone: Record<DraftStatus, "danger" | "warning" | "accent" | "neutral"> = {
   pending_red_team: "warning",
@@ -19,22 +23,11 @@ function confidenceLabel(value: number) {
   return `${Math.round(clamped * 100)}%`;
 }
 
-export function DraftResultPanel({
-  sourceType,
-  sourceLabel,
-  sourceIds,
-  result,
-  running,
-  note,
-  disabledReason,
-  persisted,
-  provider,
-  model,
-  triageAuditLogId,
-}: {
+type DraftResultPanelProps = {
   sourceType: string;
   sourceLabel: string;
   sourceIds: string[];
+  draftRecordId?: string | null;
   result: StructuredDraftResult | null;
   running: boolean;
   note: string | null;
@@ -43,7 +36,78 @@ export function DraftResultPanel({
   provider?: string | null;
   model?: string | null;
   triageAuditLogId?: string | null;
-}) {
+  reviewDisabledReason?: string | null;
+};
+
+export function DraftResultPanel(props: DraftResultPanelProps) {
+  const draftKey = props.draftRecordId ?? props.sourceLabel;
+
+  return <DraftResultPanelBody key={draftKey} {...props} />;
+}
+
+function DraftResultPanelBody({
+  sourceType,
+  sourceLabel,
+  sourceIds,
+  draftRecordId,
+  result,
+  running,
+  note,
+  disabledReason,
+  persisted,
+  provider,
+  model,
+  triageAuditLogId,
+  reviewDisabledReason,
+}: DraftResultPanelProps) {
+  const [reviewOutcome, setReviewOutcome] = useState<RedTeamRunOutcome | null>(null);
+  const [reviewRunning, setReviewRunning] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState<string | null>(null);
+  const [copyNotice, setCopyNotice] = useState<string | null>(null);
+
+  async function handleRunRedTeamReview() {
+    if (!draftRecordId || reviewRunning) {
+      return;
+    }
+
+    setReviewRunning(true);
+    setReviewError(null);
+    setReviewNote(null);
+
+    try {
+      const outcome = await runRedTeamReviewAction({ draftId: draftRecordId });
+      setReviewOutcome(outcome);
+      setReviewNote(outcome.note);
+    } catch (error) {
+      setReviewOutcome(null);
+      setReviewError(error instanceof Error ? error.message : "Red-team review failed.");
+    } finally {
+      setReviewRunning(false);
+    }
+  }
+
+  async function handleCopyReviewedDraft() {
+    if (!result || !reviewOutcome?.reviewResult?.safe_to_copy) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(result.draft_body);
+      setCopyNotice("Copied for manual external paste only.");
+    } catch {
+      setCopyNotice("Copy failed in this browser.");
+    }
+  }
+
+  const activeReview = reviewOutcome?.reviewResult ?? null;
+  const safeToCopy = activeReview?.safe_to_copy ?? false;
+  const reviewHeadline = activeReview
+    ? safeToCopy
+      ? "This draft passed red-team review and can be copied manually."
+      : "This draft was reviewed and remains not ready to send."
+    : "This draft has not passed red-team review and is not ready to send.";
+
   return (
     <section className="rounded-md border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -62,9 +126,7 @@ export function DraftResultPanel({
             ) : null}
           </div>
           <h3 className="mt-2 text-xl font-bold text-slate-950">{sourceLabel}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            This draft has not passed red-team review and is not ready to send.
-          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{reviewHeadline}</p>
         </div>
 
         <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -73,17 +135,163 @@ export function DraftResultPanel({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <StatusBadge tone="warning">Pending Red-Team</StatusBadge>
+        {activeReview ? (
+          <StatusBadge tone={safeToCopy ? "accent" : "warning"}>
+            {describeRedTeamVerdict(activeReview.verdict)}
+          </StatusBadge>
+        ) : (
+          <StatusBadge tone="warning">Pending Red-Team</StatusBadge>
+        )}
         <StatusBadge tone={result?.must_be_red_teamed ? "danger" : "neutral"}>
           Red-team required
         </StatusBadge>
+        {activeReview ? (
+          <StatusBadge tone={safeToCopy ? "accent" : activeReview.verdict === "reject" ? "danger" : "warning"}>
+            {describeReadinessStatus(activeReview.readiness_status)}
+          </StatusBadge>
+        ) : null}
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <MiniStat label="Source IDs" value={sourceIds.length > 0 ? sourceIds.join(", ") : "None"} />
+        <MiniStat
+          label="Reviewed source IDs"
+          value={activeReview?.source_ids_reviewed?.length
+            ? activeReview.source_ids_reviewed.join(", ")
+            : "Not reviewed yet"}
+        />
         <MiniStat label="Provider" value={provider ?? "Not configured"} />
         <MiniStat label="Model" value={model ?? "Not configured"} />
         <MiniStat label="Triage ref" value={triageAuditLogId ?? "None"} />
+      </div>
+
+      <div className="mt-4 rounded-md border border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Red-team review
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Review the draft against the source material before copying anywhere.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={!draftRecordId || Boolean(reviewDisabledReason) || reviewRunning}
+            onClick={handleRunRedTeamReview}
+          >
+            {reviewRunning ? "Reviewing..." : "Run Red-Team Review"}
+          </button>
+        </div>
+
+        {reviewDisabledReason ? (
+          <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-950">
+            {reviewDisabledReason}
+          </div>
+        ) : null}
+
+        {reviewNote ? (
+          <div className="mt-3 rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-sm leading-6 text-teal-950">
+            {reviewNote}
+          </div>
+        ) : null}
+
+        {reviewError ? (
+          <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-950">
+            {reviewError}
+          </div>
+        ) : null}
+
+        {!activeReview ? (
+          <div className="mt-4 rounded-md border border-dashed border-slate-300 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">
+              {activeReview ? "Red-Team Review Complete" : "Pending Red-Team"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {activeReview
+                ? "Use the reviewed draft only for manual external paste after confirming the verdict and required checks."
+                : "This draft has not been reviewed yet. It remains unreviewed and cannot be copied."}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <button type="button" className="btn-secondary" disabled>
+                <Copy aria-hidden size={14} />
+                Copy reviewed draft
+              </button>
+              <span className="text-xs text-slate-500">
+                Red-team review is required before copy unlocks.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-4">
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <ShieldCheck aria-hidden className="text-teal-700" size={16} />
+                <StatusBadge tone={safeToCopy ? "accent" : "warning"}>
+                  {describeReadinessStatus(activeReview.readiness_status)}
+                </StatusBadge>
+                <StatusBadge tone={safeToCopy ? "accent" : "danger"}>
+                  {describeRedTeamVerdict(activeReview.verdict)}
+                </StatusBadge>
+                <StatusBadge tone={safeToCopy ? "accent" : "danger"}>
+                  {safeToCopy ? "Safe to copy" : "Not safe to copy"}
+                </StatusBadge>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-800">{activeReview.summary}</p>
+              <p className="mt-2 text-xs uppercase tracking-wide text-slate-500">
+                Reviewed at {activeReview.reviewed_at}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                Source IDs reviewed:{" "}
+                {activeReview.source_ids_reviewed.length > 0
+                  ? activeReview.source_ids_reviewed.join(", ")
+                  : "None"}
+              </p>
+              {copyNotice ? (
+                <div className="mt-3 rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-sm leading-6 text-teal-950">
+                  {copyNotice}
+                </div>
+              ) : null}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={!safeToCopy}
+                  onClick={handleCopyReviewedDraft}
+                >
+                  <Copy aria-hidden size={14} />
+                  Copy reviewed draft
+                </button>
+                <span className="text-xs text-slate-500">
+                  Copy is only enabled after a passing red-team verdict and is for manual external
+                  paste only.
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              <InfoCard label="Unsupported claims" value={joinList(activeReview.unsupported_claims)} />
+              <InfoCard label="Liability risks" value={joinList(activeReview.liability_risks)} />
+              <InfoCard label="Technical risks" value={joinList(activeReview.technical_risks)} />
+              <InfoCard label="Tone risks" value={joinList(activeReview.tone_risks)} />
+              <InfoCard label="Evidence gaps" value={joinList(activeReview.evidence_gaps)} />
+              <InfoCard label="Missing information" value={joinList(activeReview.missing_information)} />
+              <InfoCard
+                label="Confidentiality concerns"
+                value={joinList(activeReview.confidentiality_concerns)}
+              />
+              <InfoCard
+                label="Required user checks"
+                value={joinList(activeReview.required_user_checks)}
+              />
+              <InfoCard
+                label="Recommended revisions"
+                value={joinList(activeReview.recommended_revisions)}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {note ? (
@@ -107,13 +315,24 @@ export function DraftResultPanel({
         </div>
       ) : (
         <div className="mt-4 space-y-4">
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-              This draft has not passed red-team review and is not ready to send.
+          <div className={`rounded-md border p-4 ${safeToCopy ? "border-teal-200 bg-teal-50" : "border-amber-200 bg-amber-50"}`}>
+            <p
+              className={`text-xs font-semibold uppercase tracking-wide ${
+                safeToCopy ? "text-teal-700" : "text-amber-700"
+              }`}
+            >
+              {safeToCopy
+                ? "This draft passed red-team review and may be copied manually."
+                : "This draft has not passed red-team review and is not ready to send."}
             </p>
-            <p className="mt-2 text-sm leading-6 text-amber-950">
-              Treat the content as a starting point only. Confirm facts, remove assumptions, and
-              apply red-team review before copying anywhere.
+            <p
+              className={`mt-2 text-sm leading-6 ${
+                safeToCopy ? "text-teal-950" : "text-amber-950"
+              }`}
+            >
+              {safeToCopy
+                ? "Treat the reviewed text as manual external paste only, then confirm the final wording before use."
+                : "Treat the content as a starting point only. Confirm facts, remove assumptions, and apply red-team review before copying anywhere."}
             </p>
           </div>
 
@@ -134,15 +353,6 @@ export function DraftResultPanel({
               {result.draft_body}
             </p>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button type="button" className="btn-secondary" disabled>
-                <Copy aria-hidden size={14} />
-                Copy unreviewed draft
-              </button>
-              <span className="text-xs text-slate-500">
-                Copy remains disabled until red-team review exists.
-              </span>
-            </div>
           </div>
 
           <div className="grid gap-3 lg:grid-cols-2">
@@ -185,6 +395,10 @@ export function DraftResultPanel({
       )}
     </section>
   );
+}
+
+function joinList(items: string[]) {
+  return items.length > 0 ? items.join("; ") : "None";
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
