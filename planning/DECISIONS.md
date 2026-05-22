@@ -167,3 +167,9 @@ Reason: The user wants drafts to sound more like the user while remaining safe, 
 Decision: Sprint 011 hardens the end-to-end workflow with compact next-best-action guidance, clearer state labels, and cross-links between import, correspondence, cases, drafts, and writing-style surfaces.
 
 Reason: The app already has the core capability surfaces. The next step is to make the path between them coherent, obvious, and safe without adding new workflow power or automation.
+
+## D029 - Production readiness validation
+
+Decision: Sprint 012 adds a small server-side deployment-readiness helper and deployment documentation updates for access-gate, Supabase, storage, and AI environment validation.
+
+Reason: Production readiness should be explicit and honest. The app must fail closed when the access-gate env vars are missing, while still making intentional disable and development fallback states visible instead of vague.

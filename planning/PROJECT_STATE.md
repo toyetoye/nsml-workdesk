@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 011 complete.
+Sprint 012 in progress.
 
 ## Active sprint
 
-Sprint 012 - next approved sprint.
+Sprint 012 - current sprint.
 
 ## Confirmed decisions
 
@@ -66,6 +66,8 @@ Sprint 012 - next approved sprint.
 - Sprint 011 hardened the end-to-end workflow with the `WorkflowChecklist` component, next-best-action guidance across dashboard, import, workspace, cases, drafts, and writing-style surfaces, improved cross-links between `/import`, workspace correspondence, `/cases`, `/drafts`, and `/settings/writing-style`, improved operational state labels, clearer AI-unavailable and persistence-unavailable states, and a dashboard that reflects the real workflow path.
 - Sprint 011 adds a manual QA / smoke-test checklist to the deployment notes so workflow verification stays aligned with the live path.
 - Sprint 011 does not add new AI capability, new parsing capability, Outlook integration, email sending, automatic case creation/routing/status mutation, bulk/background processing, or multi-user roles.
+- Sprint 012 focuses on production readiness only with environment validation, deployment/security documentation, explicit ready/fallback classification, and a backlog note for the Next.js middleware/proxy warning.
+- Sprint 012 keeps protected routes gated, preserves honest fallback states, and does not add new workflow, AI, parsing, Outlook, email, or automation capability.
 
 ## Product rules
 
@@ -73,6 +75,7 @@ Sprint 012 - next approved sprint.
 - Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
 - Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
 - Every workflow surface must make the next safe action clear while preserving the rule that external communication remains manual and user-controlled.
+- Production readiness must classify states honestly: ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
 
 ## Next action
 

@@ -15,8 +15,8 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Keep persistence behind safe server-side repository utilities.
 - Do not let client components write directly to Supabase.
 - Make the app fall back safely when Supabase environment variables are missing.
+- Make production fail closed if the access-gate environment variables are missing.
 - Protect the app with a single-user gate using a signed HTTP-only session cookie.
-- Fail closed in production if the access-gate environment variables are missing.
 - Keep evidence uploads private and server-side only.
 - Do not expose public file URLs for evidence.
 - Do not let client components write directly to Supabase Storage.
@@ -37,3 +37,6 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.
 - Writing style is bounded calibration only; it may shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it must never override evidence, safety, missing information, liability controls, or red-team review.
 - Writing-style persistence must not rely on localStorage and must not require a hard Supabase dependency to keep the app usable.
+- Optional disable flags may be used for intentional production fallback, but they must be documented explicitly and must not make the app appear fully ready when fallback mode is in use.
+- Production readiness must be explicit: Supabase and AI may be intentionally disabled, but the deployment notes and readiness checks must say so honestly and must not describe fallback mode as fully ready.
+- The Next.js middleware/proxy migration warning should be treated as deployment backlog unless a low-risk fix is approved later.

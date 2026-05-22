@@ -7,8 +7,17 @@ function resolveModel() {
 }
 
 export function getAiConfigStatus(): AiConfigStatus {
-  const provider = (process.env.NSML_AI_PROVIDER?.trim().toLowerCase() || "openai") as AiConfigStatus["provider"];
+  const provider = process.env.NSML_AI_PROVIDER?.trim().toLowerCase() || "openai";
   const model = resolveModel();
+
+  if (provider === "disabled" || truthy(process.env.NSML_AI_DISABLED)) {
+    return {
+      provider: "openai",
+      model,
+      enabled: false,
+      message: "AI intentionally disabled for this deployment.",
+    };
+  }
 
   if (provider !== "openai") {
     return {
@@ -36,4 +45,8 @@ export function getAiConfigStatus(): AiConfigStatus {
     enabled: true,
     message: `Structured triage enabled with ${provider} (${model}).`,
   };
+}
+
+function truthy(value: string | undefined | null) {
+  return Boolean(value && ["1", "true", "yes", "on"].includes(value.trim().toLowerCase()));
 }

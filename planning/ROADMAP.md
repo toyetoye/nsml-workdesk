@@ -383,3 +383,33 @@ Notes:
 
 - Sprint 011 does not add new AI capability, new parsing capability, Outlook integration, email sending, automatic case creation/routing/status mutation, bulk/background processing, or multi-user roles.
 - Every workflow surface must make the next safe action clear while preserving the rule that external communication remains manual and user-controlled.
+
+## Sprint 012
+
+In progress.
+
+Focus:
+
+- production readiness only;
+- environment validation only;
+- deployment/security documentation only;
+- honest ready / disabled / fallback / misconfigured classification;
+- no new workflow surface.
+
+Delivered / in progress:
+
+- server-side production readiness helper
+- explicit production setup checklist
+- Supabase migration checklist
+- private evidence bucket checklist
+- access-gate production checklist
+- AI/OpenAI environment checklist
+- backup/export plan notes
+- updated deployment and security documentation
+- Next.js middleware/proxy warning logged as deployment backlog unless a low-risk fix is later approved
+
+Notes:
+
+- Sprint 012 must fail closed in production when access-gate env vars are missing.
+- Sprint 012 must not expose secrets, service role keys, or public file URLs.
+- Sprint 012 does not add new AI capability, parsing capability, Outlook integration, email sending, live mailbox connection, automatic case creation, automatic routing, automatic status mutation, or multi-user roles.

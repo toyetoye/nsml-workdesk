@@ -138,3 +138,46 @@ Deployment should keep AI-unavailable and persistence-unavailable states obvious
 No send button should appear anywhere in the deployed app, and copy should remain gated by the red-team verdict and `safe_to_copy`.
 
 The deployment checklist should be treated as smoke-test guidance for the real workflow path, not as a new feature surface.
+
+## Sprint 012 Production Readiness Notes
+
+Sprint 012 focuses on safe online deployment readiness rather than new workflow capability.
+
+Production readiness checklist:
+
+1. Confirm `NSML_APP_PASSWORD` and `NSML_SESSION_SECRET` are set.
+2. Confirm `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set, or explicitly document Supabase as intentionally disabled.
+3. Confirm `NSML_EVIDENCE_BUCKET` points to the private `nsml-evidence-files` bucket and that the bucket is private.
+4. Confirm Supabase migrations have been applied.
+5. Confirm `NSML_AI_PROVIDER`, `NSML_AI_MODEL`, and `OPENAI_API_KEY` are set, or explicitly document AI as intentionally disabled.
+6. Confirm protected routes remain gated and production fail-closed behavior is preserved.
+7. Confirm no public file URLs, no client-side Supabase writes, and no exposed service role keys.
+8. Confirm no send button exists and that the red-team copy gate remains active.
+9. Confirm fallback states are obvious and honest when persistence or AI is intentionally disabled.
+
+Optional explicit disable flags:
+
+- `NSML_SUPABASE_DISABLED`
+- `NSML_AI_DISABLED`
+
+Deployment target notes:
+
+- Vercel + Supabase remains a viable target.
+- Railway + Supabase remains a viable target.
+- Render + Supabase remains a viable target.
+- Private VPS remains a viable target if server-side environment handling is kept intact.
+
+Backup/export notes:
+
+- Preserve a repeatable backup/export process for database, storage metadata, and audit logs.
+- Keep private evidence files exportable only through controlled server-side processes.
+
+Middleware / proxy note:
+
+- The existing Next.js warning about the `middleware` file convention is logged as deployment/backlog work.
+- Do not migrate to `proxy` during this sprint unless a later low-risk change is explicitly approved.
+
+Deployment validation helper:
+
+- A server-side deployment-readiness helper may be used to classify the app as ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
+- Readiness classification should stay honest and should not imply deployment readiness when fallback mode is actually in use.

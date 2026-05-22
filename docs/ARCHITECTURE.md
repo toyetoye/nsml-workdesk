@@ -325,6 +325,20 @@ The workflow-hardening layer is structured around:
 
 Workflow guidance must remain compact and directional. It should help the user see the next safe action without turning any page into a wall of instructions or adding new automation.
 
+## Sprint 012 Production Readiness Architecture
+
+Sprint 012 adds a small server-side deployment-readiness helper and deployment-oriented configuration notes rather than a new product surface.
+
+The production-readiness layer is structured around:
+
+- explicit validation of access-gate, Supabase, storage, and AI environment variables;
+- honest classification of readiness as ready, intentionally disabled, development fallback, or production misconfigured / fail closed;
+- fail-closed access-gate behavior in production when required env vars are missing;
+- deployment notes that keep the private evidence bucket, migrations, AI config, and backup/export plan visible;
+- a backlog note for the Next.js `middleware` to `proxy` warning rather than a risky last-minute migration.
+
+Readiness validation must stay server-side and must not obscure fallback mode as a fully ready production state.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.

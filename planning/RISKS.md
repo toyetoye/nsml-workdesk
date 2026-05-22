@@ -197,3 +197,15 @@ Mitigation: Keep the next-best-action guidance, cross-links, and state labels al
 Risk: Users could misread AI-unavailable, persistence-unavailable, staged, triaged, or reviewed-safe-to-copy labels and miss the next safe action.
 
 Mitigation: Keep the labels concise, repeated in context, and paired with a clear next-step prompt or checklist item wherever the state appears.
+
+## R033 - Production readiness ambiguity
+
+Risk: The app could be deployed with missing production env vars or with fallback modes misread as full readiness.
+
+Mitigation: Keep the validation helper, deployment checklist, and documentation explicit about ready, intentionally disabled, development fallback, and production misconfigured / fail closed states.
+
+## R034 - Middleware/proxy churn
+
+Risk: Migrating Next.js middleware to proxy during a readiness sprint could break the access gate or create a last-minute deployment regression.
+
+Mitigation: Leave the current middleware behavior in place, document the warning as backlog, and only migrate later if the change is clearly low-risk.
