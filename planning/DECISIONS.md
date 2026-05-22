@@ -161,3 +161,9 @@ Reason: A generated draft is not safe to reuse externally until it passes red-te
 Decision: Sprint 010 adds a persisted writing style profile that the draft builders use as bounded guidance for tone, greeting, closing, brevity, stakeholder framing, and phrase choice.
 
 Reason: The user wants drafts to sound more like the user while remaining safe, evidence-based, and red-team controlled. Style can calibrate phrasing, but it must not override evidence, safety, missing information, liability controls, or review gates.
+
+## D028 - Workflow hardening and next-best-action guidance
+
+Decision: Sprint 011 hardens the end-to-end workflow with compact next-best-action guidance, clearer state labels, and cross-links between import, correspondence, cases, drafts, and writing-style surfaces.
+
+Reason: The app already has the core capability surfaces. The next step is to make the path between them coherent, obvious, and safe without adding new workflow power or automation.

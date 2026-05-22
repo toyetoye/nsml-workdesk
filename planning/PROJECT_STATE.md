@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 010 complete.
+Sprint 011 complete.
 
 ## Active sprint
 
-Sprint 011 - next approved sprint.
+Sprint 012 - next approved sprint.
 
 ## Confirmed decisions
 
@@ -63,12 +63,16 @@ Sprint 011 - next approved sprint.
 - Sprint 010 adds configurable style controls for default greeting, default closing, preferred tone and brevity, use of kindly and please note, technical directness, caution level, stakeholder tone notes, preferred phrases, phrases to avoid, liability-sensitive wording rules, and draft mode guidance for the supported stakeholder profiles.
 - Sprint 010 makes draft generation consume the active writing style profile, carries the style profile in the draft trace payload, and keeps safety rules above style preferences.
 - Sprint 010 does not add localStorage, hard Supabase dependency, email sending, Outlook integration, mailbox connection, red-team bypass, or ready-state override.
+- Sprint 011 hardened the end-to-end workflow with the `WorkflowChecklist` component, next-best-action guidance across dashboard, import, workspace, cases, drafts, and writing-style surfaces, improved cross-links between `/import`, workspace correspondence, `/cases`, `/drafts`, and `/settings/writing-style`, improved operational state labels, clearer AI-unavailable and persistence-unavailable states, and a dashboard that reflects the real workflow path.
+- Sprint 011 adds a manual QA / smoke-test checklist to the deployment notes so workflow verification stays aligned with the live path.
+- Sprint 011 does not add new AI capability, new parsing capability, Outlook integration, email sending, automatic case creation/routing/status mutation, bulk/background processing, or multi-user roles.
 
 ## Product rules
 
 - AI can recommend but cannot act. AI triage output is advisory only and must remain traceable to selected source material.
 - Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
 - Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
+- Every workflow surface must make the next safe action clear while preserving the rule that external communication remains manual and user-controlled.
 
 ## Next action
 

@@ -185,3 +185,15 @@ Mitigation: Keep drafts locked behind the red-team review gate, require `safe_to
 Risk: Writing-style preferences could be mistaken as permission to weaken evidence, safety, or liability controls.
 
 Mitigation: Treat writing style as bounded calibration only; safety, missing information, liability controls, and red-team review always win over style preferences.
+
+## R031 - Workflow fragmentation
+
+Risk: The app could still feel like a set of separate surfaces instead of one coherent operational path.
+
+Mitigation: Keep the next-best-action guidance, cross-links, and state labels aligned across dashboard, import, workspace, cases, drafts, and writing-style surfaces.
+
+## R032 - Safety-label drift
+
+Risk: Users could misread AI-unavailable, persistence-unavailable, staged, triaged, or reviewed-safe-to-copy labels and miss the next safe action.
+
+Mitigation: Keep the labels concise, repeated in context, and paired with a clear next-step prompt or checklist item wherever the state appears.

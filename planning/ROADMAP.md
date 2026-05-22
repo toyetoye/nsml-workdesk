@@ -361,3 +361,25 @@ Notes:
 
 - Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
 - The writing-style profile remains a calibration layer, not a permission to relax safety or claim unsupported facts.
+
+## Sprint 011
+
+Complete.
+
+Delivered:
+
+- end-to-end workflow hardening
+- `WorkflowChecklist` component
+- next-best-action guidance across dashboard, import, workspace, cases, drafts, and writing-style surfaces
+- improved cross-links between `/import`, workspace correspondence, `/cases`, `/drafts`, and `/settings/writing-style`
+- improved operational state labels
+- clearer AI-unavailable and persistence-unavailable states
+- dashboard reflects the real workflow path
+- manual QA / smoke-test checklist added to deployment notes
+- copy remains disabled unless red-team verdict is `pass` or `pass_with_caution` and `safe_to_copy` is true
+- no send button
+
+Notes:
+
+- Sprint 011 does not add new AI capability, new parsing capability, Outlook integration, email sending, automatic case creation/routing/status mutation, bulk/background processing, or multi-user roles.
+- Every workflow surface must make the next safe action clear while preserving the rule that external communication remains manual and user-controlled.

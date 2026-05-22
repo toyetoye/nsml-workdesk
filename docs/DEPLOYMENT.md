@@ -121,7 +121,7 @@ Production deployments should continue to keep style calibration advisory-only, 
 
 ## Sprint 011 Notes
 
-Sprint 011 hardens the existing workflow and does not add new capability.
+Sprint 011 is complete. It hardens the existing workflow and does not add new capability.
 
 Manual smoke-test checklist:
 
@@ -136,3 +136,5 @@ Manual smoke-test checklist:
 Deployment should keep AI-unavailable and persistence-unavailable states obvious but non-blocking, and it should not imply durable state where only session fallback exists.
 
 No send button should appear anywhere in the deployed app, and copy should remain gated by the red-team verdict and `safe_to_copy`.
+
+The deployment checklist should be treated as smoke-test guidance for the real workflow path, not as a new feature surface.

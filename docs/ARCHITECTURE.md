@@ -310,6 +310,21 @@ The writing-style layer should influence:
 
 The writing-style layer must remain bounded guidance only. It must not override evidence, missing information, liability controls, or the red-team gate. If style conflicts with safety, the safety rule wins.
 
+## Sprint 011 Workflow Hardening Architecture
+
+Sprint 011 keeps the existing capability stack intact and adds lightweight workflow guidance so the app feels coherent from login through copy-reviewed draft.
+
+The workflow-hardening layer is structured around:
+
+- a reusable `WorkflowChecklist` component for next-best-action guidance;
+- dashboard, import, workspace, cases, drafts, and writing-style surfaces that point to the next safe step;
+- improved state labels for staged, parsed, unclassified, linked to case, pending triage, triaged, draft pending red-team, reviewed safe to copy, and needs evidence states;
+- clear AI-unavailable and persistence-unavailable messaging that stays non-blocking;
+- a dashboard path that reflects the real operational flow instead of a disconnected queue board;
+- compact smoke-test guidance in deployment notes so the workflow can be verified manually.
+
+Workflow guidance must remain compact and directional. It should help the user see the next safe action without turning any page into a wall of instructions or adding new automation.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.
