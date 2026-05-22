@@ -1,14 +1,8 @@
-import { PenLine } from "lucide-react";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { getActiveWritingStyleProfile } from "@/lib/persistence/repository";
+import { WritingStyleProfileWorkbench } from "@/components/WritingStyleProfileWorkbench";
 
-export default function WritingStylePage() {
-  return (
-    <PlaceholderPage
-      eyebrow="Writing Style"
-      title="Writing Style"
-      description="A future reference area for professional tone preferences and reviewed response guidance."
-      icon={PenLine}
-      items={["Direct", "Technically grounded", "Evidence-aware"]}
-    />
-  );
+export default async function WritingStylePage() {
+  const profile = await getActiveWritingStyleProfile();
+
+  return <WritingStyleProfileWorkbench initialProfile={profile} />;
 }

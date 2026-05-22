@@ -14,6 +14,10 @@ import {
   type RecentImportActivity,
 } from "@/lib/mock-data";
 import { deriveInitialEvidenceParseStatus } from "@/lib/email-ingestion/shared";
+import {
+  defaultWritingStyleProfile,
+  normalizeWritingStyleProfile,
+} from "@/lib/writing-style/profile";
 import { createPersistenceClient, isPersistenceAvailable } from "./client";
 import type {
   AuditLogRow,
@@ -38,6 +42,8 @@ import type {
   IntakeItemRow,
   TimelineEventInput,
   TimelineEventRow,
+  WritingStyleProfileInput,
+  WritingStyleProfileRow,
   WorkspaceRow,
 } from "./types";
 
@@ -55,6 +61,7 @@ type PersistenceStore = {
   decisions: DecisionRow[];
   draft_responses_placeholder: DraftResponsePlaceholderRow[];
   draft_red_team_reviews: DraftRedTeamReviewRow[];
+  writing_style_profiles: WritingStyleProfileRow[];
   audit_logs: AuditLogRow[];
 };
 
@@ -340,6 +347,14 @@ function createFallbackStore(): PersistenceStore {
     decisions: [],
     draft_responses_placeholder: [],
     draft_red_team_reviews: [],
+    writing_style_profiles: [
+      {
+        ...defaultWritingStyleProfile(),
+        persistence_state: "session-only",
+        created_at: nowIso(),
+        updated_at: nowIso(),
+      },
+    ],
     audit_logs: [],
   };
 }
@@ -1224,6 +1239,86 @@ export async function saveDraftRedTeamReview(
   }
 
   return { row: data as DraftRedTeamReviewRow, persisted: true };
+}
+
+export async function listWritingStyleProfiles() {
+  const fallback = fallbackStore.writing_style_profiles;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("writing_style_profiles")
+    .select("*")
+    .order("updated_at", { ascending: false });
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as WritingStyleProfileRow[];
+}
+
+export async function getActiveWritingStyleProfile() {
+  const fallback =
+    fallbackStore.writing_style_profiles.find((item) => item.is_active) ??
+    fallbackStore.writing_style_profiles[0] ??
+    {
+      ...defaultWritingStyleProfile(),
+      persistence_state: "session-only",
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("writing_style_profiles")
+    .select("*")
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  if (error || !data || !Array.isArray(data) || data.length === 0) {
+    return clone(fallback);
+  }
+
+  return data[0] as WritingStyleProfileRow;
+}
+
+export async function saveWritingStyleProfile(
+  input: WritingStyleProfileInput,
+): Promise<WriteResult<WritingStyleProfileRow>> {
+  const normalized = normalizeWritingStyleProfile(input);
+  const row: WritingStyleProfileRow = {
+    ...normalized,
+    is_active: true,
+    persistence_state: input.persistence_state ?? "persisted",
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    row.persistence_state = "session-only";
+    upsertById(fallbackStore.writing_style_profiles, "profile_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("writing_style_profiles").upsert(row).select().single();
+
+  if (error || !data) {
+    row.persistence_state = "session-only";
+    upsertById(fallbackStore.writing_style_profiles, "profile_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as WritingStyleProfileRow, persisted: true };
 }
 
 export async function appendAuditLog(

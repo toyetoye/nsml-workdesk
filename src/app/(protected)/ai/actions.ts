@@ -5,15 +5,15 @@ import { buildCaseTriageRequest, buildIntakeTriageRequest, buildThreadTriageRequ
 import { buildCaseDraftRequest, buildIntakeDraftRequest, buildThreadDraftRequest } from "@/lib/ai/draft-builders";
 import { runDraftGeneration } from "@/lib/ai/drafts";
 import { runRedTeamReview } from "@/lib/ai/red-team";
+import type { DraftMode } from "@/lib/ai/draft-modes";
 import { runTriageAnalysis } from "@/lib/ai/triage";
 import type {
-  DraftMode,
   DraftRunOutcome,
   RedTeamRunOutcome,
   TriageRunOutcome,
   StructuredTriageResult,
 } from "@/lib/ai/types";
-import { getDraftResponseById } from "@/lib/persistence/repository";
+import { getActiveWritingStyleProfile, getDraftResponseById } from "@/lib/persistence/repository";
 import type { CaseRecord, EmailThread, EvidenceRecord, ImportIntakeItem } from "@/lib/mock-data";
 
 type TriageActionResponse = TriageRunOutcome;
@@ -56,6 +56,7 @@ export async function generateIntakeDraftAction(input: {
   triageAuditLogId?: string | null;
 }): Promise<DraftActionResponse> {
   await requireWritableAccess("/import");
+  const writingStyleProfile = await getActiveWritingStyleProfile();
   const draftId = `draft-${input.item.id}-${Date.now()}`;
   return runDraftGeneration(
     buildIntakeDraftRequest(
@@ -63,6 +64,7 @@ export async function generateIntakeDraftAction(input: {
       input.evidenceRecords,
       draftId,
       input.mode,
+      writingStyleProfile,
       input.triageResult
         ? {
             sourceType: "intake_item",
@@ -85,6 +87,7 @@ export async function generateThreadDraftAction(input: {
   triageAuditLogId?: string | null;
 }): Promise<DraftActionResponse> {
   await requireWritableAccess(input.redirectTo ?? "/import");
+  const writingStyleProfile = await getActiveWritingStyleProfile();
   const draftId = `draft-${input.thread.id}-${Date.now()}`;
   return runDraftGeneration(
     buildThreadDraftRequest(
@@ -92,6 +95,7 @@ export async function generateThreadDraftAction(input: {
       input.evidenceRecords,
       draftId,
       input.mode,
+      writingStyleProfile,
       input.triageResult
         ? {
             sourceType: "correspondence_thread",
@@ -114,6 +118,7 @@ export async function generateCaseDraftAction(input: {
   triageAuditLogId?: string | null;
 }): Promise<DraftActionResponse> {
   await requireWritableAccess("/cases");
+  const writingStyleProfile = await getActiveWritingStyleProfile();
   const draftId = `draft-${input.caseRecord.caseId}-${Date.now()}`;
   return runDraftGeneration(
     buildCaseDraftRequest(
@@ -122,6 +127,7 @@ export async function generateCaseDraftAction(input: {
       input.correspondenceThreads,
       draftId,
       input.mode,
+      writingStyleProfile,
       input.triageResult
         ? {
             sourceType: "case",

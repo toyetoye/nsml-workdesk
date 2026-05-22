@@ -30,7 +30,8 @@ import { DraftResultPanel } from "@/components/DraftResultPanel";
 import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 import { normalizeCorrespondenceSender, normalizeThreadSubject } from "@/lib/correspondence/threading";
 import { TriageResultPanel } from "@/components/TriageResultPanel";
-import type { AiConfigStatus, DraftMode, DraftRunOutcome, TriageRunOutcome } from "@/lib/ai/types";
+import type { DraftMode } from "@/lib/ai/draft-modes";
+import type { AiConfigStatus, DraftRunOutcome, TriageRunOutcome } from "@/lib/ai/types";
 
 type WorkspaceFilter = "route" | "import" | "unclassified" | EmailThreadScope;
 type StatusFilter = EmailStatus | "all";

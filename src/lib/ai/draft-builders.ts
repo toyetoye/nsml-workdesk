@@ -1,5 +1,9 @@
 import type { CaseRecord, EmailThread, EvidenceRecord, ImportIntakeItem } from "@/lib/mock-data";
-import type { DraftMode, DraftRequest } from "./types";
+import type { DraftMode } from "./draft-modes";
+import type { DraftRequest } from "./types";
+import type { WritingStyleProfileSnapshot } from "@/lib/writing-style/profile";
+
+export { describeDraftMode } from "./draft-modes";
 
 function limitText(value: string, maxLength = 1200) {
   if (value.length <= maxLength) {
@@ -41,6 +45,7 @@ function baseRequest(
   sourceSnapshot: Record<string, unknown>,
   draftId: string,
   toneMode: DraftMode,
+  writingStyleProfile?: WritingStyleProfileSnapshot | null,
   triageContext?: DraftRequest["triageContext"],
 ): DraftRequest {
   return {
@@ -50,6 +55,7 @@ function baseRequest(
     sourceSnapshot,
     draftId,
     toneMode,
+    writingStyleProfile: writingStyleProfile ?? null,
     triageContext: triageContext ?? null,
   };
 }
@@ -76,25 +82,12 @@ function buildTriageSnapshot(
   };
 }
 
-export const draftModeOptions: Array<{ value: DraftMode; label: string }> = [
-  { value: "holding_statement", label: "Holding statement" },
-  { value: "normal_technical_reply", label: "Normal technical reply" },
-  { value: "firm_but_polite", label: "Firm but polite" },
-  { value: "management_summary", label: "Management summary" },
-  { value: "vessel_instruction", label: "Vessel instruction" },
-  { value: "vendor_clarification", label: "Vendor clarification" },
-  { value: "owner_charterer_sensitive", label: "Owner / charterer sensitive" },
-];
-
-export function describeDraftMode(mode: DraftMode) {
-  return draftModeOptions.find((entry) => entry.value === mode)?.label ?? mode;
-}
-
 export function buildIntakeDraftRequest(
   intakeItem: ImportIntakeItem,
   evidenceRecords: EvidenceRecord[],
   draftId: string,
   toneMode: DraftMode,
+  writingStyleProfile?: WritingStyleProfileSnapshot | null,
   triageContext?: DraftRequest["triageContext"],
 ): DraftRequest {
   const linkedEvidence = evidenceRecords.filter(
@@ -124,10 +117,12 @@ export function buildIntakeDraftRequest(
         createdLabel: intakeItem.createdLabel,
       },
       evidence: buildSourceEvidence(linkedEvidence),
+      writingStyleProfile: writingStyleProfile ?? null,
       triage: buildTriageSnapshot(triageContext),
     },
     draftId,
     toneMode,
+    writingStyleProfile,
     triageContext,
   );
 }
@@ -137,6 +132,7 @@ export function buildThreadDraftRequest(
   evidenceRecords: EvidenceRecord[],
   draftId: string,
   toneMode: DraftMode,
+  writingStyleProfile?: WritingStyleProfileSnapshot | null,
   triageContext?: DraftRequest["triageContext"],
 ): DraftRequest {
   const linkedEvidence = evidenceRecords.filter(
@@ -191,10 +187,12 @@ export function buildThreadDraftRequest(
         })),
       })),
       evidence: buildSourceEvidence(linkedEvidence),
+      writingStyleProfile: writingStyleProfile ?? null,
       triage: buildTriageSnapshot(triageContext),
     },
     draftId,
     toneMode,
+    writingStyleProfile,
     triageContext,
   );
 }
@@ -205,6 +203,7 @@ export function buildCaseDraftRequest(
   threads: EmailThread[],
   draftId: string,
   toneMode: DraftMode,
+  writingStyleProfile?: WritingStyleProfileSnapshot | null,
   triageContext?: DraftRequest["triageContext"],
 ): DraftRequest {
   const linkedEvidence = evidenceRecords.filter(
@@ -249,6 +248,7 @@ export function buildCaseDraftRequest(
         linkedEvidence: caseRecord.linkedEvidence,
       },
       evidence: buildSourceEvidence(linkedEvidence),
+      writingStyleProfile: writingStyleProfile ?? null,
       correspondence: linkedThreads.map((thread) => ({
         threadId: thread.id,
         subject: thread.subject,
@@ -266,6 +266,7 @@ export function buildCaseDraftRequest(
     },
     draftId,
     toneMode,
+    writingStyleProfile,
     triageContext,
   );
 }

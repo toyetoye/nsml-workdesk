@@ -1,3 +1,5 @@
+import type { WritingStyleProfileSnapshot } from "@/lib/writing-style/profile";
+
 export type Json =
   | string
   | number
@@ -253,6 +255,12 @@ export type DraftRedTeamReviewRow = {
   updated_at: string;
 };
 
+export type WritingStyleProfileRow = WritingStyleProfileSnapshot & {
+  persistence_state: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AuditLogRow = {
   audit_id: string;
   actor: string | null;
@@ -373,6 +381,11 @@ export type DraftRedTeamReviewInput = Partial<DraftRedTeamReviewRow> & {
   reviewed_at: string;
 };
 
+export type WritingStyleProfileInput = Partial<WritingStyleProfileRow> &
+  WritingStyleProfileSnapshot & {
+    persistence_state?: string;
+  };
+
 export type CorrespondenceThreadInput = Partial<CorrespondenceThreadRow> & {
   thread_id?: string;
   workspace_key: string;
@@ -454,6 +467,7 @@ export interface Database {
       decisions: Table<DecisionRow>;
       draft_responses_placeholder: Table<DraftResponsePlaceholderRow>;
       draft_red_team_reviews: Table<DraftRedTeamReviewRow>;
+      writing_style_profiles: Table<WritingStyleProfileRow>;
       audit_logs: Table<AuditLogRow>;
     };
     Views: Record<string, never>;

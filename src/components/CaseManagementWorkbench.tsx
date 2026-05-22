@@ -41,9 +41,9 @@ import { formatEvidenceSize } from "@/lib/workbench-data";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 import { TriageResultPanel } from "@/components/TriageResultPanel";
+import type { DraftMode } from "@/lib/ai/draft-modes";
 import type {
   AiConfigStatus,
-  DraftMode,
   DraftRunOutcome,
   TriageRunOutcome,
 } from "@/lib/ai/types";

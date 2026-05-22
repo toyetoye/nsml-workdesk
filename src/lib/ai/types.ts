@@ -1,3 +1,6 @@
+import type { WritingStyleProfileSnapshot } from "@/lib/writing-style/profile";
+import type { DraftMode } from "./draft-modes";
+
 export type AiProvider = "openai";
 
 export type AiConfigStatus = {
@@ -60,15 +63,6 @@ export type TriageRunOutcome = {
   model: string | null;
 };
 
-export type DraftMode =
-  | "holding_statement"
-  | "normal_technical_reply"
-  | "firm_but_polite"
-  | "management_summary"
-  | "vessel_instruction"
-  | "vendor_clarification"
-  | "owner_charterer_sensitive";
-
 export type DraftStatus = "pending_red_team" | "needs_evidence" | "blocked";
 
 export type DraftReviewVerdict =
@@ -107,6 +101,7 @@ export type DraftRequest = {
   sourceSnapshot: Record<string, unknown>;
   draftId: string;
   toneMode: DraftMode;
+  writingStyleProfile?: WritingStyleProfileSnapshot | null;
   triageContext?: {
     sourceType: TriageSourceType;
     sourceIds: string[];

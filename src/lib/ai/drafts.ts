@@ -2,14 +2,15 @@ import "server-only";
 
 import OpenAI from "openai";
 import { saveDraftResponse } from "@/lib/persistence/repository";
+import { buildWritingStylePromptSection } from "@/lib/writing-style/profile";
 import { getAiConfigStatus } from "./config";
 import type {
   DraftRequest,
   DraftRunOutcome,
   StructuredDraftResult,
-  DraftMode,
   DraftStatus,
 } from "./types";
+import type { DraftMode } from "./draft-modes";
 import type { Json } from "@/lib/persistence/types";
 
 const DRAFT_SCHEMA = {
@@ -167,6 +168,8 @@ function normalizeDraftResult(parsed: unknown, request: DraftRequest): Structure
 }
 
 function buildPrompt(request: DraftRequest) {
+  const writingStyleSection = buildWritingStylePromptSection(request.writingStyleProfile);
+
   return [
     "Selected source type:",
     request.sourceType,
@@ -182,6 +185,7 @@ function buildPrompt(request: DraftRequest) {
     "",
     "Selected source material:",
     JSON.stringify(request.sourceSnapshot, null, 2),
+    writingStyleSection ? ["", writingStyleSection].join("\n") : "",
     "",
     "Draft must be red-teamed and must not be marked ready.",
     "",

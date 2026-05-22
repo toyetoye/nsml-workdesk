@@ -20,6 +20,7 @@ import {
   buildIntakeItemFromSubmission,
   type IntakeSubmission,
 } from "@/lib/workbench-data";
+import type { DraftMode } from "@/lib/ai/draft-modes";
 import {
   importIntakeStatuses,
   importSourceTypes,
@@ -32,7 +33,7 @@ import {
   type EvidenceRecord,
 } from "@/lib/mock-data";
 import type { AiConfigStatus, TriageRunOutcome } from "@/lib/ai/types";
-import type { DraftMode, DraftRunOutcome } from "@/lib/ai/types";
+import type { DraftRunOutcome } from "@/lib/ai/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type IntakeFormState = {
