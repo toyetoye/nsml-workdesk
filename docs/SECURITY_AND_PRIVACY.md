@@ -30,3 +30,5 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - AI requests must be selected-context-only and must not include unrelated vessels, projects, or the whole evidence library.
 - AI output must remain advisory only and must not automatically mutate records.
 - AI triage must preserve traceability to source type, source IDs, and evidence_used.
+- Draft generation must also be server-side only, selected-context-only, and must not include unrelated vessels, projects, or the whole evidence library.
+- Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.

@@ -246,9 +246,30 @@ AI output must remain advisory. It must not change workspace, case, status, or r
 
 The CoS Assistant remains a structured triage aide only; it is not a general chatbot yet.
 
+## Sprint 009B Draft Generation Architecture
+
+Sprint 009B adds a server-side AI draft generation layer for selected intake items, correspondence threads, and cases.
+
+The draft architecture is structured around:
+
+- selected-context-only draft builders for intake items, threads, and cases;
+- a server-side draft generation service that calls the model and validates structured JSON output;
+- protected AI server actions for draft generation;
+- an advisory-only draft result component;
+- a draft workbench that lists generated draft records and preserves source traceability;
+- persistence when available and session-only display when persistence is not available;
+- draft statuses limited to `pending_red_team`, `needs_evidence`, and `blocked`.
+
+Draft requests must be server-side only and must only send the selected item plus directly linked evidence or correspondence. Unrelated vessels, projects, and the full evidence library must never be sent.
+
+Draft output must remain advisory. It must not change workspace, case, status, or routing automatically. There is no ready state in Sprint 009B.
+
+The Drafts workbench remains a protected review surface, not a send queue. Copy remains disabled until red-team review exists.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.
 AI drafts must pass red-team review.
 Original evidence must be preserved unchanged.
 AI outputs must remain separate from original evidence.
+Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.

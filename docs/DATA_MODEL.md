@@ -275,6 +275,39 @@ Triage results must remain traceable to the selected intake item, thread, or cas
 
 AI output must not mutate the source records automatically; any application of recommendations remains a later user-approved action.
 
+## Sprint 009B Draft Generation
+
+The draft generation layer stores structured advisory draft results for selected source material.
+
+Draft records should preserve:
+
+- draft_id;
+- source type;
+- source IDs;
+- source label;
+- source snapshot or trace payload;
+- triage audit log ID when a triage result is used;
+- triage source type and triage source IDs;
+- intended recipient placeholder;
+- subject placeholder;
+- draft body;
+- draft purpose;
+- tone mode;
+- evidence basis;
+- assumptions;
+- missing information;
+- liability cautions;
+- recommended attachments;
+- status limited to `pending_red_team`, `needs_evidence`, or `blocked`;
+- confidence;
+- created_at;
+- `must_be_red_teamed` always true;
+- persisted or session-only state.
+
+Draft results must remain traceable to the selected intake item, thread, or case and any directly linked evidence or correspondence used in the request.
+
+Draft output must not mutate the source records automatically; any application of recommendations remains a later user-approved action after red-team review.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

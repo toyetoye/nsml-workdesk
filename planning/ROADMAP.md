@@ -259,3 +259,33 @@ Notes:
 - No drafting, no red-team agent, no Outlook integration, no email sending, no automatic routing/classification, no PDF/OCR AI extraction, and no background processing.
 - AI can recommend but cannot act. AI triage output is advisory only and must remain traceable to selected source material.
 - AI calls must be server-side, selected-context-only, and must not send unrelated vessels/projects or the whole evidence library.
+
+## Sprint 009B
+
+Complete.
+
+Delivered:
+
+- server-side AI draft generation foundation
+- selected-context-only draft builders
+- protected draft generation actions
+- draft generation from selected intake item
+- draft generation from selected correspondence thread
+- draft generation from selected case
+- structured draft response schema
+- `DraftResultPanel`
+- `DraftsWorkbench`
+- `/drafts` upgraded from placeholder to draft workbench
+- draft statuses limited to `pending_red_team`, `needs_evidence`, and `blocked`
+- `must_be_red_teamed` always true
+- source/evidence traceability
+- evidence basis, assumptions, missing information, liability cautions, recommended attachments, and confidence
+- copy disabled until red-team review exists
+- no ready state
+- no send button
+- no mark-ready action
+
+Notes:
+
+- No red-team review, no Outlook integration, no email sending, and no automatic case/status/routing changes.
+- Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.

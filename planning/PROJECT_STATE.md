@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 009A complete.
+Sprint 009B complete.
 
 ## Active sprint
 
-Sprint 009B - next approved sprint.
+Sprint 009C - next approved sprint.
 
 ## Confirmed decisions
 
@@ -51,10 +51,15 @@ Sprint 009B - next approved sprint.
 - Sprint 009A keeps AI advisory only: source type and source IDs are always included, `evidence_used` is shown in the result, persisted triage output is stored as an audit-style record when available, and session-only display remains available when persistence is not.
 - Sprint 009A disables AI controls when env vars are missing and does not fabricate AI output.
 - Sprint 009A does not add drafting, red-team review, Outlook integration, email sending, automatic routing/classification, automatic record mutation, PDF/OCR AI extraction, or background processing.
+- Sprint 009B added server-side AI draft generation with selected-context-only draft builders, protected draft generation actions, a structured draft response schema, draft generation from selected intake items/threads/cases, the `DraftResultPanel`, and the `DraftsWorkbench`.
+- Sprint 009B keeps drafts advisory only and never ready: draft statuses are limited to `pending_red_team`, `needs_evidence`, and `blocked`; `must_be_red_teamed` is always true; copy remains disabled until red-team review exists; and there is no send button or mark-ready action.
+- Sprint 009B preserves source/evidence traceability, stores source IDs and evidence basis with drafts, and shows persisted drafts when available or session-only drafts when persistence is unavailable.
+- Sprint 009B does not add red-team review, sending, Outlook integration, automatic routing/status changes, automatic case creation, automatic record mutation, PDF/OCR AI extraction, or background processing.
 
 ## Product rules
 
 - AI can recommend but cannot act. AI triage output is advisory only and must remain traceable to selected source material.
+- Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
 
 ## Next action
 

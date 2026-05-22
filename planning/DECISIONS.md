@@ -143,3 +143,9 @@ Reason: The app needs AI help to surface likely workspace, case, urgency, and fo
 Decision: AI requests must include source type and source IDs and must only use the selected item/thread/case context plus directly linked evidence or correspondence.
 
 Reason: The system must not send the whole evidence library or unrelated vessels and projects to the model, and every output must remain auditable back to the source material used.
+
+## D025 - Draft generation is advisory and red-team gated
+
+Decision: Sprint 009B adds AI draft generation as a server-side advisory layer that prepares draft wording from selected intake items, correspondence threads, or cases, but always keeps drafts in `pending_red_team`, `needs_evidence`, or `blocked` states and never marks them ready.
+
+Reason: Drafts can help accelerate work, but they are not safe to send until red-team review exists. The user must remain the final approver, and no draft may be treated as ready or sent automatically.
