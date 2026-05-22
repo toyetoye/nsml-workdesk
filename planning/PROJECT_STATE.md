@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 012 in progress.
+Sprint 014 in progress.
 
 ## Active sprint
 
-Sprint 012 - current sprint.
+Sprint 014 - current sprint.
 
 ## Confirmed decisions
 
@@ -68,6 +68,9 @@ Sprint 012 - current sprint.
 - Sprint 011 does not add new AI capability, new parsing capability, Outlook integration, email sending, automatic case creation/routing/status mutation, bulk/background processing, or multi-user roles.
 - Sprint 012 focuses on production readiness only with environment validation, deployment/security documentation, explicit ready/fallback classification, and a backlog note for the Next.js middleware/proxy warning.
 - Sprint 012 keeps protected routes gated, preserves honest fallback states, and does not add new workflow, AI, parsing, Outlook, email, or automation capability.
+- Sprint 013 removed the remaining legacy Staff-OS routes, neutralized old route wording, and confirmed the production route surface is NSML-only.
+- Sprint 013 does not add new workflow capability; it is route-surface hygiene only.
+- Sprint 014 focuses on deployment execution support for the default Vercel + Supabase path and does not add new workflow capability.
 
 ## Product rules
 

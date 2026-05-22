@@ -1,15 +1,13 @@
 ﻿# Deployment
 
-Deployment target: online private deployment.
+Deployment target: **Vercel + Supabase** for the first deployment path unless a clear blocker is identified.
 
-Possible options:
+Supported deployment targets:
 
 - Vercel + Supabase
 - Railway + Supabase
 - Render + Supabase
 - Private VPS
-
-Deployment is not part of Sprint 000.
 
 Production requirements:
 
@@ -17,7 +15,34 @@ Production requirements:
 - authentication enabled;
 - private uploads;
 - audit logs;
-- backup/export process.
+- backup/export process;
+- no public file URLs;
+- no client-side Supabase writes;
+- no exposed service role keys.
+
+Required production environment variables:
+
+- `NSML_APP_PASSWORD`
+- `NSML_SESSION_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENAI_API_KEY`
+- `NSML_AI_PROVIDER`
+- `NSML_AI_MODEL`
+- optional `NSML_SUPABASE_DISABLED`
+- optional `NSML_AI_DISABLED`
+
+Storage setting:
+
+- `NSML_EVIDENCE_BUCKET=nsml-evidence-files` when evidence storage is enabled.
+
+Helpful preflight:
+
+```bash
+npm run deploy:check
+```
+
+The preflight reports readiness states only. It does not print secrets.
 
 ## Sprint 004 Notes
 
@@ -181,3 +206,54 @@ Deployment validation helper:
 
 - A server-side deployment-readiness helper may be used to classify the app as ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
 - Readiness classification should stay honest and should not imply deployment readiness when fallback mode is actually in use.
+
+## Sprint 014 Deployment Execution Support
+
+Sprint 014 supports first deployment execution only.
+
+Default deployment path:
+
+- Vercel for the Next.js app
+- Supabase for database and storage
+
+Deployment order:
+
+1. Create the Supabase project.
+2. Apply migrations in order.
+3. Confirm seeded workspaces are present.
+4. Confirm `NSML_EVIDENCE_BUCKET` is set to the private evidence bucket `nsml-evidence-files`.
+5. Confirm the bucket is private.
+6. Configure the Vercel project.
+7. Set production environment variables.
+8. Deploy the app.
+9. Test public `/login`.
+10. Test protected route redirect.
+11. Test login success.
+12. Test `/dashboard`.
+13. Test `/import`.
+14. Test `/cases`.
+15. Test `/drafts`.
+16. Test evidence upload or fallback state.
+17. Test AI configured or intentionally disabled state.
+18. Test draft -> red-team -> copy gate.
+19. Confirm no send button exists.
+20. Confirm the route surface remains NSML-only.
+
+Post-deployment smoke tests:
+
+- `/login` loads publicly.
+- Protected routes redirect when unauthenticated.
+- Login succeeds with the single-user gate.
+- Dashboard, import, cases, and drafts load after login.
+- Evidence upload is private or the fallback state is obvious and honest when intentionally disabled.
+- AI is configured or clearly disabled.
+- Draft copy remains disabled until red-team returns `pass` or `pass_with_caution` and `safe_to_copy` is true.
+- No send button exists anywhere.
+- No public file URLs are exposed.
+
+Deployment execution reminders:
+
+- Keep secrets only in deployment environment variables.
+- Do not commit secrets.
+- Do not expose the service role key client-side.
+- Keep the middleware warning on the backlog unless a later low-risk fix is approved.

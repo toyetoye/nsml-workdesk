@@ -339,6 +339,21 @@ The production-readiness layer is structured around:
 
 Readiness validation must stay server-side and must not obscure fallback mode as a fully ready production state.
 
+## Sprint 014 Deployment Execution Support Architecture
+
+Sprint 014 does not add product capability. It adds a lightweight deployment support layer for the default Vercel + Supabase path.
+
+The deployment support layer is structured around:
+
+- a lightweight deployment preflight script that reports readiness states only;
+- explicit production environment variable guidance;
+- Supabase migration order and private bucket setup notes;
+- Vercel deployment settings and smoke-test checklist notes;
+- honest labels for ready, intentionally disabled, development fallback, and production misconfigured / fail closed states;
+- route-surface confirmation that the deployed app remains NSML-only.
+
+The deployment support layer must not print secrets, commit secrets, or expose service role keys. It is documentation and preflight guidance only.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.

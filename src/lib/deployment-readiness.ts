@@ -43,6 +43,10 @@ function classifyRequiredConfig({
   return isProduction ? "production_misconfigured" : "development_fallback";
 }
 
+function hasExpectedEvidenceBucket(env: NodeJS.ProcessEnv = process.env) {
+  return env.NSML_EVIDENCE_BUCKET?.trim() === "nsml-evidence-files";
+}
+
 export function getDeploymentReadinessReport(
   env: NodeJS.ProcessEnv = process.env,
 ): DeploymentReadinessReport {
@@ -101,11 +105,11 @@ export function getDeploymentReadinessReport(
       required: false,
       details: supabaseDisabled
         ? "Storage is intentionally disabled because Supabase is disabled for this deployment."
-        : hasEvidenceStorageConfig()
-          ? "Private evidence storage is configured with the evidence bucket."
+        : hasEvidenceStorageConfig() && hasExpectedEvidenceBucket(env)
+          ? "Private evidence storage is configured with the private nsml-evidence-files bucket."
           : isProduction
-            ? "Private evidence storage is missing in production. The bucket must exist and remain private."
-            : "Development fallback is active because the evidence bucket is not configured.",
+            ? "Private evidence storage is missing in production. The private nsml-evidence-files bucket must exist and remain private."
+            : "Development fallback is active because the private evidence bucket is not configured.",
       env: ["NSML_EVIDENCE_BUCKET", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
     },
     {

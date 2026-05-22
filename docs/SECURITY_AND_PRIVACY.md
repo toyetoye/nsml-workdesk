@@ -40,3 +40,5 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Optional disable flags may be used for intentional production fallback, but they must be documented explicitly and must not make the app appear fully ready when fallback mode is in use.
 - Production readiness must be explicit: Supabase and AI may be intentionally disabled, but the deployment notes and readiness checks must say so honestly and must not describe fallback mode as fully ready.
 - The Next.js middleware/proxy migration warning should be treated as deployment backlog unless a low-risk fix is approved later.
+- Deployment must keep secrets in server-side environment variables only, never commit them, and never expose service role keys client-side.
+- Deployment preflight helpers may report readiness states, but they must not print secret values or imply readiness when fallback mode is active.

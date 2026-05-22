@@ -413,3 +413,36 @@ Notes:
 - Sprint 012 must fail closed in production when access-gate env vars are missing.
 - Sprint 012 must not expose secrets, service role keys, or public file URLs.
 - Sprint 012 does not add new AI capability, parsing capability, Outlook integration, email sending, live mailbox connection, automatic case creation, automatic routing, automatic status mutation, or multi-user roles.
+
+## Sprint 013
+
+Complete.
+
+Delivered:
+
+- removed legacy Staff-OS routes
+- neutralized old route wording
+- confirmed the production route surface is NSML-only
+
+Notes:
+
+- No new product features were added.
+- No new AI capability, parsing capability, Outlook integration, email sending, or auth changes were added.
+
+## Sprint 014
+
+In progress.
+
+Focus:
+
+- deployment execution support only
+- Vercel + Supabase default deployment path
+- deployment checklist and smoke-test guidance
+- environment variable clarity
+- no product feature changes
+
+Notes:
+
+- Keep secrets in deployment environment variables only.
+- Keep deployment support honest: ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
+- No new AI capability, parsing capability, Outlook integration, email sending, live mailbox connection, automatic routing, automatic case/status mutation, or multi-user roles.

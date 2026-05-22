@@ -173,3 +173,15 @@ Reason: The app already has the core capability surfaces. The next step is to ma
 Decision: Sprint 012 adds a small server-side deployment-readiness helper and deployment documentation updates for access-gate, Supabase, storage, and AI environment validation.
 
 Reason: Production readiness should be explicit and honest. The app must fail closed when the access-gate env vars are missing, while still making intentional disable and development fallback states visible instead of vague.
+
+## D030 - Route-surface hygiene
+
+Decision: Sprint 013 removes the remaining legacy Staff-OS routes and neutralizes old route wording so the production route surface is NSML-only.
+
+Reason: First deployment should not expose confusing or unnecessary legacy surfaces, and route hygiene is safer than leaving parked legacy pages reachable.
+
+## D031 - Deployment execution support
+
+Decision: Sprint 014 focuses on deployment execution support for the default Vercel + Supabase path, including checklist, env clarity, and smoke-test guidance, rather than adding product capability.
+
+Reason: First deployment should be guided by explicit setup and verification steps, not by new workflow features or hidden assumptions about environment readiness.

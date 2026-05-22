@@ -209,3 +209,15 @@ Mitigation: Keep the validation helper, deployment checklist, and documentation 
 Risk: Migrating Next.js middleware to proxy during a readiness sprint could break the access gate or create a last-minute deployment regression.
 
 Mitigation: Leave the current middleware behavior in place, document the warning as backlog, and only migrate later if the change is clearly low-risk.
+
+## R035 - Deployment checklist drift
+
+Risk: The deployment checklist or preflight script could drift away from the actual Vercel/Supabase setup steps and create false confidence.
+
+Mitigation: Keep the checklist aligned with the repo defaults, keep the preflight output state-based only, and update docs whenever the deployment order or required env vars change.
+
+## R036 - Secret exposure during deployment support
+
+Risk: Deployment helpers or docs could accidentally print or imply secret values.
+
+Mitigation: Keep deployment helpers state-only, never print secrets, keep service role keys server-side, and document that secrets live only in deployment environment variables.
