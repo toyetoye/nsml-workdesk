@@ -1,12 +1,18 @@
 "use server";
 
 import { requireWritableAccess } from "@/lib/auth-session";
-import { linkEvidenceToCase, saveEvidence } from "@/lib/persistence/repository";
+import {
+  linkEvidenceToCase,
+  saveEvidence,
+} from "@/lib/persistence/repository";
+import { ingestEmlEvidence } from "@/lib/email-ingestion/ingest";
 import { storeEvidenceFile } from "@/lib/storage/evidence";
 import {
   mapEvidenceRowsToRecords,
+  mapParsedCorrespondenceRowsToThreads,
 } from "@/lib/workbench-data";
 import type {
+  EmailThread,
   EvidenceRecord,
   EvidenceStatus,
   EvidenceStorageState,
@@ -19,6 +25,16 @@ type SaveEvidenceUploadResult = {
   persisted: boolean;
   storageState: EvidenceStorageState;
   storageNote: string;
+};
+
+type ParseEvidenceResult = {
+  evidenceRecord: EvidenceRecord;
+  parsedThread: EmailThread | null;
+  parseStatus: string;
+  parseError: string | null;
+  supported: boolean;
+  storageAvailable: boolean;
+  note: string;
 };
 
 function readString(formData: FormData, key: string, fallback = "") {
@@ -118,5 +134,34 @@ export async function saveEvidenceUploadAction(formData: FormData): Promise<Save
     persisted: savedEvidence.persisted,
     storageState: storageOutcome.storageState,
     storageNote: storageOutcome.storageNote,
+  };
+}
+
+export async function parseEvidenceMetadataAction(
+  formData: FormData,
+): Promise<ParseEvidenceResult> {
+  const redirectTarget = readString(formData, "redirectTo", "/import");
+  await requireWritableAccess(redirectTarget);
+
+  const evidenceId = readString(formData, "evidenceId");
+  if (!evidenceId) {
+    throw new Error("Missing evidence record identifier.");
+  }
+
+  const outcome = await ingestEmlEvidence(evidenceId);
+  const evidenceRecord = mapEvidenceRowsToRecords([outcome.evidenceRow])[0] as EvidenceRecord;
+  const parsedThread =
+    outcome.threadRow && outcome.messageRow
+      ? mapParsedCorrespondenceRowsToThreads([outcome.threadRow], [outcome.messageRow])[0] ?? null
+      : null;
+
+  return {
+    evidenceRecord,
+    parsedThread,
+    parseStatus: outcome.parseStatus,
+    parseError: outcome.parseError,
+    supported: outcome.supported,
+    storageAvailable: outcome.storageAvailable,
+    note: outcome.note,
   };
 }

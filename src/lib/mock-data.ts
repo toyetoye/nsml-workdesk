@@ -49,6 +49,13 @@ export type EmailThreadScope =
 
 export type EmailStatus = "Pending My Reply" | "Waiting on Vessel" | "Needs Evidence" | "Draft Ready";
 
+export type EmailParseStatus =
+  | "not parsed"
+  | "parsing"
+  | "parsed"
+  | "failed"
+  | "unsupported";
+
 export type EmailAttachment = {
   name: string;
   kind: string;
@@ -59,6 +66,16 @@ export type EmailMessage = {
   sender: string;
   body: string;
   timestamp: string;
+  subject?: string;
+  to?: string[];
+  cc?: string[];
+  bcc?: string[];
+  messageId?: string | null;
+  inReplyTo?: string | null;
+  references?: string[];
+  bodyHtmlText?: string | null;
+  attachmentMetadata?: EmailAttachment[];
+  sourceEvidenceId?: string | null;
 };
 
 export type EmailThread = {
@@ -75,6 +92,17 @@ export type EmailThread = {
   messages: EmailMessage[];
   linkedCase: string;
   suggestedNextAction: string;
+  parseStatus?: EmailParseStatus;
+  parseError?: string | null;
+  sourceEvidenceId?: string | null;
+  originalFilename?: string | null;
+  messageIdHeader?: string | null;
+  inReplyTo?: string | null;
+  references?: string[];
+  bcc?: string[];
+  bodyText?: string | null;
+  bodyHtmlText?: string | null;
+  parsedAt?: string | null;
 };
 
 export type ImportSourceType =
@@ -207,6 +235,11 @@ export type EvidenceRecord = {
   storagePath: string | null;
   mimeType: string | null;
   uploadedAt: string | null;
+  parseStatus: EmailParseStatus;
+  parseError: string | null;
+  parsedThreadId: string | null;
+  parsedMessageId: string | null;
+  parsedAt: string | null;
 };
 
 export type WaitingOnType = "vessel" | "vendor" | "class" | "management";
@@ -1309,6 +1342,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "message/rfc822",
     uploadedAt: "21 May 2026, 08:42",
+    parseStatus: "not parsed",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-019-2",
@@ -1330,6 +1368,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "image/png",
     uploadedAt: "21 May 2026, 09:10",
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-011-1",
@@ -1351,6 +1394,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "application/pdf",
     uploadedAt: "20 May 2026, 15:18",
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-011-2",
@@ -1372,6 +1420,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     uploadedAt: "20 May 2026, 16:02",
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-007-1",
@@ -1393,6 +1446,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "application/pdf",
     uploadedAt: "19 May 2026, 11:30",
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-003-1",
@@ -1414,6 +1472,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: null,
     uploadedAt: "18 May 2026, 17:44",
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-STAGE-001",
@@ -1435,6 +1498,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "message/rfc822",
     uploadedAt: null,
+    parseStatus: "not parsed",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-STAGE-002",
@@ -1456,6 +1524,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: "image/png",
     uploadedAt: null,
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
   {
     evidenceId: "EVID-STAGE-003",
@@ -1477,6 +1550,11 @@ export const evidenceRecords: EvidenceRecord[] = [
     storagePath: null,
     mimeType: null,
     uploadedAt: null,
+    parseStatus: "unsupported",
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   },
 ];
 

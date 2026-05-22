@@ -6,8 +6,10 @@ import type {
 } from "@/lib/mock-data";
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { WorkspaceSummary } from "@/components/WorkspaceSummary";
+import { listCorrespondenceMessages, listCorrespondenceThreads } from "@/lib/persistence/repository";
+import { mapParsedCorrespondenceRowsToThreads } from "@/lib/workbench-data";
 
-export function WorkspacePage({
+export async function WorkspacePage({
   workspace,
   correspondenceScope,
   correspondenceLabel,
@@ -22,6 +24,17 @@ export function WorkspacePage({
   emptyStateTitle: string;
   emptyStateMessage: string;
 }) {
+  const [threadRows, messageRows] = await Promise.all([
+    listCorrespondenceThreads(),
+    listCorrespondenceMessages(),
+  ]);
+  const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows).filter(
+    (thread) =>
+      correspondenceScope === "import"
+        ? thread.workspaceKey === "import" || thread.workspaceKey === "unclassified"
+        : thread.workspaceKey === correspondenceScope,
+  );
+
   return (
     <section className="space-y-6">
       <Link
@@ -95,6 +108,7 @@ export function WorkspacePage({
         sectionDescription={correspondenceDescription}
         emptyStateTitle={emptyStateTitle}
         emptyStateMessage={emptyStateMessage}
+        parsedThreads={parsedThreads}
       />
     </section>
   );

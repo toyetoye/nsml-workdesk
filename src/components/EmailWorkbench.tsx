@@ -14,10 +14,12 @@ import {
 } from "lucide-react";
 import {
   importedEmailThreads,
+  type EmailThread,
   type EmailStatus,
   type EmailThreadScope,
 } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 
 const statusTone: Record<EmailStatus, "danger" | "warning" | "accent" | "neutral"> = {
   "Pending My Reply": "warning",
@@ -33,28 +35,52 @@ const statusSummary: Record<EmailStatus, string> = {
   "Draft Ready": "Draft ready",
 };
 
+const parseTone: Record<
+  NonNullable<EmailThread["parseStatus"]>,
+  "danger" | "warning" | "accent" | "neutral"
+> = {
+  "not parsed": "warning",
+  parsing: "accent",
+  parsed: "accent",
+  failed: "danger",
+  unsupported: "neutral",
+};
+
 export function EmailWorkbench({
   scope,
   sectionLabel,
   sectionDescription,
   emptyStateTitle,
   emptyStateMessage,
+  parsedThreads = [],
 }: {
   scope: EmailThreadScope;
   sectionLabel: string;
   sectionDescription: string;
   emptyStateTitle: string;
   emptyStateMessage: string;
+  parsedThreads?: EmailThread[];
 }) {
+  const combinedThreads = useMemo(() => {
+    const nextThreads = [...importedEmailThreads, ...parsedThreads];
+    const deduped = new Map<string, EmailThread>();
+
+    for (const thread of nextThreads) {
+      deduped.set(thread.id, thread);
+    }
+
+    return [...deduped.values()];
+  }, [parsedThreads]);
+
   const filteredThreads = useMemo(() => {
     if (scope === "import") {
-      return importedEmailThreads.filter(
+      return combinedThreads.filter(
         (thread) => thread.workspaceKey === "import" || thread.workspaceKey === "unclassified",
       );
     }
 
-    return importedEmailThreads.filter((thread) => thread.workspaceKey === scope);
-  }, [scope]);
+    return combinedThreads.filter((thread) => thread.workspaceKey === scope);
+  }, [combinedThreads, scope]);
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
 
@@ -128,6 +154,16 @@ export function EmailWorkbench({
                         {thread.vesselProject}
                       </span>
                       <span>{thread.dateTime}</span>
+                      {thread.parseStatus ? (
+                        <StatusBadge tone={parseTone[thread.parseStatus]}>
+                          {formatParseStatusLabel(thread.parseStatus)}
+                        </StatusBadge>
+                      ) : null}
+                      {thread.sourceEvidenceId ? (
+                        <span className="inline-flex items-center gap-1 text-slate-500">
+                          Source evidence: {thread.sourceEvidenceId}
+                        </span>
+                      ) : null}
                     </div>
                   </button>
                 );
@@ -174,6 +210,52 @@ export function EmailWorkbench({
                 value={activeThread.cc.length > 0 ? activeThread.cc.join("; ") : "None"}
               />
             </div>
+
+            {activeThread.parseStatus ? (
+              <section className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Parsed EML metadata
+                  </h4>
+                  <StatusBadge tone={parseTone[activeThread.parseStatus]}>
+                    {formatParseStatusLabel(activeThread.parseStatus)}
+                  </StatusBadge>
+                </div>
+
+                <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                  <MetaRow label="Source evidence" value={activeThread.sourceEvidenceId ?? "None"} />
+                  <MetaRow
+                    label="Original filename"
+                    value={activeThread.originalFilename ?? "Unknown filename"}
+                  />
+                  <MetaRow
+                    label="Message-ID"
+                    value={activeThread.messageIdHeader ?? "Not captured"}
+                  />
+                  <MetaRow label="In-Reply-To" value={activeThread.inReplyTo ?? "Not captured"} />
+                  <MetaRow
+                    label="References"
+                    value={activeThread.references?.length ? activeThread.references.join("; ") : "None"}
+                  />
+                  <MetaRow label="BCC" value={activeThread.bcc?.length ? activeThread.bcc.join("; ") : "None"} />
+                </div>
+
+                {activeThread.parseError ? (
+                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-950">
+                    {activeThread.parseError}
+                  </div>
+                ) : null}
+
+                <div className="mt-3 rounded-md border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Sanitised body text
+                  </p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
+                    {activeThread.bodyText ?? "No parsed body text captured yet."}
+                  </p>
+                </div>
+              </section>
+            ) : null}
 
             <section className="mt-5">
               <div className="flex items-center gap-2">

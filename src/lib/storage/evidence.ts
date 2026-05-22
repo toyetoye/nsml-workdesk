@@ -29,6 +29,12 @@ export type EvidenceStorageOutcome = {
   storageNote: string;
 };
 
+export type DownloadedEvidenceFile = {
+  buffer: ArrayBuffer;
+  mimeType: string | null;
+  originalFilename: string | null;
+};
+
 function sanitizeSegment(value: string) {
   return value
     .toLowerCase()
@@ -131,5 +137,32 @@ export async function storeEvidenceFile(input: EvidenceUploadInput): Promise<Evi
       input.file,
       "fallback-prototype",
     );
+  }
+}
+
+export async function downloadEvidenceFile(
+  bucketName: string,
+  storagePath: string,
+): Promise<DownloadedEvidenceFile | null> {
+  if (!bucketName.trim() || !storagePath.trim() || !hasEvidenceStorageConfig()) {
+    return null;
+  }
+
+  const client = createPersistenceClient();
+
+  try {
+    const { data, error } = await client.storage.from(bucketName).download(storagePath);
+
+    if (error || !data) {
+      return null;
+    }
+
+    return {
+      buffer: await data.arrayBuffer(),
+      mimeType: data.type || null,
+      originalFilename: storagePath.split("/").pop() ?? null,
+    };
+  } catch {
+    return null;
   }
 }

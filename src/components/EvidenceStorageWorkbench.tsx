@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   FileUp,
@@ -11,10 +12,15 @@ import {
   Upload,
   WandSparkles,
 } from "lucide-react";
-import { saveEvidenceUploadAction } from "@/app/(protected)/evidence/actions";
+import {
+  parseEvidenceMetadataAction,
+  saveEvidenceUploadAction,
+} from "@/app/(protected)/evidence/actions";
 import {
   importSourceTypes,
   importWorkspaceAssignments,
+  type EmailThread,
+  type EmailParseStatus,
   type EvidenceRecord,
   type EvidenceStatus,
   type EvidenceStorageState,
@@ -25,8 +31,10 @@ import {
 import {
   buildEvidenceRecordFromSubmission,
   formatEvidenceSize,
+  isEvidenceEligibleForEmlParsing,
 } from "@/lib/workbench-data";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 
 type EvidenceFormState = {
   title: string;
@@ -43,12 +51,14 @@ type EvidenceFormState = {
 type EvidenceStorageWorkbenchProps = {
   initialEvidence: EvidenceRecord[];
   persistenceEnabled: boolean;
+  parsingEnabled?: boolean;
   mode: "import" | "case";
   selectedCaseId?: string | null;
   selectedCaseLabel?: string | null;
   defaultWorkspaceAssignment?: ImportWorkspaceAssignment;
   compact?: boolean;
   onEvidenceSaved?: (record: EvidenceRecord) => void;
+  onParsedCorrespondenceThread?: (thread: EmailThread | null) => void;
 };
 
 const evidenceStatusTone: Record<EvidenceStatus, StatusTone> = {
@@ -62,6 +72,14 @@ const storageStateTone: Record<EvidenceStorageState, StatusTone> = {
   staged: "warning",
   "metadata-only": "neutral",
   "fallback-prototype": "danger",
+};
+
+const parseStatusTone: Record<EmailParseStatus, StatusTone> = {
+  "not parsed": "warning",
+  parsing: "accent",
+  parsed: "accent",
+  failed: "danger",
+  unsupported: "neutral",
 };
 
 function itemSourceLabel(sourceType: ImportSourceType) {
@@ -113,13 +131,16 @@ function filterEvidenceRecords(
 export function EvidenceStorageWorkbench({
   initialEvidence,
   persistenceEnabled,
+  parsingEnabled = false,
   mode,
   selectedCaseId = null,
   selectedCaseLabel = null,
   defaultWorkspaceAssignment = "Import/Staging",
   compact = false,
   onEvidenceSaved,
+  onParsedCorrespondenceThread,
 }: EvidenceStorageWorkbenchProps) {
+  const router = useRouter();
   const [records, setRecords] = useState<EvidenceRecord[]>(() =>
     filterEvidenceRecords(initialEvidence, mode, selectedCaseId),
   );
@@ -127,6 +148,7 @@ export function EvidenceStorageWorkbench({
     filterEvidenceRecords(initialEvidence, mode, selectedCaseId)[0]?.evidenceId ?? "",
   );
   const [saving, setSaving] = useState(false);
+  const [parsingEvidenceId, setParsingEvidenceId] = useState<string | null>(null);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [form, setForm] = useState<EvidenceFormState>(() => ({
     title: "",
@@ -149,6 +171,14 @@ export function EvidenceStorageWorkbench({
     () => displayRecords.find((item) => item.evidenceId === selectedId) ?? displayRecords[0] ?? null,
     [displayRecords, selectedId],
   );
+  const selectedRecordEligibleForParsing = selectedRecord
+    ? isEvidenceEligibleForEmlParsing({
+        sourceType: selectedRecord.sourceType,
+        originalFilename: selectedRecord.originalFilename,
+        mimeType: selectedRecord.mimeType,
+        type: selectedRecord.type,
+      })
+    : false;
 
   const contextLabel =
     mode === "case"
@@ -229,6 +259,35 @@ export function EvidenceStorageWorkbench({
         sourceType: mode === "case" ? "document-placeholder" : "pasted-email",
         status: "Pending",
       }));
+    }
+  }
+
+  async function handleParseEvidence(record: EvidenceRecord) {
+    setParsingEvidenceId(record.evidenceId);
+    setSaveNotice(null);
+
+    try {
+      const formData = new FormData();
+      formData.set("redirectTo", mode === "case" ? "/cases" : "/import");
+      formData.set("evidenceId", record.evidenceId);
+      formData.set("mode", mode);
+
+      const result = await parseEvidenceMetadataAction(formData);
+
+      setRecords((current) =>
+        current.map((item) =>
+          item.evidenceId === result.evidenceRecord.evidenceId ? result.evidenceRecord : item,
+        ),
+      );
+      setSelectedId(result.evidenceRecord.evidenceId);
+      setSaveNotice(result.note);
+      onParsedCorrespondenceThread?.(result.parsedThread ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Parsing failed.";
+      setSaveNotice(message);
+    } finally {
+      setParsingEvidenceId(null);
+      router.refresh();
     }
   }
 
@@ -463,6 +522,9 @@ export function EvidenceStorageWorkbench({
                         <StatusBadge tone={storageStateTone[record.storageState]}>
                           {storageStateLabel(record.storageState)}
                         </StatusBadge>
+                        <StatusBadge tone={parseStatusTone[record.parseStatus]}>
+                          {formatParseStatusLabel(record.parseStatus)}
+                        </StatusBadge>
                         <span className="inline-flex items-center gap-1">
                           <MapPin aria-hidden size={12} />
                           {record.workspaceAssignment}
@@ -538,6 +600,51 @@ export function EvidenceStorageWorkbench({
                     value={formatEvidenceSize(selectedRecord.fileSizeBytes)}
                   />
                   <DetailRow label="Uploaded / created" value={selectedRecord.date} />
+                </div>
+
+                <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Parse state
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-slate-700">
+                        {formatParseStatusLabel(selectedRecord.parseStatus)}
+                      </p>
+                    </div>
+
+                    {selectedRecordEligibleForParsing ? (
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        disabled={parsingEvidenceId === selectedRecord.evidenceId || !parsingEnabled}
+                        onClick={() => handleParseEvidence(selectedRecord)}
+                      >
+                        {parsingEvidenceId === selectedRecord.evidenceId
+                          ? "Parsing..."
+                          : selectedRecord.parseStatus === "parsed"
+                            ? "Re-parse EML metadata"
+                            : "Parse EML metadata"}
+                      </button>
+                    ) : (
+                      <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                        This evidence is not eligible for EML parsing.
+                      </div>
+                    )}
+                  </div>
+
+                  {!parsingEnabled ? (
+                    <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-950">
+                      Private storage is not fully configured, so EML parsing remains disabled for
+                      now.
+                    </div>
+                  ) : null}
+
+                  {selectedRecord.parseError ? (
+                    <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm leading-6 text-red-950">
+                      {selectedRecord.parseError}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">

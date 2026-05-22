@@ -24,6 +24,7 @@ import {
   casePriorities,
   caseStatuses,
   importedEmailThreads,
+  type EmailThread,
   type CasePriority,
   type CaseRecord,
   type CaseStatus,
@@ -36,6 +37,7 @@ import { saveCaseAction } from "@/app/(protected)/cases/actions";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { formatEvidenceSize } from "@/lib/workbench-data";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 
 type CreateCaseFormState = {
   title: string;
@@ -82,17 +84,30 @@ const evidenceTypeTone: Record<EvidenceRecord["type"], StatusTone> = {
   "eml-placeholder": "warning",
 };
 
+const evidenceParseTone: Record<EvidenceRecord["parseStatus"], StatusTone> = {
+  "not parsed": "warning",
+  parsing: "accent",
+  parsed: "accent",
+  failed: "danger",
+  unsupported: "neutral",
+};
+
 export function CaseManagementWorkbench({
   initialCases,
   initialEvidence,
+  parsedCorrespondenceThreads = [],
   persistenceEnabled,
+  parsingEnabled = false,
 }: {
   initialCases: CaseRecord[];
   initialEvidence: EvidenceRecord[];
+  parsedCorrespondenceThreads?: EmailThread[];
   persistenceEnabled: boolean;
+  parsingEnabled?: boolean;
 }) {
   const [cases, setCases] = useState<CaseRecord[]>(() => initialCases);
   const [evidence, setEvidence] = useState<EvidenceRecord[]>(() => initialEvidence);
+  const [parsedThreads, setParsedThreads] = useState<EmailThread[]>(() => parsedCorrespondenceThreads);
   const [selectedCaseId, setSelectedCaseId] = useState<string>(initialCases[0]?.caseId ?? "");
   const [createOpen, setCreateOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -134,8 +149,17 @@ export function CaseManagementWorkbench({
       return [];
     }
 
-    return importedEmailThreads.filter((thread) => selectedCase.linkedThreads.includes(thread.id));
-  }, [selectedCase]);
+    const combinedThreads = [...importedEmailThreads, ...parsedThreads];
+    const deduped = new Map<string, EmailThread>();
+
+    for (const thread of combinedThreads) {
+      deduped.set(thread.id, thread);
+    }
+
+    return [...deduped.values()].filter(
+      (thread) => selectedCase.linkedThreads.includes(thread.id) || thread.linkedCase === selectedCase.caseId,
+    );
+  }, [parsedThreads, selectedCase]);
 
   async function handleCreateCase(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -500,6 +524,9 @@ export function CaseManagementWorkbench({
                                 >
                                   {item.storageState}
                                 </StatusBadge>
+                                <StatusBadge tone={evidenceParseTone[item.parseStatus]}>
+                                  {formatParseStatusLabel(item.parseStatus)}
+                                </StatusBadge>
                               </div>
                               <p className="mt-1 text-xs text-slate-500">
                                 {item.source} · {item.date}
@@ -603,6 +630,7 @@ export function CaseManagementWorkbench({
                     key={`${selectedCase.caseId}-attach`}
                     initialEvidence={selectedEvidence}
                     persistenceEnabled={persistenceEnabled}
+                    parsingEnabled={parsingEnabled}
                     mode="case"
                     selectedCaseId={selectedCase.caseId}
                     selectedCaseLabel={selectedCase.title}
@@ -614,6 +642,16 @@ export function CaseManagementWorkbench({
                       setEvidence((current) => [
                         record,
                         ...current.filter((item) => item.evidenceId !== record.evidenceId),
+                      ]);
+                    }}
+                    onParsedCorrespondenceThread={(thread) => {
+                      if (!thread) {
+                        return;
+                      }
+
+                      setParsedThreads((current) => [
+                        thread,
+                        ...current.filter((item) => item.id !== thread.id),
                       ]);
                     }}
                   />

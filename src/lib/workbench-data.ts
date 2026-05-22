@@ -4,6 +4,9 @@ import {
   type CaseRecord,
   type CaseStatus,
   type CaseTimelineEvent,
+  type EmailAttachment,
+  type EmailParseStatus,
+  type EmailStatus,
   type EvidenceRecord,
   type EvidenceStatus,
   type EvidenceStorageState,
@@ -14,11 +17,17 @@ import {
   type EmailThreadScope,
 } from "@/lib/mock-data";
 import type {
+  CorrespondenceMessageRow,
+  CorrespondenceThreadRow,
   CaseRow,
   EvidenceRow,
   IntakeItemRow,
   TimelineEventRow,
 } from "@/lib/persistence/types";
+import {
+  deriveInitialEvidenceParseStatus,
+  isEmlEvidenceCandidate,
+} from "@/lib/email-ingestion/shared";
 
 type IntakeSubmission = {
   title: string;
@@ -103,6 +112,20 @@ function sourceTypeToEvidenceType(sourceType: ImportSourceType): EvidenceRecord[
     default:
       return "email";
   }
+}
+
+export function isEvidenceEligibleForEmlParsing(evidence: {
+  sourceType?: string | null;
+  originalFilename?: string | null;
+  mimeType?: string | null;
+  type?: string | null;
+}) {
+  return isEmlEvidenceCandidate({
+    sourceType: evidence.sourceType,
+    originalFilename: evidence.originalFilename,
+    mimeType: evidence.mimeType,
+    type: evidence.type,
+  });
 }
 
 export function formatEvidenceSize(bytes: number | null) {
@@ -286,6 +309,13 @@ export function mapCaseRowsToRecords(
 }
 
 export function buildEvidenceRecordFromSubmission(submission: EvidenceSubmission): EvidenceRecord {
+  const parseStatus = deriveInitialEvidenceParseStatus({
+    sourceType: submission.sourceType,
+    originalFilename: submission.fileName,
+    mimeType: submission.mimeType,
+    type: sourceTypeToEvidenceType(submission.sourceType),
+  });
+
   return {
     evidenceId: submission.evidenceId ?? `EVID-${Date.now()}`,
     title: submission.title.trim() || "Untitled evidence",
@@ -306,6 +336,11 @@ export function buildEvidenceRecordFromSubmission(submission: EvidenceSubmission
     storagePath: submission.storagePath,
     mimeType: submission.mimeType,
     uploadedAt: submission.uploadedAt,
+    parseStatus,
+    parseError: null,
+    parsedThreadId: null,
+    parsedMessageId: null,
+    parsedAt: null,
   };
 }
 
@@ -330,7 +365,104 @@ export function mapEvidenceRowsToRecords(rows: EvidenceRow[]): EvidenceRecord[] 
     storagePath: row.storage_path ?? null,
     mimeType: row.mime_type ?? null,
     uploadedAt: row.uploaded_at ?? null,
+    parseStatus:
+      (row.parse_status as EmailParseStatus | undefined) ??
+      deriveInitialEvidenceParseStatus({
+        sourceType: row.source_type,
+        originalFilename: row.original_filename,
+        mimeType: row.mime_type,
+        type: row.type,
+      }),
+    parseError: row.parse_error ?? null,
+    parsedThreadId: row.parsed_thread_id ?? null,
+    parsedMessageId: row.parsed_message_id ?? null,
+    parsedAt: row.parsed_at ?? null,
   }));
+}
+
+export function mapParsedCorrespondenceRowsToThreads(
+  threadRows: CorrespondenceThreadRow[],
+  messageRows: CorrespondenceMessageRow[],
+) {
+  const messagesByThread = new Map<string, CorrespondenceMessageRow[]>();
+
+  for (const message of messageRows) {
+    const list = messagesByThread.get(message.thread_id) ?? [];
+    list.push(message);
+    messagesByThread.set(message.thread_id, list);
+  }
+
+  return threadRows
+    .filter((row) => row.parse_status !== "not parsed" || Boolean(row.source_evidence_id))
+    .map((row) => {
+      const threadMessages = (messagesByThread.get(row.thread_id) ?? []).sort(
+        (a, b) => a.sort_order - b.sort_order,
+      );
+      const primaryMessage = threadMessages[0] ?? null;
+      const threadAttachments = ((row.attachment_metadata as Array<{
+        name?: string;
+        contentType?: string;
+        sizeBytes?: number | null;
+      }> | null) ?? []).map((attachment) => ({
+        name: attachment.name ?? "attachment.bin",
+        kind: attachment.contentType ?? "application/octet-stream",
+        size: formatEvidenceSize(attachment.sizeBytes ?? null),
+      })) as EmailAttachment[];
+
+      return {
+        id: row.thread_id,
+        workspaceKey: row.workspace_key as EmailThreadScope,
+        subject: row.subject,
+        sender: row.sender,
+        recipients: row.recipients,
+        cc: row.cc,
+        dateTime: formatDisplayDateTime(row.date_time),
+        vesselProject: row.vessel_project,
+        status: row.status as EmailStatus,
+        attachments: threadAttachments,
+        messages: threadMessages.map((message) => ({
+          sender: message.sender,
+          body: message.body_text || message.body,
+          timestamp: formatDisplayDateTime(message.timestamp),
+          subject: message.subject,
+          to: message.recipients,
+          cc: message.cc_recipients,
+          bcc: message.bcc_recipients,
+          messageId: message.message_id_header,
+          inReplyTo: message.in_reply_to,
+          references: message.references,
+          bodyHtmlText: message.body_html_text,
+          attachmentMetadata: ((message.attachment_metadata as Array<{
+            name?: string;
+            contentType?: string;
+            sizeBytes?: number | null;
+          }> | null) ?? []).map((attachment) => ({
+            name: attachment.name ?? "attachment.bin",
+            kind: attachment.contentType ?? "application/octet-stream",
+            size: formatEvidenceSize(attachment.sizeBytes ?? null),
+          })) as EmailAttachment[],
+          sourceEvidenceId: message.source_evidence_id,
+        })),
+        linkedCase: row.linked_case_id ?? row.case_id ?? "Linked case placeholder",
+        suggestedNextAction:
+          row.parse_status === "failed"
+            ? "Review the parse error and decide whether to retry."
+            : row.linked_case_id || row.case_id
+              ? "Review the extracted correspondence and confirm the linked case."
+              : "Classify the thread or link it to a case.",
+        parseStatus: (row.parse_status as EmailParseStatus | undefined) ?? "parsed",
+        parseError: row.parse_error ?? null,
+        sourceEvidenceId: row.source_evidence_id ?? null,
+        originalFilename: row.original_filename ?? null,
+        messageIdHeader: row.message_id_header ?? primaryMessage?.message_id_header ?? null,
+        inReplyTo: row.in_reply_to ?? primaryMessage?.in_reply_to ?? null,
+        references: row.references ?? primaryMessage?.references ?? [],
+        bcc: row.bcc ?? primaryMessage?.bcc_recipients ?? [],
+        bodyText: row.body_text ?? primaryMessage?.body_text ?? null,
+        bodyHtmlText: row.body_html_text ?? primaryMessage?.body_html_text ?? null,
+        parsedAt: row.parsed_at ?? null,
+      };
+    });
 }
 
 export type { IntakeSubmission, CaseSubmission, EvidenceSubmission };

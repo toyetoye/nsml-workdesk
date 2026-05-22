@@ -98,6 +98,11 @@ export type EvidenceRow = {
   storage_path: string | null;
   mime_type: string | null;
   uploaded_at: string | null;
+  parse_status: string;
+  parse_error: string | null;
+  parsed_thread_id: string | null;
+  parsed_message_id: string | null;
+  parsed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -115,6 +120,18 @@ export type CorrespondenceThreadRow = {
   vessel_project: string;
   source_intake_item_id: string | null;
   linked_case_id: string | null;
+  source_evidence_id: string | null;
+  parse_status: string;
+  parse_error: string | null;
+  original_filename: string | null;
+  message_id_header: string | null;
+  in_reply_to: string | null;
+  references: string[];
+  bcc: string[];
+  body_text: string | null;
+  body_html_text: string | null;
+  attachment_metadata: Json;
+  parsed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -126,6 +143,18 @@ export type CorrespondenceMessageRow = {
   body: string;
   timestamp: string;
   sort_order: number;
+  recipients: string[];
+  cc_recipients: string[];
+  bcc_recipients: string[];
+  subject: string;
+  message_id_header: string | null;
+  in_reply_to: string | null;
+  references: string[];
+  body_text: string;
+  body_html_text: string | null;
+  attachment_metadata: Json;
+  source_evidence_id: string | null;
+  parsed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -243,6 +272,11 @@ export type EvidenceInput = Partial<EvidenceRow> & {
   storage_path?: string | null;
   mime_type?: string | null;
   uploaded_at?: string | null;
+  parse_status?: string;
+  parse_error?: string | null;
+  parsed_thread_id?: string | null;
+  parsed_message_id?: string | null;
+  parsed_at?: string | null;
 };
 
 export type CorrespondenceThreadInput = Partial<CorrespondenceThreadRow> & {
@@ -256,6 +290,18 @@ export type CorrespondenceThreadInput = Partial<CorrespondenceThreadRow> & {
   date_time: string;
   status: string;
   vessel_project: string;
+  source_evidence_id?: string | null;
+  parse_status?: string;
+  parse_error?: string | null;
+  original_filename?: string | null;
+  message_id_header?: string | null;
+  in_reply_to?: string | null;
+  references?: string[];
+  bcc?: string[];
+  body_text?: string | null;
+  body_html_text?: string | null;
+  attachment_metadata?: Json;
+  parsed_at?: string | null;
 };
 
 export type CorrespondenceMessageInput = Partial<CorrespondenceMessageRow> & {
@@ -265,6 +311,18 @@ export type CorrespondenceMessageInput = Partial<CorrespondenceMessageRow> & {
   body: string;
   timestamp: string;
   sort_order: number;
+  recipients?: string[];
+  cc_recipients?: string[];
+  bcc_recipients?: string[];
+  subject?: string;
+  message_id_header?: string | null;
+  in_reply_to?: string | null;
+  references?: string[];
+  body_text?: string;
+  body_html_text?: string | null;
+  attachment_metadata?: Json;
+  source_evidence_id?: string | null;
+  parsed_at?: string | null;
 };
 
 export type TimelineEventInput = Partial<TimelineEventRow> & {

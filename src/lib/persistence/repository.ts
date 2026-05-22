@@ -13,6 +13,7 @@ import {
   type ImportIntakeItem,
   type RecentImportActivity,
 } from "@/lib/mock-data";
+import { deriveInitialEvidenceParseStatus } from "@/lib/email-ingestion/shared";
 import { createPersistenceClient, isPersistenceAvailable } from "./client";
 import type {
   AuditLogRow,
@@ -194,6 +195,11 @@ function toEvidenceRow(item: (typeof evidenceRecords)[number]): EvidenceRow {
     storage_path: null,
     mime_type: null,
     uploaded_at: item.uploadedAt,
+    parse_status: item.parseStatus,
+    parse_error: item.parseError,
+    parsed_thread_id: item.parsedThreadId,
+    parsed_message_id: item.parsedMessageId,
+    parsed_at: item.parsedAt,
     created_at: nowIso(),
     updated_at: nowIso(),
   };
@@ -213,6 +219,18 @@ function toThreadRow(item: EmailThread, caseId: string | null): CorrespondenceTh
     vessel_project: item.vesselProject,
     source_intake_item_id: item.workspaceKey === "import" || item.workspaceKey === "unclassified" ? item.id : null,
     linked_case_id: caseId,
+    source_evidence_id: item.sourceEvidenceId ?? null,
+    parse_status: item.parseStatus ?? "not parsed",
+    parse_error: item.parseError ?? null,
+    original_filename: item.originalFilename ?? null,
+    message_id_header: item.messageIdHeader ?? null,
+    in_reply_to: item.inReplyTo ?? null,
+    references: item.references ?? [],
+    bcc: item.bcc ?? [],
+    body_text: item.bodyText ?? null,
+    body_html_text: item.bodyHtmlText ?? null,
+    attachment_metadata: item.messages.flatMap((message) => message.attachmentMetadata ?? []),
+    parsed_at: item.parsedAt ?? null,
     created_at: nowIso(),
     updated_at: nowIso(),
   };
@@ -226,6 +244,18 @@ function toMessageRows(item: EmailThread): CorrespondenceMessageRow[] {
     body: message.body,
     timestamp: toIsoDateTime(message.timestamp),
     sort_order: index + 1,
+    recipients: message.to ?? item.recipients,
+    cc_recipients: message.cc ?? item.cc,
+    bcc_recipients: message.bcc ?? item.bcc ?? [],
+    subject: message.subject ?? item.subject,
+    message_id_header: message.messageId ?? item.messageIdHeader ?? null,
+    in_reply_to: message.inReplyTo ?? item.inReplyTo ?? null,
+    references: message.references ?? item.references ?? [],
+    body_text: message.body,
+    body_html_text: message.bodyHtmlText ?? null,
+    attachment_metadata: message.attachmentMetadata ?? [],
+    source_evidence_id: message.sourceEvidenceId ?? item.sourceEvidenceId ?? null,
+    parsed_at: item.parsedAt ?? null,
     created_at: nowIso(),
     updated_at: nowIso(),
   }));
@@ -550,7 +580,37 @@ export async function listEvidence(caseId?: string) {
   return data as EvidenceRow[];
 }
 
+export async function getEvidenceById(evidenceId: string) {
+  const fallback = fallbackStore.evidence_items.find((item) => item.evidence_id === evidenceId) ?? null;
+
+  if (!isPersistenceAvailable()) {
+    return fallback ? clone(fallback) : null;
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("evidence_items")
+    .select("*")
+    .eq("evidence_id", evidenceId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return fallback ? clone(fallback) : null;
+  }
+
+  return data as EvidenceRow;
+}
+
 export async function saveEvidence(input: EvidenceInput): Promise<WriteResult<EvidenceRow>> {
+  const parseStatus =
+    input.parse_status ??
+    deriveInitialEvidenceParseStatus({
+      sourceType: input.source_type ?? input.type,
+      originalFilename: input.original_filename ?? null,
+      mimeType: input.mime_type ?? null,
+      type: input.type,
+    });
+
   const row: EvidenceRow = {
     evidence_id: input.evidence_id ?? `evidence-${randomUUID()}`,
     case_id: input.case_id ?? null,
@@ -571,6 +631,11 @@ export async function saveEvidence(input: EvidenceInput): Promise<WriteResult<Ev
     storage_path: input.storage_path ?? null,
     mime_type: input.mime_type ?? null,
     uploaded_at: input.uploaded_at ?? null,
+    parse_status: parseStatus,
+    parse_error: input.parse_error ?? null,
+    parsed_thread_id: input.parsed_thread_id ?? null,
+    parsed_message_id: input.parsed_message_id ?? null,
+    parsed_at: input.parsed_at ?? null,
     created_at: input.created_at ?? nowIso(),
     updated_at: nowIso(),
   };
@@ -619,6 +684,27 @@ export async function listCorrespondenceThreads(caseId?: string) {
   return data as CorrespondenceThreadRow[];
 }
 
+export async function getCaseById(caseId: string) {
+  const fallback = fallbackStore.cases.find((item) => item.case_id === caseId) ?? null;
+
+  if (!isPersistenceAvailable()) {
+    return fallback ? clone(fallback) : null;
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("cases")
+    .select("*")
+    .eq("case_id", caseId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return fallback ? clone(fallback) : null;
+  }
+
+  return data as CaseRow;
+}
+
 export async function saveCorrespondenceThread(input: CorrespondenceThreadInput) {
   const row: CorrespondenceThreadRow = {
     thread_id: input.thread_id ?? `thread-${randomUUID()}`,
@@ -633,6 +719,18 @@ export async function saveCorrespondenceThread(input: CorrespondenceThreadInput)
     vessel_project: input.vessel_project,
     source_intake_item_id: input.source_intake_item_id ?? null,
     linked_case_id: input.linked_case_id ?? input.case_id ?? null,
+    source_evidence_id: input.source_evidence_id ?? null,
+    parse_status: input.parse_status ?? "not parsed",
+    parse_error: input.parse_error ?? null,
+    original_filename: input.original_filename ?? null,
+    message_id_header: input.message_id_header ?? null,
+    in_reply_to: input.in_reply_to ?? null,
+    references: input.references ?? [],
+    bcc: input.bcc ?? [],
+    body_text: input.body_text ?? null,
+    body_html_text: input.body_html_text ?? null,
+    attachment_metadata: input.attachment_metadata ?? [],
+    parsed_at: input.parsed_at ?? null,
     created_at: input.created_at ?? nowIso(),
     updated_at: nowIso(),
   };
@@ -689,6 +787,18 @@ export async function saveCorrespondenceMessage(input: CorrespondenceMessageInpu
     body: input.body,
     timestamp: input.timestamp,
     sort_order: input.sort_order,
+    recipients: input.recipients ?? [],
+    cc_recipients: input.cc_recipients ?? [],
+    bcc_recipients: input.bcc_recipients ?? [],
+    subject: input.subject ?? "",
+    message_id_header: input.message_id_header ?? null,
+    in_reply_to: input.in_reply_to ?? null,
+    references: input.references ?? [],
+    body_text: input.body_text ?? input.body,
+    body_html_text: input.body_html_text ?? null,
+    attachment_metadata: input.attachment_metadata ?? [],
+    source_evidence_id: input.source_evidence_id ?? null,
+    parsed_at: input.parsed_at ?? null,
     created_at: input.created_at ?? nowIso(),
     updated_at: nowIso(),
   };
