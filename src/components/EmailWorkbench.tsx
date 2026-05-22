@@ -14,7 +14,7 @@ import {
   Paperclip,
   UserRound,
 } from "lucide-react";
-import { triageThreadAction } from "@/app/(protected)/ai/actions";
+import { generateThreadDraftAction, triageThreadAction } from "@/app/(protected)/ai/actions";
 import {
   allWorkspaces,
   importedEmailThreads,
@@ -26,10 +26,11 @@ import {
   type EvidenceRecord,
 } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DraftResultPanel } from "@/components/DraftResultPanel";
 import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 import { normalizeCorrespondenceSender, normalizeThreadSubject } from "@/lib/correspondence/threading";
 import { TriageResultPanel } from "@/components/TriageResultPanel";
-import type { AiConfigStatus, TriageRunOutcome } from "@/lib/ai/types";
+import type { AiConfigStatus, DraftMode, DraftRunOutcome, TriageRunOutcome } from "@/lib/ai/types";
 
 type WorkspaceFilter = "route" | "import" | "unclassified" | EmailThreadScope;
 type StatusFilter = EmailStatus | "all";
@@ -211,6 +212,12 @@ export function EmailWorkbench({
   const [triageError, setTriageError] = useState<string | null>(null);
   const [triaging, setTriaging] = useState(false);
   const [triageTargetId, setTriageTargetId] = useState<string | null>(null);
+  const [draftMode, setDraftMode] = useState<DraftMode>("normal_technical_reply");
+  const [draftOutcome, setDraftOutcome] = useState<DraftRunOutcome | null>(null);
+  const [draftNote, setDraftNote] = useState<string | null>(null);
+  const [draftError, setDraftError] = useState<string | null>(null);
+  const [draftGenerating, setDraftGenerating] = useState(false);
+  const [draftTargetId, setDraftTargetId] = useState<string | null>(null);
 
   const scopedThreads = useMemo(() => {
     if (scope === "import") {
@@ -307,10 +314,6 @@ export function EmailWorkbench({
         .map(String),
     [selectedSourceEvidenceRecords, selectedThread?.id],
   );
-
-  const archiveSurfaceVisible = scope === "import";
-  const currentWorkspaceLabel = workspaceLabelForScope(scope);
-
   const activeTriageTargetId = selectedThread?.id ?? null;
   const activeTriageOutcome =
     triageTargetId && triageTargetId === activeTriageTargetId ? triageOutcome : null;
@@ -320,6 +323,19 @@ export function EmailWorkbench({
     triageTargetId && triageTargetId === activeTriageTargetId ? triageError : null;
   const activeTriageRunning =
     triageTargetId && triageTargetId === activeTriageTargetId ? triaging : false;
+
+  const activeDraftTargetId = selectedThread?.id ?? null;
+  const activeDraftOutcome =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftOutcome : null;
+  const activeDraftNote =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftNote : null;
+  const activeDraftError =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftError : null;
+  const activeDraftRunning =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftGenerating : false;
+
+  const archiveSurfaceVisible = scope === "import";
+  const currentWorkspaceLabel = workspaceLabelForScope(scope);
 
   async function handleTriageSelectedThread() {
     if (!selectedThread || !aiConfig.enabled || triaging) {
@@ -345,6 +361,36 @@ export function EmailWorkbench({
       setTriageError(error instanceof Error ? error.message : "AI triage failed.");
     } finally {
       setTriaging(false);
+    }
+  }
+
+  async function handleGenerateDraftSelectedThread() {
+    if (!selectedThread || !aiConfig.enabled || draftGenerating) {
+      return;
+    }
+
+    setDraftTargetId(selectedThread.id);
+    setDraftGenerating(true);
+    setDraftError(null);
+    setDraftNote(null);
+
+    try {
+      const result = await generateThreadDraftAction({
+        thread: selectedThread,
+        evidenceRecords: selectedSourceEvidenceRecords,
+        mode: draftMode,
+        redirectTo: triageRedirectTo,
+        triageResult: activeTriageOutcome?.triageResult ?? null,
+        triageAuditLogId: activeTriageOutcome?.auditLogId ?? null,
+      });
+
+      setDraftOutcome(result);
+      setDraftNote(result.note);
+    } catch (error) {
+      setDraftOutcome(null);
+      setDraftError(error instanceof Error ? error.message : "AI draft generation failed.");
+    } finally {
+      setDraftGenerating(false);
     }
   }
 
@@ -604,21 +650,72 @@ export function EmailWorkbench({
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={!aiConfig.enabled || triaging}
-                onClick={handleTriageSelectedThread}
-              >
-                {triaging ? "Triage..." : "Triage thread"}
-              </button>
-              <button type="button" className="btn-secondary" disabled>
-                Link to case
-              </button>
-              <button type="button" className="btn-secondary" disabled>
-                Create case from thread
-              </button>
+            <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Triage controls
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Advisory only. Triage never changes the thread automatically.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    disabled={!aiConfig.enabled || triaging}
+                    onClick={handleTriageSelectedThread}
+                  >
+                    {triaging ? "Triage..." : "Triage thread"}
+                  </button>
+                  <button type="button" className="btn-secondary" disabled>
+                    Link to case
+                  </button>
+                  <button type="button" className="btn-secondary" disabled>
+                    Create case from thread
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Draft generation
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Generate an unreviewed draft reply from this correspondence thread.
+                </p>
+                <div className="mt-3 space-y-3">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Draft mode
+                  </label>
+                  <select
+                    value={draftMode}
+                    onChange={(event) => setDraftMode(event.target.value as DraftMode)}
+                    className="field-input"
+                  >
+                    <option value="holding_statement">Holding statement</option>
+                    <option value="normal_technical_reply">Normal technical reply</option>
+                    <option value="firm_but_polite">Firm but polite</option>
+                    <option value="management_summary">Management summary</option>
+                    <option value="vessel_instruction">Vessel instruction</option>
+                    <option value="vendor_clarification">Vendor clarification</option>
+                    <option value="owner_charterer_sensitive">Owner / charterer sensitive</option>
+                  </select>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={!aiConfig.enabled || draftGenerating}
+                      onClick={handleGenerateDraftSelectedThread}
+                    >
+                      {draftGenerating ? "Generating..." : "Generate draft"}
+                    </button>
+                    <span className="text-xs text-slate-500">
+                      Copy remains disabled until red-team review exists.
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -701,6 +798,27 @@ export function EmailWorkbench({
                 {activeTriageError ? (
                   <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
                     {activeTriageError}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-4">
+                <DraftResultPanel
+                  sourceType="correspondence_thread"
+                  sourceLabel={selectedThread.subject}
+                  sourceIds={selectedTriageSourceIds}
+                  result={activeDraftOutcome?.draftResult ?? null}
+                  running={activeDraftRunning}
+                  note={activeDraftNote}
+                  disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  persisted={activeDraftOutcome?.persisted}
+                  provider={activeDraftOutcome?.provider ?? null}
+                  model={activeDraftOutcome?.model ?? null}
+                  triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
+                />
+                {activeDraftError ? (
+                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
+                    {activeDraftError}
                   </div>
                 ) : null}
               </div>

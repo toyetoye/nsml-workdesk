@@ -8,6 +8,7 @@ export type AiConfigStatus = {
 };
 
 export type TriageSourceType = "intake_item" | "correspondence_thread" | "case";
+export type DraftSourceType = TriageSourceType;
 
 export type TriageUrgencyLevel = "low" | "medium" | "high" | "critical";
 
@@ -57,4 +58,66 @@ export type TriageRunOutcome = {
   auditLogId: string | null;
   provider: AiProvider | null;
   model: string | null;
+};
+
+export type DraftMode =
+  | "holding_statement"
+  | "normal_technical_reply"
+  | "firm_but_polite"
+  | "management_summary"
+  | "vessel_instruction"
+  | "vendor_clarification"
+  | "owner_charterer_sensitive";
+
+export type DraftStatus = "pending_red_team" | "needs_evidence" | "blocked";
+
+export type StructuredDraftResult = {
+  draft_id: string;
+  source_type: DraftSourceType;
+  source_ids: string[];
+  intended_recipient_placeholder: string;
+  subject_placeholder: string;
+  draft_body: string;
+  draft_purpose: string;
+  tone_mode: DraftMode;
+  evidence_basis: string;
+  assumptions: string[];
+  missing_information: string[];
+  liability_cautions: string[];
+  recommended_attachments: string[];
+  status: DraftStatus;
+  confidence: number;
+  created_at: string;
+  must_be_red_teamed: true;
+};
+
+export type DraftRequest = {
+  sourceType: DraftSourceType;
+  sourceIds: string[];
+  sourceLabel: string;
+  sourceSnapshot: Record<string, unknown>;
+  draftId: string;
+  toneMode: DraftMode;
+  triageContext?: {
+    sourceType: TriageSourceType;
+    sourceIds: string[];
+    sourceLabel: string;
+    auditLogId: string | null;
+    result: StructuredTriageResult;
+  } | null;
+};
+
+export type DraftRunOutcome = {
+  aiEnabled: boolean;
+  persisted: boolean;
+  note: string;
+  sourceType: DraftSourceType;
+  sourceIds: string[];
+  sourceLabel: string;
+  draftResult: StructuredDraftResult | null;
+  draftRecordId: string | null;
+  auditLogId: string | null;
+  provider: AiProvider | null;
+  model: string | null;
+  triageAuditLogId: string | null;
 };

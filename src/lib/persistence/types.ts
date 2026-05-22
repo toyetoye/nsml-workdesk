@@ -201,10 +201,28 @@ export type DecisionRow = {
 
 export type DraftResponsePlaceholderRow = {
   draft_id: string;
-  case_id: string;
-  title: string;
+  case_id: string | null;
+  source_type: string;
+  source_ids: string[];
+  source_label: string;
+  source_snapshot: Json;
+  triage_audit_log_id: string | null;
+  triage_source_type: string | null;
+  triage_source_ids: string[];
+  intended_recipient_placeholder: string;
+  subject_placeholder: string;
+  draft_body: string;
+  draft_purpose: string;
+  tone_mode: string;
+  evidence_basis: string;
+  assumptions: string[];
+  missing_information: string[];
+  liability_cautions: string[];
+  recommended_attachments: string[];
   status: string;
-  body: string;
+  confidence: number;
+  must_be_red_teamed: boolean;
+  persistence_state: string;
   created_at: string;
   updated_at: string;
 };
@@ -277,6 +295,32 @@ export type EvidenceInput = Partial<EvidenceRow> & {
   parsed_thread_id?: string | null;
   parsed_message_id?: string | null;
   parsed_at?: string | null;
+};
+
+export type DraftResponseInput = Partial<DraftResponsePlaceholderRow> & {
+  draft_id?: string;
+  case_id?: string | null;
+  source_type: string;
+  source_ids: string[];
+  source_label: string;
+  source_snapshot: Json;
+  triage_audit_log_id?: string | null;
+  triage_source_type?: string | null;
+  triage_source_ids?: string[];
+  intended_recipient_placeholder: string;
+  subject_placeholder: string;
+  draft_body: string;
+  draft_purpose: string;
+  tone_mode: string;
+  evidence_basis: string;
+  assumptions?: string[];
+  missing_information?: string[];
+  liability_cautions?: string[];
+  recommended_attachments?: string[];
+  status: string;
+  confidence: number;
+  must_be_red_teamed?: boolean;
+  persistence_state?: string;
 };
 
 export type CorrespondenceThreadInput = Partial<CorrespondenceThreadRow> & {

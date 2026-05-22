@@ -27,6 +27,7 @@ import type {
   CorrespondenceThreadRow,
   DecisionRow,
   DraftResponsePlaceholderRow,
+  DraftResponseInput,
   EvidenceInput,
   EvidenceRow,
   ImportBatchInput,
@@ -1024,6 +1025,55 @@ export async function listDraftResponses(caseId?: string) {
   }
 
   return data as DraftResponsePlaceholderRow[];
+}
+
+export async function saveDraftResponse(
+  input: DraftResponseInput,
+): Promise<WriteResult<DraftResponsePlaceholderRow>> {
+  const row: DraftResponsePlaceholderRow = {
+    draft_id: input.draft_id ?? `draft-${randomUUID()}`,
+    case_id: input.case_id ?? null,
+    source_type: input.source_type,
+    source_ids: input.source_ids,
+    source_label: input.source_label,
+    source_snapshot: input.source_snapshot,
+    triage_audit_log_id: input.triage_audit_log_id ?? null,
+    triage_source_type: input.triage_source_type ?? null,
+    triage_source_ids: input.triage_source_ids ?? [],
+    intended_recipient_placeholder: input.intended_recipient_placeholder,
+    subject_placeholder: input.subject_placeholder,
+    draft_body: input.draft_body,
+    draft_purpose: input.draft_purpose,
+    tone_mode: input.tone_mode,
+    evidence_basis: input.evidence_basis,
+    assumptions: input.assumptions ?? [],
+    missing_information: input.missing_information ?? [],
+    liability_cautions: input.liability_cautions ?? [],
+    recommended_attachments: input.recommended_attachments ?? [],
+    status: input.status,
+    confidence: input.confidence,
+    must_be_red_teamed: input.must_be_red_teamed ?? true,
+    persistence_state: input.persistence_state ?? "persisted",
+    created_at: input.created_at ?? nowIso(),
+    updated_at: input.updated_at ?? nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    row.persistence_state = "session-only";
+    upsertById(fallbackStore.draft_responses_placeholder, "draft_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("draft_responses_placeholder").upsert(row).select().single();
+
+  if (error || !data) {
+    row.persistence_state = "session-only";
+    upsertById(fallbackStore.draft_responses_placeholder, "draft_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as DraftResponsePlaceholderRow, persisted: true };
 }
 
 export async function appendAuditLog(

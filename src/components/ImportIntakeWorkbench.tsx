@@ -13,8 +13,9 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { saveIntakeItemAction } from "@/app/(protected)/import/actions";
-import { triageIntakeItemAction } from "@/app/(protected)/ai/actions";
+import { generateIntakeDraftAction, triageIntakeItemAction } from "@/app/(protected)/ai/actions";
 import { TriageResultPanel } from "@/components/TriageResultPanel";
+import { DraftResultPanel } from "@/components/DraftResultPanel";
 import {
   buildIntakeItemFromSubmission,
   type IntakeSubmission,
@@ -31,6 +32,7 @@ import {
   type EvidenceRecord,
 } from "@/lib/mock-data";
 import type { AiConfigStatus, TriageRunOutcome } from "@/lib/ai/types";
+import type { DraftMode, DraftRunOutcome } from "@/lib/ai/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type IntakeFormState = {
@@ -99,6 +101,12 @@ export function ImportIntakeWorkbench({
   const [triageError, setTriageError] = useState<string | null>(null);
   const [triaging, setTriaging] = useState(false);
   const [triageTargetId, setTriageTargetId] = useState<string | null>(null);
+  const [draftMode, setDraftMode] = useState<DraftMode>("normal_technical_reply");
+  const [draftOutcome, setDraftOutcome] = useState<DraftRunOutcome | null>(null);
+  const [draftNote, setDraftNote] = useState<string | null>(null);
+  const [draftError, setDraftError] = useState<string | null>(null);
+  const [draftGenerating, setDraftGenerating] = useState(false);
+  const [draftTargetId, setDraftTargetId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<IntakeFormState>(() => ({
     title: "",
@@ -133,6 +141,25 @@ export function ImportIntakeWorkbench({
     ) as string[],
     [selectedEvidenceRecords, selectedItem?.id],
   );
+  const activeTriageTargetId = selectedItem?.id ?? null;
+  const activeTriageOutcome =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageOutcome : null;
+  const activeTriageNote =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageNote : null;
+  const activeTriageError =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageError : null;
+  const activeTriageRunning =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triaging : false;
+
+  const activeDraftTargetId = selectedItem?.id ?? null;
+  const activeDraftOutcome =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftOutcome : null;
+  const activeDraftNote =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftNote : null;
+  const activeDraftError =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftError : null;
+  const activeDraftRunning =
+    draftTargetId && draftTargetId === activeDraftTargetId ? draftGenerating : false;
 
   const selectedSourceLabel = useMemo(
     () =>
@@ -146,16 +173,6 @@ export function ImportIntakeWorkbench({
       importIntakeStatuses.find((status) => status.value === form.status)?.label ?? form.status,
     [form.status],
   );
-
-  const activeTriageTargetId = selectedItem?.id ?? null;
-  const activeTriageOutcome =
-    triageTargetId && triageTargetId === activeTriageTargetId ? triageOutcome : null;
-  const activeTriageNote =
-    triageTargetId && triageTargetId === activeTriageTargetId ? triageNote : null;
-  const activeTriageError =
-    triageTargetId && triageTargetId === activeTriageTargetId ? triageError : null;
-  const activeTriageRunning =
-    triageTargetId && triageTargetId === activeTriageTargetId ? triaging : false;
 
   async function handleTriageSelectedItem() {
     if (!selectedItem || !aiConfig.enabled || triaging) {
@@ -180,6 +197,35 @@ export function ImportIntakeWorkbench({
       setTriageError(error instanceof Error ? error.message : "AI triage failed.");
     } finally {
       setTriaging(false);
+    }
+  }
+
+  async function handleGenerateDraftSelectedItem() {
+    if (!selectedItem || !aiConfig.enabled || draftGenerating) {
+      return;
+    }
+
+    setDraftTargetId(selectedItem.id);
+    setDraftGenerating(true);
+    setDraftError(null);
+    setDraftNote(null);
+
+    try {
+      const result = await generateIntakeDraftAction({
+        item: selectedItem,
+        evidenceRecords: selectedEvidenceRecords,
+        mode: draftMode,
+        triageResult: activeTriageOutcome?.triageResult ?? null,
+        triageAuditLogId: activeTriageOutcome?.auditLogId ?? null,
+      });
+
+      setDraftOutcome(result);
+      setDraftNote(result.note);
+    } catch (error) {
+      setDraftOutcome(null);
+      setDraftError(error instanceof Error ? error.message : "AI draft generation failed.");
+    } finally {
+      setDraftGenerating(false);
     }
   }
 
@@ -584,49 +630,97 @@ export function ImportIntakeWorkbench({
                         )}
                       </div>
                     </div>
+                  </div>
 
-                <div className="rounded-md border border-teal-200 bg-teal-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-                    Routing controls
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-teal-950">
-                        Route to workspace is simulated in session state only.
-                      </p>
+                  <div className="rounded-md border border-teal-200 bg-teal-50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+                      Routing controls
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-teal-950">
+                      Route to workspace is simulated in session state only.
+                    </p>
 
-                      <div className="mt-3 space-y-3">
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-teal-700">
+                    <div className="mt-3 space-y-3">
+                      <label className="block text-xs font-semibold uppercase tracking-wide text-teal-700">
+                        Route to workspace
+                      </label>
+                      <select
+                        value={routeTarget}
+                        onChange={(event) =>
+                          setRouteTarget(event.target.value as ImportWorkspaceAssignment)
+                        }
+                        className="field-input border-teal-200 bg-white"
+                      >
+                        {importWorkspaceAssignments.map((workspace) => (
+                          <option key={workspace} value={workspace}>
+                            {workspace}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button type="button" className="btn-primary" onClick={handleRouteSelectedItem}>
                           Route to workspace
-                        </label>
-                        <select
-                          value={routeTarget}
-                          onChange={(event) =>
-                            setRouteTarget(event.target.value as ImportWorkspaceAssignment)
-                          }
-                          className="field-input border-teal-200 bg-white"
+                        </button>
+                        <button type="button" className="btn-secondary" disabled>
+                          Create case from this
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          disabled={!selectedItem || !aiConfig.enabled || triaging}
+                          onClick={handleTriageSelectedItem}
                         >
-                          {importWorkspaceAssignments.map((workspace) => (
-                            <option key={workspace} value={workspace}>
-                              {workspace}
-                            </option>
-                          ))}
-                        </select>
+                          {triaging ? "Triage..." : "Triage / Analyze"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button type="button" className="btn-primary" onClick={handleRouteSelectedItem}>
-                            Route to workspace
-                          </button>
-                          <button type="button" className="btn-secondary" disabled>
-                            Create case from this
-                          </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      disabled={!selectedItem || !aiConfig.enabled || triaging}
-                      onClick={handleTriageSelectedItem}
-                    >
-                      {triaging ? "Triage..." : "Triage / Analyze"}
-                          </button>
-                        </div>
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Draft generation
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Generate an unreviewed draft from the selected intake item. Red-team review is
+                      still required later.
+                    </p>
+                    <div className="mt-3 space-y-3">
+                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Draft mode
+                      </label>
+                      <select
+                        value={draftMode}
+                        onChange={(event) => setDraftMode(event.target.value as DraftMode)}
+                        className="field-input"
+                      >
+                        {[
+                          "holding_statement",
+                          "normal_technical_reply",
+                          "firm_but_polite",
+                          "management_summary",
+                          "vessel_instruction",
+                          "vendor_clarification",
+                          "owner_charterer_sensitive",
+                        ].map((mode) => (
+                          <option key={mode} value={mode}>
+                            {mode.replace(/_/g, " ")}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          disabled={!selectedItem || !aiConfig.enabled || draftGenerating}
+                          onClick={handleGenerateDraftSelectedItem}
+                        >
+                          {draftGenerating ? "Generating..." : "Generate draft"}
+                        </button>
+                        <span className="text-xs text-slate-500">
+                          AI draft generation is advisory only.
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -634,21 +728,42 @@ export function ImportIntakeWorkbench({
 
                 <div className="mt-4">
                   <TriageResultPanel
-                  sourceType="intake_item"
-                  sourceLabel={selectedItem.title}
-                  sourceIds={selectedTriageSourceIds}
-                  result={activeTriageOutcome?.triageResult ?? null}
-                  running={activeTriageRunning}
-                  note={activeTriageNote}
-                  disabledReason={aiConfig.enabled ? null : aiConfig.message}
-                  auditLogId={activeTriageOutcome?.auditLogId ?? null}
-                  persisted={activeTriageOutcome?.persisted}
-                  provider={activeTriageOutcome?.provider ?? null}
-                  model={activeTriageOutcome?.model ?? null}
-                />
+                    sourceType="intake_item"
+                    sourceLabel={selectedItem.title}
+                    sourceIds={selectedTriageSourceIds}
+                    result={activeTriageOutcome?.triageResult ?? null}
+                    running={activeTriageRunning}
+                    note={activeTriageNote}
+                    disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                    auditLogId={activeTriageOutcome?.auditLogId ?? null}
+                    persisted={activeTriageOutcome?.persisted}
+                    provider={activeTriageOutcome?.provider ?? null}
+                    model={activeTriageOutcome?.model ?? null}
+                  />
                   {activeTriageError ? (
                     <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
                       {activeTriageError}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4">
+                  <DraftResultPanel
+                    sourceType="intake_item"
+                    sourceLabel={selectedItem.title}
+                    sourceIds={selectedTriageSourceIds}
+                    result={activeDraftOutcome?.draftResult ?? null}
+                    running={activeDraftRunning}
+                    note={activeDraftNote}
+                    disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                    persisted={activeDraftOutcome?.persisted}
+                    provider={activeDraftOutcome?.provider ?? null}
+                    model={activeDraftOutcome?.model ?? null}
+                    triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
+                  />
+                  {activeDraftError ? (
+                    <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
+                      {activeDraftError}
                     </div>
                   ) : null}
                 </div>
