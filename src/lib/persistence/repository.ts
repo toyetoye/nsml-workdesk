@@ -1026,7 +1026,9 @@ export async function listDraftResponses(caseId?: string) {
   return data as DraftResponsePlaceholderRow[];
 }
 
-export async function appendAuditLog(entry: Omit<AuditLogRow, "audit_id" | "created_at">) {
+export async function appendAuditLog(
+  entry: Omit<AuditLogRow, "audit_id" | "created_at">,
+): Promise<WriteResult<AuditLogRow>> {
   const row: AuditLogRow = {
     audit_id: `audit-${randomUUID()}`,
     created_at: nowIso(),
@@ -1035,7 +1037,7 @@ export async function appendAuditLog(entry: Omit<AuditLogRow, "audit_id" | "crea
 
   if (!isPersistenceAvailable()) {
     fallbackStore.audit_logs.unshift(row);
-    return row;
+    return { row, persisted: false };
   }
 
   const client = getRepoClient();
@@ -1043,10 +1045,10 @@ export async function appendAuditLog(entry: Omit<AuditLogRow, "audit_id" | "crea
 
   if (error || !data) {
     fallbackStore.audit_logs.unshift(row);
-    return row;
+    return { row, persisted: false };
   }
 
-  return data as AuditLogRow;
+  return { row: data as AuditLogRow, persisted: true };
 }
 
 export function getMockWorkspaceSnapshots(): {

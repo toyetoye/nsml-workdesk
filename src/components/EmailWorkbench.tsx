@@ -14,6 +14,7 @@ import {
   Paperclip,
   UserRound,
 } from "lucide-react";
+import { triageThreadAction } from "@/app/(protected)/ai/actions";
 import {
   allWorkspaces,
   importedEmailThreads,
@@ -27,6 +28,8 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
 import { normalizeCorrespondenceSender, normalizeThreadSubject } from "@/lib/correspondence/threading";
+import { TriageResultPanel } from "@/components/TriageResultPanel";
+import type { AiConfigStatus, TriageRunOutcome } from "@/lib/ai/types";
 
 type WorkspaceFilter = "route" | "import" | "unclassified" | EmailThreadScope;
 type StatusFilter = EmailStatus | "all";
@@ -165,6 +168,8 @@ export function EmailWorkbench({
   emptyStateMessage,
   parsedThreads = [],
   sourceEvidenceRecords = [],
+  aiConfig,
+  triageRedirectTo = "/import",
 }: {
   scope: EmailThreadScope;
   sectionLabel: string;
@@ -173,6 +178,8 @@ export function EmailWorkbench({
   emptyStateMessage: string;
   parsedThreads?: EmailThread[];
   sourceEvidenceRecords?: EvidenceRecord[];
+  aiConfig: AiConfigStatus;
+  triageRedirectTo?: string;
 }) {
   const combinedThreads = useMemo(() => {
     const nextThreads = [...importedEmailThreads, ...parsedThreads];
@@ -199,6 +206,11 @@ export function EmailWorkbench({
   const [attachmentFilter, setAttachmentFilter] = useState<AttachmentFilter>("all");
   const [senderFilter, setSenderFilter] = useState("");
   const [activeThreadId, setActiveThreadId] = useState<string>("");
+  const [triageOutcome, setTriageOutcome] = useState<TriageRunOutcome | null>(null);
+  const [triageNote, setTriageNote] = useState<string | null>(null);
+  const [triageError, setTriageError] = useState<string | null>(null);
+  const [triaging, setTriaging] = useState(false);
+  const [triageTargetId, setTriageTargetId] = useState<string | null>(null);
 
   const scopedThreads = useMemo(() => {
     if (scope === "import") {
@@ -276,9 +288,65 @@ export function EmailWorkbench({
     filteredThreads.find((thread) => thread.id === activeThreadId)?.id ?? filteredThreads[0]?.id ?? "";
   const selectedThread =
     filteredThreads.find((thread) => thread.id === selectedThreadId) ?? filteredThreads[0] ?? null;
+  const selectedSourceEvidenceRecords = useMemo(() => {
+    if (!selectedThread) {
+      return [];
+    }
+
+    return sourceEvidenceRecords.filter(
+      (record) =>
+        record.evidenceId === selectedThread.sourceEvidenceId ||
+        record.parsedThreadId === selectedThread.id ||
+        record.parsedMessageId === selectedThread.messageIdHeader,
+    );
+  }, [selectedThread, sourceEvidenceRecords]);
+  const selectedTriageSourceIds = useMemo(
+    () =>
+      [selectedThread?.id, ...selectedSourceEvidenceRecords.map((record) => record.evidenceId)]
+        .filter(Boolean)
+        .map(String),
+    [selectedSourceEvidenceRecords, selectedThread?.id],
+  );
 
   const archiveSurfaceVisible = scope === "import";
   const currentWorkspaceLabel = workspaceLabelForScope(scope);
+
+  const activeTriageTargetId = selectedThread?.id ?? null;
+  const activeTriageOutcome =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageOutcome : null;
+  const activeTriageNote =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageNote : null;
+  const activeTriageError =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageError : null;
+  const activeTriageRunning =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triaging : false;
+
+  async function handleTriageSelectedThread() {
+    if (!selectedThread || !aiConfig.enabled || triaging) {
+      return;
+    }
+
+    setTriageTargetId(selectedThread.id);
+    setTriaging(true);
+    setTriageError(null);
+    setTriageNote(null);
+
+    try {
+      const result = await triageThreadAction({
+        thread: selectedThread,
+        evidenceRecords: selectedSourceEvidenceRecords,
+        redirectTo: triageRedirectTo,
+      });
+
+      setTriageOutcome(result);
+      setTriageNote(result.note);
+    } catch (error) {
+      setTriageOutcome(null);
+      setTriageError(error instanceof Error ? error.message : "AI triage failed.");
+    } finally {
+      setTriaging(false);
+    }
+  }
 
   return (
     <section className="space-y-4">
@@ -536,6 +604,23 @@ export function EmailWorkbench({
               </div>
             </div>
 
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={!aiConfig.enabled || triaging}
+                onClick={handleTriageSelectedThread}
+              >
+                {triaging ? "Triage..." : "Triage thread"}
+              </button>
+              <button type="button" className="btn-secondary" disabled>
+                Link to case
+              </button>
+              <button type="button" className="btn-secondary" disabled>
+                Create case from thread
+              </button>
+            </div>
+
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
                 <MetaRow icon={UserRound} label="Sender" value={selectedThread.sender} />
               <MetaRow icon={CalendarDays} label="Date / time" value={selectedThread.dateTime} />
@@ -598,6 +683,27 @@ export function EmailWorkbench({
                   {selectedThread.parseError}
                 </div>
               ) : null}
+
+              <div className="mt-4">
+                <TriageResultPanel
+                  sourceType="correspondence_thread"
+                  sourceLabel={selectedThread.subject}
+                  sourceIds={selectedTriageSourceIds}
+                  result={activeTriageOutcome?.triageResult ?? null}
+                  running={activeTriageRunning}
+                  note={activeTriageNote}
+                  disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  auditLogId={activeTriageOutcome?.auditLogId ?? null}
+                  persisted={activeTriageOutcome?.persisted}
+                  provider={activeTriageOutcome?.provider ?? null}
+                  model={activeTriageOutcome?.model ?? null}
+                />
+                {activeTriageError ? (
+                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
+                    {activeTriageError}
+                  </div>
+                ) : null}
+              </div>
 
               <div className="mt-3 rounded-md border border-slate-200 bg-white p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">

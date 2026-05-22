@@ -1,6 +1,7 @@
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
+import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
 import {
@@ -25,12 +26,15 @@ export default async function ImportPage() {
   const initialItems = mapIntakeRowsToItems(intakeRows);
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
   const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows);
+  const aiConfig = getAiConfigStatus();
 
   return (
     <section className="space-y-6">
       <ImportIntakeWorkbench
         initialItems={initialItems}
+        initialEvidence={initialEvidence}
         persistenceEnabled={isPersistenceAvailable()}
+        aiConfig={aiConfig}
       />
 
       <EvidenceStorageWorkbench
@@ -49,6 +53,8 @@ export default async function ImportPage() {
         emptyStateMessage="Imported correspondence waiting for classification will appear here after it enters staging."
         parsedThreads={parsedThreads}
         sourceEvidenceRecords={initialEvidence}
+        aiConfig={aiConfig}
+        triageRedirectTo="/import"
       />
     </section>
   );

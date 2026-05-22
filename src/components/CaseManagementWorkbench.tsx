@@ -34,10 +34,13 @@ import {
   type StatusTone,
 } from "@/lib/mock-data";
 import { saveCaseAction } from "@/app/(protected)/cases/actions";
+import { triageCaseAction } from "@/app/(protected)/ai/actions";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { formatEvidenceSize } from "@/lib/workbench-data";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatParseStatusLabel } from "@/lib/email-ingestion/shared";
+import { TriageResultPanel } from "@/components/TriageResultPanel";
+import type { AiConfigStatus, TriageRunOutcome } from "@/lib/ai/types";
 
 type CreateCaseFormState = {
   title: string;
@@ -98,12 +101,14 @@ export function CaseManagementWorkbench({
   parsedCorrespondenceThreads = [],
   persistenceEnabled,
   parsingEnabled = false,
+  aiConfig,
 }: {
-  initialCases: CaseRecord[];
+  initialCases: CaseRecord[];  
   initialEvidence: EvidenceRecord[];
   parsedCorrespondenceThreads?: EmailThread[];
   persistenceEnabled: boolean;
   parsingEnabled?: boolean;
+  aiConfig: AiConfigStatus;
 }) {
   const [cases, setCases] = useState<CaseRecord[]>(() => initialCases);
   const [evidence, setEvidence] = useState<EvidenceRecord[]>(() => initialEvidence);
@@ -112,6 +117,11 @@ export function CaseManagementWorkbench({
   const [createOpen, setCreateOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [triageOutcome, setTriageOutcome] = useState<TriageRunOutcome | null>(null);
+  const [triageNote, setTriageNote] = useState<string | null>(null);
+  const [triageError, setTriageError] = useState<string | null>(null);
+  const [triaging, setTriaging] = useState(false);
+  const [triageTargetId, setTriageTargetId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createForm, setCreateForm] = useState<CreateCaseFormState>(() => ({
     title: "",
@@ -165,6 +175,28 @@ export function CaseManagementWorkbench({
       (thread) => selectedCase.linkedThreads.includes(thread.id) || thread.linkedCase === selectedCase.caseId,
     );
   }, [parsedThreads, selectedCase]);
+
+  const selectedTriageSourceIds = useMemo(() => {
+    if (!selectedCase) {
+      return [];
+    }
+
+    return [
+      selectedCase.caseId,
+      ...selectedEvidence.map((item) => item.evidenceId),
+      ...selectedThreads.map((thread) => thread.id),
+    ].filter(Boolean) as string[];
+  }, [selectedCase, selectedEvidence, selectedThreads]);
+
+  const activeTriageTargetId = selectedCase?.caseId ?? null;
+  const activeTriageOutcome =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageOutcome : null;
+  const activeTriageNote =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageNote : null;
+  const activeTriageError =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageError : null;
+  const activeTriageRunning =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triaging : false;
 
   async function handleCreateCase(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -299,6 +331,33 @@ export function CaseManagementWorkbench({
     }
   }
 
+  async function handleTriageSelectedCase() {
+    if (!selectedCase || !aiConfig.enabled || triaging) {
+      return;
+    }
+
+    setTriageTargetId(selectedCase.caseId);
+    setTriaging(true);
+    setTriageError(null);
+    setTriageNote(null);
+
+    try {
+      const result = await triageCaseAction({
+        caseRecord: selectedCase,
+        evidenceRecords: selectedEvidence,
+        correspondenceThreads: selectedThreads,
+      });
+
+      setTriageOutcome(result);
+      setTriageNote(result.note);
+    } catch (error) {
+      setTriageOutcome(null);
+      setTriageError(error instanceof Error ? error.message : "AI triage failed.");
+    } finally {
+      setTriaging(false);
+    }
+  }
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -415,6 +474,14 @@ export function CaseManagementWorkbench({
                   <Link href="/import" className="btn-secondary">
                     Open import
                   </Link>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    disabled={!aiConfig.enabled || triaging}
+                    onClick={handleTriageSelectedCase}
+                  >
+                    {triaging ? "Triage..." : "Assess case / Triage case"}
+                  </button>
                 </div>
               </div>
 
@@ -470,6 +537,27 @@ export function CaseManagementWorkbench({
                     </button>
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-4">
+                <TriageResultPanel
+                  sourceType="case"
+                  sourceLabel={selectedCase.title}
+                  sourceIds={selectedTriageSourceIds}
+                  result={activeTriageOutcome?.triageResult ?? null}
+                  running={activeTriageRunning}
+                  note={activeTriageNote}
+                  disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  auditLogId={activeTriageOutcome?.auditLogId ?? null}
+                  persisted={activeTriageOutcome?.persisted}
+                  provider={activeTriageOutcome?.provider ?? null}
+                  model={activeTriageOutcome?.model ?? null}
+                />
+                {activeTriageError ? (
+                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
+                    {activeTriageError}
+                  </div>
+                ) : null}
               </div>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-2">

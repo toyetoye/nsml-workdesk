@@ -6,6 +6,7 @@ import type {
 } from "@/lib/mock-data";
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { WorkspaceSummary } from "@/components/WorkspaceSummary";
+import { getAiConfigStatus } from "@/lib/ai/config";
 import {
   listCorrespondenceMessages,
   listCorrespondenceThreads,
@@ -33,6 +34,7 @@ export async function WorkspacePage({
     listCorrespondenceMessages(),
     listEvidence(),
   ]);
+  const aiConfig = getAiConfigStatus();
   const evidenceRecords = mapEvidenceRowsToRecords(evidenceRows);
   const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows).filter(
     (thread) =>
@@ -116,6 +118,8 @@ export async function WorkspacePage({
         emptyStateMessage={emptyStateMessage}
         parsedThreads={parsedThreads}
         sourceEvidenceRecords={evidenceRecords}
+        aiConfig={aiConfig}
+        triageRedirectTo={workspace.href}
       />
     </section>
   );

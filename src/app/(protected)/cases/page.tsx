@@ -1,4 +1,5 @@
 import { CaseManagementWorkbench } from "@/components/CaseManagementWorkbench";
+import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
 import {
@@ -28,6 +29,7 @@ export default async function CasesPage() {
     threadRows,
     messageRows,
   );
+  const aiConfig = getAiConfigStatus();
 
   return (
     <section className="space-y-6">
@@ -37,6 +39,7 @@ export default async function CasesPage() {
         parsedCorrespondenceThreads={parsedCorrespondenceThreads}
         persistenceEnabled={isPersistenceAvailable()}
         parsingEnabled={hasEvidenceStorageConfig()}
+        aiConfig={aiConfig}
       />
     </section>
   );

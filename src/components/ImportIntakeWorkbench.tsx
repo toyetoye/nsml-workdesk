@@ -13,6 +13,8 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { saveIntakeItemAction } from "@/app/(protected)/import/actions";
+import { triageIntakeItemAction } from "@/app/(protected)/ai/actions";
+import { TriageResultPanel } from "@/components/TriageResultPanel";
 import {
   buildIntakeItemFromSubmission,
   type IntakeSubmission,
@@ -26,7 +28,9 @@ import {
   type ImportSourceType,
   type ImportWorkspaceAssignment,
   type StatusTone,
+  type EvidenceRecord,
 } from "@/lib/mock-data";
+import type { AiConfigStatus, TriageRunOutcome } from "@/lib/ai/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
 type IntakeFormState = {
@@ -42,7 +46,9 @@ type IntakeFormState = {
 
 type ImportIntakeWorkbenchProps = {
   initialItems: ImportIntakeItem[];
+  initialEvidence: EvidenceRecord[];
   persistenceEnabled: boolean;
+  aiConfig: AiConfigStatus;
 };
 
 const statusTone: Record<ImportIntakeStatus, StatusTone> = {
@@ -77,7 +83,9 @@ function itemSourceLabel(sourceType: ImportSourceType) {
 
 export function ImportIntakeWorkbench({
   initialItems,
+  initialEvidence,
   persistenceEnabled,
+  aiConfig,
 }: ImportIntakeWorkbenchProps) {
   const initialList = initialItems.length > 0 ? initialItems : [];
   const [items, setItems] = useState<ImportIntakeItem[]>(() => initialList);
@@ -86,6 +94,11 @@ export function ImportIntakeWorkbench({
     initialList[0]?.workspaceAssignment ?? "Import/Staging",
   );
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [triageOutcome, setTriageOutcome] = useState<TriageRunOutcome | null>(null);
+  const [triageNote, setTriageNote] = useState<string | null>(null);
+  const [triageError, setTriageError] = useState<string | null>(null);
+  const [triaging, setTriaging] = useState(false);
+  const [triageTargetId, setTriageTargetId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<IntakeFormState>(() => ({
     title: "",
@@ -102,10 +115,28 @@ export function ImportIntakeWorkbench({
     () => items.find((item) => item.id === selectedId) ?? items[0] ?? null,
     [items, selectedId],
   );
+  const selectedEvidenceRecords = useMemo(
+    () =>
+      selectedItem
+        ? initialEvidence.filter(
+            (record) =>
+              record.linkedIntakeItemRef === selectedItem.id ||
+              record.linkedIntakeItemRef === selectedItem.title ||
+              record.linkedIntakeItemRef === selectedItem.createdLabel,
+          )
+        : [],
+    [initialEvidence, selectedItem],
+  );
+  const selectedTriageSourceIds = useMemo(
+    () => [selectedItem?.id, ...selectedEvidenceRecords.map((record) => record.evidenceId)].filter(
+      Boolean,
+    ) as string[],
+    [selectedEvidenceRecords, selectedItem?.id],
+  );
 
   const selectedSourceLabel = useMemo(
     () =>
-      importSourceTypes.find((source) => source.value === form.sourceType)?.label ??
+      importSourceTypes.find((source) => source.value === form.sourceType)?.label ?? 
       form.sourceType,
     [form.sourceType],
   );
@@ -115,6 +146,42 @@ export function ImportIntakeWorkbench({
       importIntakeStatuses.find((status) => status.value === form.status)?.label ?? form.status,
     [form.status],
   );
+
+  const activeTriageTargetId = selectedItem?.id ?? null;
+  const activeTriageOutcome =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageOutcome : null;
+  const activeTriageNote =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageNote : null;
+  const activeTriageError =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triageError : null;
+  const activeTriageRunning =
+    triageTargetId && triageTargetId === activeTriageTargetId ? triaging : false;
+
+  async function handleTriageSelectedItem() {
+    if (!selectedItem || !aiConfig.enabled || triaging) {
+      return;
+    }
+
+    setTriageTargetId(selectedItem.id);
+    setTriaging(true);
+    setTriageError(null);
+    setTriageNote(null);
+
+    try {
+      const result = await triageIntakeItemAction({
+        item: selectedItem,
+        evidenceRecords: selectedEvidenceRecords,
+      });
+
+      setTriageOutcome(result);
+      setTriageNote(result.note);
+    } catch (error) {
+      setTriageOutcome(null);
+      setTriageError(error instanceof Error ? error.message : "AI triage failed.");
+    } finally {
+      setTriaging(false);
+    }
+  }
 
   async function handleCreateItem(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -518,11 +585,11 @@ export function ImportIntakeWorkbench({
                       </div>
                     </div>
 
-                    <div className="rounded-md border border-teal-200 bg-teal-50 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-                        Routing controls
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-teal-950">
+                <div className="rounded-md border border-teal-200 bg-teal-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+                    Routing controls
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-teal-950">
                         Route to workspace is simulated in session state only.
                       </p>
 
@@ -551,10 +618,39 @@ export function ImportIntakeWorkbench({
                           <button type="button" className="btn-secondary" disabled>
                             Create case from this
                           </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      disabled={!selectedItem || !aiConfig.enabled || triaging}
+                      onClick={handleTriageSelectedItem}
+                    >
+                      {triaging ? "Triage..." : "Triage / Analyze"}
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <TriageResultPanel
+                  sourceType="intake_item"
+                  sourceLabel={selectedItem.title}
+                  sourceIds={selectedTriageSourceIds}
+                  result={activeTriageOutcome?.triageResult ?? null}
+                  running={activeTriageRunning}
+                  note={activeTriageNote}
+                  disabledReason={aiConfig.enabled ? null : aiConfig.message}
+                  auditLogId={activeTriageOutcome?.auditLogId ?? null}
+                  persisted={activeTriageOutcome?.persisted}
+                  provider={activeTriageOutcome?.provider ?? null}
+                  model={activeTriageOutcome?.model ?? null}
+                />
+                  {activeTriageError ? (
+                    <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
+                      {activeTriageError}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
