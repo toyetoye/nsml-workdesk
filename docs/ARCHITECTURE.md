@@ -198,6 +198,34 @@ The UI should expose parse states:
 
 Parse failures must be visible and non-destructive. The original EML remains preserved as evidence regardless of parse outcome.
 
+## Sprint 008 Correspondence Threading and UX Architecture
+
+Sprint 008 builds an operational thread console on top of the parsed correspondence spine.
+
+The threading architecture is structured around:
+
+- exact `message-id`, `in-reply-to`, and `references` matching first;
+- `references` as the strongest thread-chain signal;
+- conservative normalized-subject fallback only when sender and date proximity also look safe;
+- uncertain matches remaining separate and being surfaced only as possible related threads;
+- thread-level presentation in `EmailWorkbench` with chronological messages rather than a flat list;
+- attachment metadata display and source evidence linkage display;
+- parse state and parse error display alongside the thread;
+- linked/unlinked case indicators and placeholder case-linking actions;
+- workspace-scoped correspondence views for import staging, vessels, projects, and general correspondence;
+- `/import` staging/unclassified correspondence as the intake area;
+- archive planning UX for ZIP/PST/bulk import without extraction.
+
+Threading must remain deterministic and conservative. False merges are worse than leaving related emails separate.
+
+Parsed correspondence must continue to respect the Sprint 007 security posture:
+
+- no raw HTML rendering;
+- no remote asset loading;
+- no public file URLs;
+- no client-side Supabase writes;
+- no AI-driven classification.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.

@@ -200,3 +200,31 @@ Notes:
 - No AI, no drafting, no red-team agent, no Outlook integration, no email sending, no unsafe HTML rendering, and no PDF/OCR parsing.
 - EML ingestion converts uploaded email files into structured correspondence metadata while preserving the original EML as evidence. It does not interpret, classify by AI, draft responses, or validate the truth of the email content.
 - Email HTML must never be rendered raw. Remote email resources must not be fetched automatically.
+
+## Sprint 008
+
+Complete.
+
+Delivered:
+
+- deterministic correspondence threading
+- message-id, in-reply-to, and references matching
+- conservative normalized-subject fallback
+- uncertain matches surfaced as possible related threads rather than hard-merged
+- operational thread console in `EmailWorkbench`
+- chronological message timeline
+- attachment metadata display
+- parse state and parse error visibility
+- source evidence linkage visibility
+- linked/unlinked case state
+- placeholder Link to case action
+- placeholder Create case from thread action
+- workspace-scoped correspondence views
+- `/import` staging/unclassified correspondence view
+- workspace/status/sender/attachment/parse/case-link filters
+- ZIP/PST/archive import placeholder UX only
+
+Notes:
+
+- No archive extraction, no AI, no drafting, no red-team agent, no Outlook integration, no email sending, no unsafe HTML rendering, and no remote asset loading.
+- Threading must be deterministic and conservative. A false merge is worse than leaving related emails separate. When uncertain, preserve separate threads and surface possible relationship only.

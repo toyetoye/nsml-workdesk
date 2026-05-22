@@ -220,6 +220,35 @@ Routing should remain deterministic and metadata-driven:
 
 Parsed correspondence records must not imply raw HTML rendering or remote asset loading.
 
+## Sprint 008 Correspondence Threading
+
+Correspondence records gain thread-level organization fields and conservative relationship markers for operational use.
+
+Thread-level correspondence should preserve:
+
+- exact `message-id`, `in-reply-to`, and `references` linkage;
+- a normalized subject for conservative fallback;
+- sender and date metadata for safe relationship checks;
+- possible-related thread markers when a hard merge is not safe;
+- attachment count and attachment metadata at both thread and message level;
+- source evidence linkage visibility;
+- linked or unlinked case visibility;
+- parse state and parse error visibility.
+
+Thread grouping should remain conservative:
+
+- exact header matches take priority;
+- `references` should be treated as the strongest chain signal;
+- subject-only matching is not enough for a hard merge;
+- uncertain matches must stay separate and may only be surfaced as possible related threads.
+
+The UI should continue to distinguish:
+
+- `/import` staging or unclassified correspondence;
+- workspace-scoped vessel, project, and general correspondence;
+- archive planning placeholders without extraction;
+- operational thread timeline view rather than a flat message dump.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

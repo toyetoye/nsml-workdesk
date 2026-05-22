@@ -143,3 +143,15 @@ Mitigation: Show clear parsing-disabled or fallback messaging and keep parse sta
 Risk: Archive ingestion could drift into broad ZIP/extraction logic before the parsing spine is ready.
 
 Mitigation: Keep archive extraction optional and deferred; only expand it after a safe, explicit proposal.
+
+## R025 - False thread merge
+
+Risk: Over-aggressive threading could incorrectly merge distinct correspondence into a single thread.
+
+Mitigation: Use exact header matching first, fall back conservatively, and keep uncertain matches separate as possible related only.
+
+## R026 - Correspondence UX confusion
+
+Risk: Parsed threads could still feel like a flat message list or a mail client instead of operational correspondence.
+
+Mitigation: Keep the thread console explicit with timeline, attachments, parse state, case linkage, and workspace-scoped views.

@@ -58,3 +58,15 @@ Remote email assets must not be fetched automatically.
 When Supabase/storage is unavailable, parsing should be disabled or fall back clearly without crashing the app.
 
 Production deployments should continue to keep the access gate, private evidence storage, and repository-backed persistence boundaries intact.
+
+## Sprint 008 Notes
+
+Sprint 008 improves correspondence threading and workspace correspondence UX but still does not require deployment execution.
+
+Threading should deploy as conservative and deterministic: exact header matching first, normalized-subject fallback only when safe, and possible-related surfacing instead of hard merges when uncertain.
+
+Deployment should keep the thread console, parse state, attachment metadata, source evidence linkage, and workspace-scoped correspondence views visible without exposing raw HTML or remote assets.
+
+Archive planning UX should remain placeholder-only until archive extraction is explicitly approved.
+
+Production deployments should continue to enforce the access gate and preserve server-side repository boundaries for correspondence data.

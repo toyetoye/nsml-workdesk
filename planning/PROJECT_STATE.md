@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 007 complete.
+Sprint 008 complete.
 
 ## Active sprint
 
-Sprint 008 - online deployment and hardening.
+Sprint 009 - online deployment and hardening.
 
 ## Confirmed decisions
 
@@ -44,6 +44,9 @@ Sprint 008 - online deployment and hardening.
 - Sprint 007 keeps raw HTML unrendered, remote email assets unfetched, and parse errors visible and non-destructive.
 - Sprint 007 disables parsing or falls back clearly when Supabase/storage is unavailable.
 - Sprint 007 does not add AI, drafting, red-team agent, Outlook integration, email sending, unsafe HTML rendering, or PDF/OCR parsing.
+- Sprint 008 improved correspondence threading and workspace correspondence UX with deterministic `message-id` / `in-reply-to` / `references` matching, conservative normalized-subject fallback, possible-related surfacing for uncertain matches, an operational thread console in `EmailWorkbench`, attachment metadata display, parse state and parse error visibility, source evidence linkage visibility, linked/unlinked case state, placeholder link/create-case actions, workspace-scoped correspondence views, `/import` staging/unclassified correspondence, workspace/status/sender/attachment/parse/case-link filters, and a ZIP/PST/archive import placeholder UX.
+- Sprint 008 keeps threading deterministic and conservative: a false merge is worse than leaving related emails separate.
+- Sprint 008 does not add archive extraction, AI, drafting, red-team agent, Outlook integration, email sending, unsafe HTML rendering, or remote asset loading.
 
 ## Next action
 

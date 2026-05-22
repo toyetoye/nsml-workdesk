@@ -119,3 +119,15 @@ Reason: The product needs a safe path from uploaded email files to structured co
 Decision: Sprint 007 routes parsed correspondence deterministically without AI: a linked case workspace wins, otherwise the assigned workspace is used, and otherwise the item stays in Import/Staging or unclassified.
 
 Reason: Correspondence must remain explainable and traceable while avoiding automatic classification or workflow guesses.
+
+## D021 - Conservative threading
+
+Decision: Sprint 008 threading must be deterministic and conservative. Exact `message-id`, `in-reply-to`, and `references` matching come first; normalized subject fallback is only used when sender/date proximity also looks safe; uncertain matches stay separate and may be surfaced only as possible related threads.
+
+Reason: A false merge is worse than leaving related emails separate because it can blur evidence, case history, and operational accountability.
+
+## D022 - Thread console UX
+
+Decision: Sprint 008 should present correspondence as an operational thread console with visible parse state, source evidence linkage, linked/unlinked case state, attachment metadata, and placeholder case-linking actions.
+
+Reason: Parsed email files need to be usable in daily operations, not just technically ingested.

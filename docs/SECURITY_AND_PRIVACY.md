@@ -24,3 +24,5 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Email HTML must never be rendered raw.
 - Remote email resources must not be fetched automatically.
 - Treat virus/malware scanning as a future control before broader or less-controlled file ingestion.
+- Threading must remain deterministic and conservative; uncertain relationships should stay separate instead of being force-merged.
+- Placeholder case-link and create-case actions must not imply automatic case creation or linking.
