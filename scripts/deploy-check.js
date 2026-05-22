@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
+
+const fs = require("fs");
+const path = require("path");
 
 function truthy(value) {
   return Boolean(value && ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase()));
@@ -13,6 +17,61 @@ function classifyPresence({ configured, disabled, isProduction }) {
   if (configured) return "ready";
   return isProduction ? "production misconfigured / fail closed" : "development fallback";
 }
+
+function parseEnvContent(content) {
+  const parsed = {};
+  const lines = content.split(/\r?\n/);
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const equalsIndex = line.indexOf("=");
+    if (equalsIndex === -1) continue;
+
+    let key = line.slice(0, equalsIndex).trim();
+    let value = line.slice(equalsIndex + 1);
+
+    if (!key) continue;
+
+    if (key.startsWith("export ")) {
+      key = key.slice(7).trim();
+    }
+
+    value = value.trim();
+
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+
+    if (!(key in parsed)) {
+      parsed[key] = value;
+    }
+  }
+
+  return parsed;
+}
+
+function loadEnvFiles() {
+  const cwd = process.cwd();
+  const candidates = [".env.local", ".env"];
+
+  for (const fileName of candidates) {
+    const filePath = path.join(cwd, fileName);
+    if (!fs.existsSync(filePath)) continue;
+
+    const content = fs.readFileSync(filePath, "utf8");
+    const parsed = parseEnvContent(content);
+
+    for (const [key, value] of Object.entries(parsed)) {
+      if (process.env[key] === undefined || process.env[key] === "") {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
+loadEnvFiles();
 
 const env = process.env;
 const isProduction = env.NODE_ENV === "production";
