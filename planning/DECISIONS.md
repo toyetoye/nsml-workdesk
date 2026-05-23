@@ -191,3 +191,9 @@ Reason: First deployment should be guided by explicit setup and verification ste
 Decision: Sprint 015 adds an assurance and governance signal tracker that must preserve the distinction between fact, reported statement, inference, and assumption, and must keep unverified governance language neutral unless evidence is attached.
 
 Reason: The product needs a disciplined way to convert broad support feedback and governance signals into tracked actions without becoming a political diary or storing unsupported allegations as facts.
+
+## D033 - Bulk Outlook evidence intake is export-only
+
+Decision: Sprint 016 adds bulk Outlook evidence intake as server-side ZIP-of-EMLs ingestion with PST preservation-only handling, manual pasted email fallback guidance, and conservative batch limits, but it does not connect to Outlook or parse PST files in-app.
+
+Reason: The product needs a practical way to bring in exported email evidence without live mailbox integration while preserving evidence safety, traceability, and the distinction between imported message content and downstream conclusions.

@@ -272,3 +272,28 @@ Deployment notes for assurance:
 - Sensitive or unverified governance signals must remain neutral and must not be treated as verified facts.
 - No email sending, Outlook integration, automatic escalation, political scoring, sentiment scoring, or disciplinary conclusions should be exposed at deployment time.
 - The route surface should stay NSML-only and protected routes must continue to fail closed if access-gate env vars are missing.
+
+## Sprint 016 Bulk Outlook Evidence Intake Deployment Notes
+
+Sprint 016 adds bulk Outlook evidence intake for exported `.eml` archives only and does not require any live Outlook, Microsoft Graph, IMAP, SMTP, or mailbox connection during deployment.
+
+Deployment checklist:
+
+1. Confirm the app remains protected by the existing access gate.
+2. Confirm the bulk intake section appears under `/import`.
+3. Confirm the server-side ZIP-of-EMLs path works within the configured file and size limits.
+4. Confirm the private evidence bucket still exists and that the original ZIP can be preserved as evidence where safe.
+5. Confirm extracted `.eml` files are preserved or linked as evidence where safe.
+6. Confirm the PST upload path is clearly labeled as preservation-only and not parsed.
+7. Confirm the batch summary shows total files, EML files found, parsed successfully, skipped, failed, unsupported, and warnings.
+8. Confirm unsupported files are skipped safely and do not crash the app.
+9. Confirm the app never renders raw email HTML or fetches remote email assets.
+10. Confirm the route surface remains NSML-only and the app does not expose Outlook integration or any live mailbox capability.
+
+Smoke-test reminders:
+
+- Upload a ZIP of `.eml` files and confirm batch status transitions from staged to processing to completed or completed_with_warnings.
+- Upload a ZIP containing unsupported files and confirm they are reported as unsupported or skipped without failure.
+- Upload a PST file and confirm it is stored only as preservation evidence and not parsed into correspondence.
+- Confirm imported email content is treated as evidence of message content only and that downstream conclusions still require Fact / Reported / Inference / Assumption classification.
+- Confirm no send button exists and no automatic routing or assurance conclusion is triggered.

@@ -227,3 +227,27 @@ Mitigation: Keep deployment helpers state-only, never print secrets, keep servic
 Risk: Broad comments or informal governance signals could be stored as facts or turn into accusatory records.
 
 Mitigation: Require an evidence level on every assurance signal, downgrade Fact to Reported when no evidence link is attached, keep neutral wording for unverified governance signals, and avoid disciplinary or political conclusions.
+
+## R038 - Bulk archive ingestion overrun
+
+Risk: ZIP-of-EMLs bulk intake could be used to upload oversized archives, malformed archives, or unsupported files that waste resources or confuse the user.
+
+Mitigation: Keep extraction server-side only, reject path traversal and absolute paths, enforce file count and size limits, allow only `.eml` entries, skip unsupported files safely, and surface warnings in the batch summary.
+
+## R039 - PST preservation confusion
+
+Risk: PST uploads could be mistaken for parsed correspondence even though Sprint 016 stores them as preservation evidence only.
+
+Mitigation: Label PST as preservation-only everywhere, do not create correspondence records from PST, and make the non-parsed state explicit in the UI and deployment notes.
+
+## R040 - Evidence-to-conclusion confusion
+
+Risk: Imported email content could be treated as proof of conclusions rather than evidence of message content.
+
+Mitigation: Reinforce the rule that imported content is evidence of the message content only and that any conclusion must still be classified as Fact, Reported, Inference, or Assumption.
+
+## R041 - Outlook integration misunderstanding
+
+Risk: Bulk export intake could be misread as a live Outlook connection.
+
+Mitigation: Keep the workflow framed as exported evidence intake only and explicitly state that Outlook, Microsoft Graph, IMAP/SMTP, live mailbox access, and email sending are out of scope.

@@ -45,3 +45,8 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - Assurance records must remain evidence-backed and neutral. Broad comments, anonymous feedback, or governance signals must not be stored as facts unless supporting evidence is attached.
 - The assurance tracker must preserve the distinction between fact, reported statement, inference, and assumption, and it must not use political or sentiment scoring, disciplinary conclusions, or accusatory language without direct evidence.
 - Fact downgrade logic must remain server-side so a Fact without evidence is saved as Reported rather than stored as unsupported fact.
+- Bulk Outlook evidence intake must remain exported-evidence only: no Outlook integration, no Microsoft Graph, no IMAP/SMTP, no live mailbox connection, and no email sending.
+- ZIP extraction for bulk evidence intake must happen server-side only and must use safe archive inspection with path traversal rejection, absolute path rejection, `.eml`-only allowlisting, unsupported-file skipping, and explicit file-count / size limits.
+- Bulk evidence intake must not render raw email HTML, must not fetch remote email assets, and must not imply that PST contents were parsed when PST is preserved only.
+- Bulk evidence intake must not perform bulk AI triage, automatic routing, automatic assurance conclusions, disciplinary findings, or sentiment / political scoring.
+- Imported email content is evidence of message content only. Any downstream conclusion must still be classified as Fact, Reported, Inference, or Assumption.

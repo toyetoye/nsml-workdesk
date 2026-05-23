@@ -471,6 +471,80 @@ Assurance records must preserve the distinction between fact, reported statement
 
 The weekly evidence pack should remain a deterministic structured view that composes existing assurance, support, and engagement records. It must not be AI-generated.
 
+## Sprint 016 Bulk Outlook Evidence Intake
+
+The bulk evidence intake layer stores batch-level archive records and per-item extraction / parse records for exported Outlook evidence.
+
+Bulk evidence batch records should preserve:
+
+- batch_id;
+- batch_mode;
+- workspace_assignment;
+- source_label;
+- status;
+- total_files;
+- eml_files_found;
+- parsed_successfully;
+- skipped;
+- failed;
+- unsupported;
+- warnings;
+- notes;
+- linked_case_id;
+- linked_assurance_signal_id;
+- linked_support_item_id;
+- original_archive_evidence_id;
+- created_at;
+- updated_at.
+
+Bulk evidence batch item records should preserve:
+
+- batch_item_id;
+- batch_id;
+- source_kind;
+- file_name;
+- source_path_in_archive;
+- file_size_bytes;
+- status;
+- note;
+- evidence_id;
+- thread_id;
+- message_id;
+- parse_status;
+- parse_error;
+- created_at;
+- updated_at.
+
+Bulk evidence batch modes should support:
+
+- selected-eml-files;
+- zip-of-emls;
+- pst-preservation;
+- manual-email-fallback.
+
+Bulk evidence batch status should support:
+
+- staged;
+- processing;
+- completed;
+- completed_with_warnings;
+- failed.
+
+Bulk evidence batch item status should support:
+
+- parsed;
+- skipped;
+- failed;
+- unsupported.
+
+Batch records may link to a case, assurance signal, or vessel support item where safe, but they must not imply automatic workflow mutation.
+
+The original ZIP may be preserved as evidence where safe, and extracted `.eml` files may be preserved or metadata-linked as evidence where safe.
+
+PST uploads are preservation evidence only and must not be modeled as parsed correspondence in this sprint.
+
+Imported email content is evidence of message content only; conclusions drawn from it must still be classified as Fact, Reported, Inference, or Assumption.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

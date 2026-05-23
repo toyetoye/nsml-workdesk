@@ -479,3 +479,40 @@ Notes:
 - The module preserves the distinction between fact, reported statement, inference, and assumption.
 - Sensitive or unverified governance signals must use neutral wording and must not be stored as fact unless supporting evidence is attached.
 - No email sending, Outlook integration, automatic escalation, political/sentiment scoring, disciplinary conclusions, unsupported allegations stored as facts, or anonymous comments treated as verified facts.
+
+## Sprint 016
+
+Complete.
+
+Delivered:
+
+- Bulk Outlook Evidence Intake workflow
+- `/import` Bulk Evidence Intake section
+- ZIP-of-EMLs server-side ingestion
+- PST preservation-only handling
+- manual pasted email fallback guidance
+- `yauzl`-based ZIP inspection and extraction
+- server-side extraction only
+- path traversal protection
+- absolute path rejection
+- `.eml`-only allowlist
+- unsupported file skipping
+- max ZIP size 50 MB
+- max EML files per batch 200
+- max single EML size 10 MB
+- max total extracted EML content 100 MB
+- batch statuses: `staged`, `processing`, `completed`, `completed_with_warnings`, `failed`
+- per-item statuses: `parsed`, `skipped`, `failed`, `unsupported`
+- batch summary counts
+- workspace assignment including Assurance
+- optional placeholder links to case, assurance signal, and vessel support item
+- original ZIP preserved as evidence where safe
+- extracted EMLs preserved or linked as evidence where safe
+- reuse of the existing Sprint 007 EML parser
+- reuse of the existing Sprint 008 deterministic threading spine
+
+Notes:
+
+- Bulk intake structures exported email evidence; it does not connect to Outlook, interpret the meaning of the emails, create conclusions, or decide accountability.
+- Imported email content is evidence of message content. Conclusions drawn from that content still require classification as Fact, Reported, Inference, or Assumption.
+- No Outlook integration, Microsoft Graph, IMAP/SMTP, live mailbox connection, email sending, PST parsing, bulk AI triage, automatic routing, automatic assurance conclusions, disciplinary findings, or sentiment/political scoring.

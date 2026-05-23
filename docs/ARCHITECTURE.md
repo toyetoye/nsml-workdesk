@@ -373,6 +373,28 @@ The assurance architecture is structured around:
 
 The assurance tracker must remain evidence-backed and neutral. It must not store unsupported allegations as facts, must not create disciplinary conclusions, and must not use political or sentiment scoring.
 
+## Sprint 016 Bulk Outlook Evidence Intake Architecture
+
+Sprint 016 adds a Bulk Evidence Intake surface under `/import` for exported Outlook evidence only.
+
+The bulk intake architecture is structured around:
+
+- a protected Bulk Evidence Intake section inside the existing import workflow;
+- manual pasted email fallback guidance for urgent records;
+- ZIP-of-EMLs server-side inspection and extraction using `yauzl` or an equivalent conservative ZIP reader;
+- `.eml`-only allowlisting with path traversal protection, absolute path rejection, and file-count / size limits;
+- preservation of the original ZIP as evidence where safe;
+- preservation or metadata linkage for extracted `.eml` files where safe;
+- reuse of the existing Sprint 007 EML parser for each extracted message;
+- reuse of the existing Sprint 008 deterministic threading logic for parsed correspondence;
+- batch-level and per-item status tracking for staged, processing, completed, completed_with_warnings, failed, parsed, skipped, unsupported, and failed states;
+- workspace assignment including Assurance;
+- optional links to a case, assurance signal, or vessel support item;
+- PST handling as preservation evidence only, not parsed in-app yet;
+- batch summary counts so the user can see what was found, parsed, skipped, failed, or unsupported.
+
+Bulk intake must remain exported-evidence handling only. It must not connect to Outlook, Microsoft Graph, IMAP, SMTP, or live mailbox services, and it must not render raw email HTML or fetch remote email assets.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.
@@ -383,3 +405,4 @@ Generated drafts are not safe to send until they pass red-team review. Draft gen
 Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.
 Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
 The assurance module is an evidence-backed governance and action tracker, not a political diary, and it must preserve the distinction between fact, reported statement, inference, and assumption.
+Imported email content is evidence of the message content. Conclusions drawn from imported content must still be classified as Fact, Reported, Inference, or Assumption.

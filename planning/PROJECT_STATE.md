@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 015 complete.
+Sprint 016 complete.
 
 ## Active sprint
 
-Sprint 016 - next approved sprint.
+Sprint 017 - next approved sprint.
 
 ## Confirmed decisions
 
@@ -73,6 +73,8 @@ Sprint 016 - next approved sprint.
 - Sprint 014 focuses on deployment execution support for the default Vercel + Supabase path and does not add new workflow capability.
 - Sprint 015 added the Vessel Support Assurance & Governance Signal Tracker, the `/assurance` protected route, Assurance navigation entry, Assurance Signals / Vessel Support Items / Vessel Engagement Log / Weekly Evidence Pack sections, assurance tables, evidence-level guardrails, neutral wording guidance, request-specifics flow, signal-to-support-item conversion only when sufficiently specific, safe support-item/case/evidence linking, and a deterministic weekly evidence pack with no AI generation.
 - Sprint 015 keeps the assurance module evidence-backed and action-tracking only; it does not allow unsupported allegations to be stored as facts, does not create disciplinary conclusions, and does not add email sending, Outlook integration, automatic escalation, political/sentiment scoring, or automatic AI conclusions.
+- Sprint 016 added Bulk Outlook Evidence Intake as a safe server-side ZIP-of-EMLs ingestion workflow under `/import`, with PST preservation-only handling, manual pasted email fallback guidance, batch summary/status tracking, optional case/assurance/support-item links, and reuse of the existing EML parser and deterministic threading spine.
+- Sprint 016 keeps bulk intake as exported evidence handling only; it does not connect to Outlook, Microsoft Graph, IMAP, SMTP, or live mailbox services, and it does not parse PST files in-app.
 
 ## Product rules
 
@@ -81,6 +83,8 @@ Sprint 016 - next approved sprint.
 - Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
 - Every workflow surface must make the next safe action clear while preserving the rule that external communication remains manual and user-controlled.
 - Production readiness must classify states honestly: ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
+- Bulk intake structures exported email evidence; it does not connect to Outlook, interpret the meaning of the emails, create conclusions, or decide accountability.
+- Imported email content is evidence of message content. Conclusions drawn from that content must still be classified as Fact, Reported, Inference, or Assumption.
 
 ## Next action
 
