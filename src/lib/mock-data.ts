@@ -118,7 +118,8 @@ export type ImportWorkspaceAssignment =
   | "LPG ALFRED TEMILE"
   | "LPG ALFRED TEMILE 10"
   | "Projects"
-  | "Other";
+  | "Other"
+  | "Assurance";
 
 export type ImportIntakeStatus =
   | "unclassified"
@@ -1597,6 +1598,7 @@ export const importWorkspaceAssignments: ImportWorkspaceAssignment[] = [
   "LPG ALFRED TEMILE 10",
   "Projects",
   "Other",
+  "Assurance",
 ];
 
 export const importIntakeStatuses: {

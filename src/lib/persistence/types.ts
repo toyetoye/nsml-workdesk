@@ -1,4 +1,5 @@
 import type { WritingStyleProfileSnapshot } from "@/lib/writing-style/profile";
+import type { ImportWorkspaceAssignment } from "@/lib/mock-data";
 import type {
   AssuranceBlockerType,
   AssuranceConfidence,
@@ -9,6 +10,12 @@ import type {
   AssuranceSignalStatus,
   AssuranceSupportCategory,
 } from "@/lib/assurance/types";
+import type {
+  BulkEvidenceBatchMode,
+  BulkEvidenceBatchStatus,
+  BulkEvidenceItemStatus,
+  BulkEvidenceSourceKind,
+} from "@/lib/bulk-evidence/types";
 
 export type Json =
   | string
@@ -536,6 +543,82 @@ export type ImportBatchInput = Partial<ImportBatchRow> & {
   status: string;
 };
 
+export type BulkEvidenceBatchRow = {
+  batch_id: string;
+  batch_mode: BulkEvidenceBatchMode;
+  workspace_assignment: ImportWorkspaceAssignment;
+  source_label: string;
+  status: BulkEvidenceBatchStatus;
+  total_files: number;
+  eml_files_found: number;
+  parsed_successfully: number;
+  skipped: number;
+  failed: number;
+  unsupported: number;
+  warnings: number;
+  notes: string;
+  linked_case_id: string | null;
+  linked_assurance_signal_id: string | null;
+  linked_support_item_id: string | null;
+  original_archive_evidence_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BulkEvidenceBatchItemRow = {
+  batch_item_id: string;
+  batch_id: string;
+  source_kind: BulkEvidenceSourceKind;
+  file_name: string;
+  source_path_in_archive: string | null;
+  file_size_bytes: number | null;
+  status: BulkEvidenceItemStatus;
+  note: string;
+  evidence_id: string | null;
+  thread_id: string | null;
+  message_id: string | null;
+  parse_status: string | null;
+  parse_error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BulkEvidenceBatchInput = Partial<BulkEvidenceBatchRow> & {
+  batch_id?: string;
+  batch_mode: BulkEvidenceBatchMode;
+  workspace_assignment: ImportWorkspaceAssignment;
+  source_label: string;
+  status: BulkEvidenceBatchStatus;
+  total_files?: number;
+  eml_files_found?: number;
+  parsed_successfully?: number;
+  skipped?: number;
+  failed?: number;
+  unsupported?: number;
+  warnings?: number;
+  notes?: string;
+  linked_case_id?: string | null;
+  linked_assurance_signal_id?: string | null;
+  linked_support_item_id?: string | null;
+  original_archive_evidence_id?: string | null;
+};
+
+export type BulkEvidenceBatchItemInput = Partial<BulkEvidenceBatchItemRow> & {
+  batch_item_id?: string;
+  batch_id: string;
+  source_kind: BulkEvidenceSourceKind;
+  file_name: string;
+  source_path_in_archive?: string | null;
+  file_size_bytes?: number | null;
+  status: BulkEvidenceItemStatus;
+  note?: string;
+  evidence_id?: string | null;
+  thread_id?: string | null;
+  message_id?: string | null;
+  parse_status?: string | null;
+  parse_error?: string | null;
+};
+
 export type AssuranceSignalInput = Partial<AssuranceSignalRow> & {
   assurance_signal_id?: string;
   evidence_links?: string[];
@@ -568,6 +651,8 @@ export interface Database {
       draft_red_team_reviews: Table<DraftRedTeamReviewRow>;
       writing_style_profiles: Table<WritingStyleProfileRow>;
       audit_logs: Table<AuditLogRow>;
+      bulk_evidence_batches: Table<BulkEvidenceBatchRow>;
+      bulk_evidence_batch_items: Table<BulkEvidenceBatchItemRow>;
       assurance_signals: Table<AssuranceSignalRow>;
       vessel_support_items: Table<VesselSupportItemRow>;
       vessel_engagement_logs: Table<VesselEngagementLogRow>;

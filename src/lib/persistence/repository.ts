@@ -19,6 +19,12 @@ import {
   vesselSupportItemSeedRows,
 } from "@/lib/assurance/mock-data";
 import { deriveInitialEvidenceParseStatus } from "@/lib/email-ingestion/shared";
+import type {
+  BulkEvidenceBatchInput,
+  BulkEvidenceBatchItemInput,
+  BulkEvidenceBatchItemRow,
+  BulkEvidenceBatchRow,
+} from "@/lib/persistence/types";
 import {
   defaultWritingStyleProfile,
   normalizeWritingStyleProfile,
@@ -77,6 +83,8 @@ type PersistenceStore = {
   assurance_signals: AssuranceSignalRow[];
   vessel_support_items: VesselSupportItemRow[];
   vessel_engagement_logs: VesselEngagementLogRow[];
+  bulk_evidence_batches: BulkEvidenceBatchRow[];
+  bulk_evidence_batch_items: BulkEvidenceBatchItemRow[];
 };
 
 type RepoQueryResult = {
@@ -370,6 +378,8 @@ function createFallbackStore(): PersistenceStore {
       },
     ],
     audit_logs: [],
+    bulk_evidence_batches: [],
+    bulk_evidence_batch_items: [],
     assurance_signals: assuranceSignalSeedRows.map((item) => ({ ...item })),
     vessel_support_items: vesselSupportItemSeedRows.map((item) => ({ ...item })),
     vessel_engagement_logs: vesselEngagementLogSeedRows.map((item) => ({ ...item })),
@@ -508,6 +518,138 @@ export async function saveImportBatch(input: ImportBatchInput) {
   }
 
   return { row: data as ImportBatchRow, persisted: true };
+}
+
+export async function listBulkEvidenceBatches() {
+  if (!isPersistenceAvailable()) {
+    return clone(fallbackStore.bulk_evidence_batches);
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("bulk_evidence_batches")
+    .select("*")
+    .order("updated_at", { ascending: false });
+
+  if (error || !data) {
+    return clone(fallbackStore.bulk_evidence_batches);
+  }
+
+  return data as BulkEvidenceBatchRow[];
+}
+
+export async function saveBulkEvidenceBatch(
+  input: BulkEvidenceBatchInput,
+): Promise<WriteResult<BulkEvidenceBatchRow>> {
+  const row: BulkEvidenceBatchRow = {
+    batch_id: input.batch_id ?? `bulk-batch-${randomUUID()}`,
+    batch_mode: input.batch_mode,
+    workspace_assignment: input.workspace_assignment,
+    source_label: input.source_label,
+    status: input.status,
+    total_files: input.total_files ?? 0,
+    eml_files_found: input.eml_files_found ?? 0,
+    parsed_successfully: input.parsed_successfully ?? 0,
+    skipped: input.skipped ?? 0,
+    failed: input.failed ?? 0,
+    unsupported: input.unsupported ?? 0,
+    warnings: input.warnings ?? 0,
+    notes: input.notes ?? "",
+    linked_case_id: input.linked_case_id ?? null,
+    linked_assurance_signal_id: input.linked_assurance_signal_id ?? null,
+    linked_support_item_id: input.linked_support_item_id ?? null,
+    original_archive_evidence_id: input.original_archive_evidence_id ?? null,
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.bulk_evidence_batches, "batch_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("bulk_evidence_batches")
+    .upsert(row)
+    .select()
+    .single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.bulk_evidence_batches, "batch_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as BulkEvidenceBatchRow, persisted: true };
+}
+
+export async function listBulkEvidenceBatchItems(batchId?: string) {
+  const fallback = batchId
+    ? fallbackStore.bulk_evidence_batch_items.filter((item) => item.batch_id === batchId)
+    : fallbackStore.bulk_evidence_batch_items;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  let query = client
+    .from("bulk_evidence_batch_items")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (batchId) {
+    query = query.eq("batch_id", batchId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as BulkEvidenceBatchItemRow[];
+}
+
+export async function saveBulkEvidenceBatchItem(
+  input: BulkEvidenceBatchItemInput,
+): Promise<WriteResult<BulkEvidenceBatchItemRow>> {
+  const row: BulkEvidenceBatchItemRow = {
+    batch_item_id: input.batch_item_id ?? `bulk-batch-item-${randomUUID()}`,
+    batch_id: input.batch_id,
+    source_kind: input.source_kind,
+    file_name: input.file_name,
+    source_path_in_archive: input.source_path_in_archive ?? null,
+    file_size_bytes: input.file_size_bytes ?? null,
+    status: input.status,
+    note: input.note ?? "",
+    evidence_id: input.evidence_id ?? null,
+    thread_id: input.thread_id ?? null,
+    message_id: input.message_id ?? null,
+    parse_status: input.parse_status ?? null,
+    parse_error: input.parse_error ?? null,
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.bulk_evidence_batch_items, "batch_item_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("bulk_evidence_batch_items")
+    .upsert(row)
+    .select()
+    .single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.bulk_evidence_batch_items, "batch_item_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as BulkEvidenceBatchItemRow, persisted: true };
 }
 
 export async function listIntakeItems() {
@@ -1608,6 +1750,8 @@ export function getMockWorkspaceSnapshots(): {
   correspondenceThreads: CorrespondenceThreadRow[];
   correspondenceMessages: CorrespondenceMessageRow[];
   timelineEvents: TimelineEventRow[];
+  bulkEvidenceBatches: BulkEvidenceBatchRow[];
+  bulkEvidenceBatchItems: BulkEvidenceBatchItemRow[];
   assuranceSignals: AssuranceSignalRow[];
   vesselSupportItems: VesselSupportItemRow[];
   vesselEngagementLogs: VesselEngagementLogRow[];
@@ -1621,6 +1765,8 @@ export function getMockWorkspaceSnapshots(): {
     correspondenceThreads: clone(fallbackStore.correspondence_threads),
     correspondenceMessages: clone(fallbackStore.correspondence_messages),
     timelineEvents: clone(fallbackStore.timeline_events),
+    bulkEvidenceBatches: clone(fallbackStore.bulk_evidence_batches),
+    bulkEvidenceBatchItems: clone(fallbackStore.bulk_evidence_batch_items),
     assuranceSignals: clone(fallbackStore.assurance_signals),
     vesselSupportItems: clone(fallbackStore.vessel_support_items),
     vesselEngagementLogs: clone(fallbackStore.vessel_engagement_logs),

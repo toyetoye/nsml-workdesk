@@ -303,7 +303,7 @@ export function ImportIntakeWorkbench({
   }
 
   return (
-    <section className="space-y-4">
+    <section id="manual-intake" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">

@@ -1,3 +1,4 @@
+import { BulkEvidenceIntakePanel } from "@/components/BulkEvidenceIntakePanel";
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
@@ -7,6 +8,8 @@ import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
 import { getActiveWritingStyleProfile } from "@/lib/persistence/repository";
 import {
+  listBulkEvidenceBatchItems,
+  listBulkEvidenceBatches,
   listCorrespondenceMessages,
   listCorrespondenceThreads,
   listEvidence,
@@ -19,12 +22,22 @@ import {
 } from "@/lib/workbench-data";
 
 export default async function ImportPage() {
-  const [intakeRows, evidenceRows, threadRows, messageRows, writingStyleProfile] = await Promise.all([
+  const [
+    intakeRows,
+    evidenceRows,
+    threadRows,
+    messageRows,
+    writingStyleProfile,
+    bulkBatches,
+    bulkBatchItems,
+  ] = await Promise.all([
     listIntakeItems(),
     listEvidence(),
     listCorrespondenceThreads(),
     listCorrespondenceMessages(),
     getActiveWritingStyleProfile(),
+    listBulkEvidenceBatches(),
+    listBulkEvidenceBatchItems(),
   ]);
   const initialItems = mapIntakeRowsToItems(intakeRows);
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
@@ -65,6 +78,15 @@ export default async function ImportPage() {
             ],
           },
         ]}
+      />
+
+      <BulkEvidenceIntakePanel
+        key={bulkBatches.map((batch) => batch.batch_id).join("|") || "bulk-batches-empty"}
+        initialBatches={bulkBatches}
+        initialBatchItems={bulkBatchItems}
+        persistenceEnabled={isPersistenceAvailable()}
+        evidenceStorageEnabled={hasEvidenceStorageConfig()}
+        manualIntakeHref="#manual-intake"
       />
 
       <ImportIntakeWorkbench

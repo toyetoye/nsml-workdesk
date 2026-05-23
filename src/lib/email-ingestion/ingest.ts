@@ -53,6 +53,10 @@ function resolveWorkspaceKey(workspaceAssignment: string) {
     return "projects";
   }
 
+  if (normalized.includes("assurance")) {
+    return "other";
+  }
+
   if (normalized.includes("other")) {
     return "other";
   }

@@ -4,6 +4,12 @@ import { requireWritableAccess } from "@/lib/auth-session";
 import { saveIntakeItem } from "@/lib/persistence/repository";
 import { buildIntakeItemFromSubmission, mapIntakeRowsToItems, type IntakeSubmission } from "@/lib/workbench-data";
 import type { IntakeItemRow } from "@/lib/persistence/types";
+import { processBulkEvidenceIntake } from "@/lib/bulk-evidence/processor";
+import type {
+  BulkEvidenceBatchMode,
+  BulkEvidenceBatchOutcome,
+} from "@/lib/bulk-evidence/types";
+import type { ImportWorkspaceAssignment } from "@/lib/mock-data";
 
 type SaveIntakeItemResult = {
   item: ReturnType<typeof buildIntakeItemFromSubmission>;
@@ -51,4 +57,43 @@ export async function saveIntakeItemAction(
     item: rowToItem(persistedRow.row),
     persisted: persistedRow.persisted,
   };
+}
+
+type BulkIntakeActionResult = BulkEvidenceBatchOutcome;
+
+function readString(formData: FormData, key: string, fallback = "") {
+  return String(formData.get(key) ?? fallback).trim();
+}
+
+function readFiles(formData: FormData) {
+  return formData
+    .getAll("files")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+}
+
+export async function processBulkEvidenceIntakeAction(
+  formData: FormData,
+): Promise<BulkIntakeActionResult> {
+  const redirectTarget = readString(formData, "redirectTo", "/import");
+  await requireWritableAccess(redirectTarget);
+
+  const files = readFiles(formData);
+  const batchMode = readString(formData, "batchMode", "zip-of-emls") as BulkEvidenceBatchMode;
+  const workspaceAssignment = readString(formData, "workspaceAssignment", "Import/Staging") as ImportWorkspaceAssignment;
+  const sourceLabel = readString(formData, "sourceLabel", "Bulk Outlook evidence intake");
+  const notes = readString(formData, "notes", "");
+  const linkedCaseId = readString(formData, "linkedCaseId", "") || null;
+  const linkedAssuranceSignalId = readString(formData, "linkedAssuranceSignalId", "") || null;
+  const linkedVesselSupportItemId = readString(formData, "linkedVesselSupportItemId", "") || null;
+
+  return await processBulkEvidenceIntake({
+    files,
+    batchMode,
+    workspaceAssignment,
+    sourceLabel,
+    notes,
+    linkedCaseId,
+    linkedAssuranceSignalId,
+    linkedVesselSupportItemId,
+  });
 }
