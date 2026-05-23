@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 014 in progress.
+Sprint 015 complete.
 
 ## Active sprint
 
-Sprint 014 - current sprint.
+Sprint 016 - next approved sprint.
 
 ## Confirmed decisions
 
@@ -71,6 +71,8 @@ Sprint 014 - current sprint.
 - Sprint 013 removed the remaining legacy Staff-OS routes, neutralized old route wording, and confirmed the production route surface is NSML-only.
 - Sprint 013 does not add new workflow capability; it is route-surface hygiene only.
 - Sprint 014 focuses on deployment execution support for the default Vercel + Supabase path and does not add new workflow capability.
+- Sprint 015 added the Vessel Support Assurance & Governance Signal Tracker, the `/assurance` protected route, Assurance navigation entry, Assurance Signals / Vessel Support Items / Vessel Engagement Log / Weekly Evidence Pack sections, assurance tables, evidence-level guardrails, neutral wording guidance, request-specifics flow, signal-to-support-item conversion only when sufficiently specific, safe support-item/case/evidence linking, and a deterministic weekly evidence pack with no AI generation.
+- Sprint 015 keeps the assurance module evidence-backed and action-tracking only; it does not allow unsupported allegations to be stored as facts, does not create disciplinary conclusions, and does not add email sending, Outlook integration, automatic escalation, political/sentiment scoring, or automatic AI conclusions.
 
 ## Product rules
 

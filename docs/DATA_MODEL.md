@@ -388,6 +388,89 @@ Draft records should preserve style trace payload metadata so the selected writi
 
 The writing-style profile must remain a bounded calibration layer. It must not override evidence, missing information, liability controls, or red-team review.
 
+## Sprint 015 Assurance Tracker
+
+The assurance layer stores structured governance and action-tracking records that remain evidence-backed and neutral.
+
+Assurance signal records should preserve:
+
+- id;
+- date_time;
+- signal_title;
+- signal_type;
+- source_type;
+- source_name_optional;
+- audience;
+- related_vessel_optional;
+- related_department;
+- summary;
+- exact_comment_optional;
+- evidence_level;
+- confidence;
+- operational_risk;
+- reputational_risk;
+- governance_risk;
+- required_action;
+- action_owner;
+- due_date;
+- status;
+- evidence_links;
+- notes;
+- linked_case_id;
+- created_at;
+- updated_at.
+
+Vessel support item records should preserve:
+
+- id;
+- vessel;
+- issue_title;
+- issue_description;
+- date_raised;
+- raised_by;
+- category;
+- priority;
+- risk_level;
+- superintendent_owner;
+- vessel_owner;
+- office_support_required;
+- current_status;
+- blocker_type;
+- last_action_taken;
+- last_contact_date;
+- next_action;
+- due_date;
+- close_out_evidence;
+- status;
+- evidence_links;
+- linked_case_id;
+- source_signal_id;
+- created_at;
+- updated_at.
+
+Vessel engagement log records should preserve:
+
+- id;
+- vessel;
+- date_time;
+- engagement_type;
+- attendees;
+- topics_discussed;
+- actions_agreed;
+- owner;
+- due_date;
+- follow_up_required;
+- evidence_link;
+- linked_case_id;
+- linked_signal_id;
+- linked_support_item_id;
+- created_at;
+- updated_at.
+
+Assurance records must preserve the distinction between fact, reported statement, inference, and assumption. `Fact` requires evidence links or equivalent source support. If a Fact is submitted without evidence support, the save path must downgrade it to Reported rather than storing unsupported allegations as fact.
+
+The weekly evidence pack should remain a deterministic structured view that composes existing assurance, support, and engagement records. It must not be AI-generated.
+
 ## Sprint 005 Access Gate and Safe Persistence Wiring
 
 The access gate uses a single-user app-password flow with a signed HTTP-only session cookie.

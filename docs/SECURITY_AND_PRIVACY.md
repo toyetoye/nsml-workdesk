@@ -42,3 +42,6 @@ NSML WorkDesk may contain sensitive operational correspondence.
 - The Next.js middleware/proxy migration warning should be treated as deployment backlog unless a low-risk fix is approved later.
 - Deployment must keep secrets in server-side environment variables only, never commit them, and never expose service role keys client-side.
 - Deployment preflight helpers may report readiness states, but they must not print secret values or imply readiness when fallback mode is active.
+- Assurance records must remain evidence-backed and neutral. Broad comments, anonymous feedback, or governance signals must not be stored as facts unless supporting evidence is attached.
+- The assurance tracker must preserve the distinction between fact, reported statement, inference, and assumption, and it must not use political or sentiment scoring, disciplinary conclusions, or accusatory language without direct evidence.
+- Fact downgrade logic must remain server-side so a Fact without evidence is saved as Reported rather than stored as unsupported fact.

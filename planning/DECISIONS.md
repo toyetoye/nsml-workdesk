@@ -185,3 +185,9 @@ Reason: First deployment should not expose confusing or unnecessary legacy surfa
 Decision: Sprint 014 focuses on deployment execution support for the default Vercel + Supabase path, including checklist, env clarity, and smoke-test guidance, rather than adding product capability.
 
 Reason: First deployment should be guided by explicit setup and verification steps, not by new workflow features or hidden assumptions about environment readiness.
+
+## D032 - Assurance tracker is evidence-backed
+
+Decision: Sprint 015 adds an assurance and governance signal tracker that must preserve the distinction between fact, reported statement, inference, and assumption, and must keep unverified governance language neutral unless evidence is attached.
+
+Reason: The product needs a disciplined way to convert broad support feedback and governance signals into tracked actions without becoming a political diary or storing unsupported allegations as facts.

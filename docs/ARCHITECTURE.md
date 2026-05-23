@@ -354,6 +354,25 @@ The deployment support layer is structured around:
 
 The deployment support layer must not print secrets, commit secrets, or expose service role keys. It is documentation and preflight guidance only.
 
+## Sprint 015 Assurance Tracker Architecture
+
+Sprint 015 adds an assurance and governance signal tracker that converts vessel support feedback, management concerns, engagement notes, and governance signals into evidence-backed records and tracked actions.
+
+The assurance architecture is structured around:
+
+- a protected `/assurance` route and navigation entry;
+- Assurance Signals, Vessel Support Items, Vessel Engagement Log, and Weekly Evidence Pack sections;
+- three new assurance tables for signals, support items, and engagement logs;
+- evidence-level guardrails that distinguish fact, reported statement, inference, and assumption;
+- a server-side downgrade from Fact to Reported when no evidence link or equivalent support is attached;
+- neutral wording guidance for unverified governance signals;
+- a request-specifics workflow for broad feedback;
+- signal-to-support-item conversion only when the signal is sufficiently specific;
+- support-item, case, and evidence links where safe;
+- a deterministic weekly evidence pack that composes structured summaries from existing records without AI generation.
+
+The assurance tracker must remain evidence-backed and neutral. It must not store unsupported allegations as facts, must not create disciplinary conclusions, and must not use political or sentiment scoring.
+
 ## Future Architecture Notes
 
 AI must work through structured outputs.
@@ -363,3 +382,4 @@ AI outputs must remain separate from original evidence.
 Generated drafts are not safe to send until they pass red-team review. Draft generation may prepare wording, but it cannot approve, send, or mark a response ready.
 Red-team review must check unsupported claims, liability exposure, technical risk, tone risk, evidence gaps, missing information, confidentiality concerns, and required user checks before copy is enabled.
 Writing style can shape tone, greeting, closing, brevity, stakeholder framing, and phrase choice, but it cannot override evidence, safety, missing information, liability controls, or red-team review.
+The assurance module is an evidence-backed governance and action tracker, not a political diary, and it must preserve the distinction between fact, reported statement, inference, and assumption.

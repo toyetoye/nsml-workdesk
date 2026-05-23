@@ -257,3 +257,18 @@ Deployment execution reminders:
 - Do not commit secrets.
 - Do not expose the service role key client-side.
 - Keep the middleware warning on the backlog unless a later low-risk fix is approved.
+
+## Sprint 015 Assurance Deployment Notes
+
+Sprint 015 adds the assurance and governance signal tracker but does not require new deployment capability beyond the existing protected app surface and persistence foundation.
+
+Deployment notes for assurance:
+
+- `/assurance` is a protected route and should remain behind the existing access gate.
+- The Assurance navigation entry should remain visible only in the protected app surface.
+- The new assurance tables must be included in the migration order alongside the rest of the Supabase schema.
+- The weekly evidence pack is deterministic and does not require AI configuration.
+- Evidence-level guardrails should remain active in production so Fact cannot be stored without evidence support.
+- Sensitive or unverified governance signals must remain neutral and must not be treated as verified facts.
+- No email sending, Outlook integration, automatic escalation, political scoring, sentiment scoring, or disciplinary conclusions should be exposed at deployment time.
+- The route surface should stay NSML-only and protected routes must continue to fail closed if access-gate env vars are missing.

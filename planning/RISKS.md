@@ -221,3 +221,9 @@ Mitigation: Keep the checklist aligned with the repo defaults, keep the prefligh
 Risk: Deployment helpers or docs could accidentally print or imply secret values.
 
 Mitigation: Keep deployment helpers state-only, never print secrets, keep service role keys server-side, and document that secrets live only in deployment environment variables.
+
+## R037 - Assurance misclassification
+
+Risk: Broad comments or informal governance signals could be stored as facts or turn into accusatory records.
+
+Mitigation: Require an evidence level on every assurance signal, downgrade Fact to Reported when no evidence link is attached, keep neutral wording for unverified governance signals, and avoid disciplinary or political conclusions.

@@ -386,7 +386,7 @@ Notes:
 
 ## Sprint 012
 
-In progress.
+Complete.
 
 Focus:
 
@@ -396,7 +396,7 @@ Focus:
 - honest ready / disabled / fallback / misconfigured classification;
 - no new workflow surface.
 
-Delivered / in progress:
+Delivered:
 
 - server-side production readiness helper
 - explicit production setup checklist
@@ -431,7 +431,7 @@ Notes:
 
 ## Sprint 014
 
-In progress.
+Complete.
 
 Focus:
 
@@ -446,3 +446,36 @@ Notes:
 - Keep secrets in deployment environment variables only.
 - Keep deployment support honest: ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
 - No new AI capability, parsing capability, Outlook integration, email sending, live mailbox connection, automatic routing, automatic case/status mutation, or multi-user roles.
+
+## Sprint 015
+
+Complete.
+
+Delivered:
+
+- Vessel Support Assurance & Governance Signal Tracker
+- `/assurance` protected route
+- Assurance navigation entry
+- Assurance Signals section
+- Vessel Support Items section
+- Vessel Engagement Log section
+- Weekly Evidence Pack section
+- `assurance_signals` table
+- `vessel_support_items` table
+- `vessel_engagement_logs` table
+- evidence-level guardrails
+- evidence levels: Fact, Reported, Inference, Assumption
+- server-side downgrade from Fact to Reported when no evidence is attached
+- neutral wording guidance for unverified governance signals
+- request-specifics workflow for broad feedback
+- signal-to-support-item conversion only when sufficiently specific
+- support item link to source signal
+- support item / case / evidence linking where safe
+- deterministic weekly evidence pack with no AI generation
+
+Notes:
+
+- The assurance module is an evidence-backed governance and action tracker, not a political diary.
+- The module preserves the distinction between fact, reported statement, inference, and assumption.
+- Sensitive or unverified governance signals must use neutral wording and must not be stored as fact unless supporting evidence is attached.
+- No email sending, Outlook integration, automatic escalation, political/sentiment scoring, disciplinary conclusions, unsupported allegations stored as facts, or anonymous comments treated as verified facts.
