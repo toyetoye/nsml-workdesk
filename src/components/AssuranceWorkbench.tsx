@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { saveAssuranceSignalAction, saveVesselEngagementLogAction, saveVesselSupportItemAction } from "@/app/(protected)/assurance/actions";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   assuranceConfidenceOptions,
@@ -1112,14 +1113,13 @@ export function AssuranceWorkbench({
           </div>
 
           <aside className="space-y-4">
-            <section className="card p-4">
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                Support item guidance
-              </p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                A support item is where the broad feedback becomes a vessel-specific tracked
-                action. Keep the wording neutral and avoid turning the signal into an allegation.
-              </p>
+            <CollapsibleSection
+              title="Support item guidance"
+              description="A support item is where the broad feedback becomes a vessel-specific tracked action. Keep the wording neutral and avoid turning the signal into an allegation."
+              defaultOpen={false}
+              className="overflow-hidden"
+              bodyClassName="p-4 pt-0"
+            >
               <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700">
                 <p className="font-semibold text-slate-900">Required specificity before action</p>
                 <p className="mt-1">
@@ -1127,12 +1127,15 @@ export function AssuranceWorkbench({
                   response, current status, and required close-out.
                 </p>
               </div>
-            </section>
+            </CollapsibleSection>
 
-            <section className="card p-4">
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                New support item
-              </p>
+            <CollapsibleSection
+              title="New support item"
+              description="Convert verified issues into a vessel-specific tracked action."
+              defaultOpen={false}
+              className="overflow-hidden"
+              bodyClassName="p-4 pt-0"
+            >
               <div className="mt-3 space-y-3">
                 <TextField
                   label="Vessel"
@@ -1309,7 +1312,7 @@ export function AssuranceWorkbench({
                   {savingSupport ? "Saving..." : "Save support item"}
                 </button>
               </div>
-            </section>
+            </CollapsibleSection>
           </aside>
         </section>
       ) : null}
@@ -1379,20 +1382,26 @@ export function AssuranceWorkbench({
           </div>
 
           <aside className="space-y-4">
-            <section className="card p-4">
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                Engagement log guidance
-              </p>
+            <CollapsibleSection
+              title="Engagement log guidance"
+              description="The log is a factual record of what was discussed and what was agreed. Keep it short, structured, and tied to evidence when possible."
+              defaultOpen={false}
+              className="overflow-hidden"
+              bodyClassName="p-4 pt-0"
+            >
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 The log is a factual record of what was discussed and what was agreed. Keep it
                 short, structured, and tied to evidence when possible.
               </p>
-            </section>
+            </CollapsibleSection>
 
-            <section className="card p-4">
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                New engagement log
-              </p>
+            <CollapsibleSection
+              title="New engagement log"
+              description="Capture calls, meetings, visits, or coordination notes so the support trail stays visible."
+              defaultOpen={false}
+              className="overflow-hidden"
+              bodyClassName="p-4 pt-0"
+            >
               <div className="mt-3 space-y-3">
                 <TextField
                   label="Vessel"
@@ -1516,7 +1525,7 @@ export function AssuranceWorkbench({
                   {savingEngagement ? "Saving..." : "Save engagement log"}
                 </button>
               </div>
-            </section>
+            </CollapsibleSection>
           </aside>
         </section>
       ) : null}

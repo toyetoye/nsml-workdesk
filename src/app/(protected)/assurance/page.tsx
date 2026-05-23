@@ -1,4 +1,5 @@
 import { AssuranceWorkbench } from "@/components/AssuranceWorkbench";
+import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
 import { listAssuranceSignals, listCases, listEvidence, listVesselEngagementLogs, listVesselSupportItems } from "@/lib/persistence/repository";
@@ -17,10 +18,31 @@ export default async function AssurancePage() {
 
   return (
     <section className="space-y-6">
+      <StickyPageHeader
+        eyebrow="Assurance"
+        title="Vessel assurance and governance tracker"
+        description="Capture support feedback, vessel comments, audit notes, and governance signals as evidence-backed records. Keep the language neutral, track the actions, and avoid turning reported concerns into unsupported facts."
+        context="Signals → Support Items → Engagements → Weekly Pack"
+        primaryAction={{ href: "/import", label: "Open Import" }}
+        secondaryActions={[
+          { href: "/cases", label: "Cases" },
+          { href: "/drafts", label: "Drafts" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+        quickLinks={[
+          { href: "/import", label: "Import" },
+          { href: "/cases", label: "Cases" },
+          { href: "/drafts", label: "Drafts" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+      />
+
       <WorkflowChecklist
         title="Assurance workflow"
         description="Capture the signal, attach evidence, convert broad feedback into vessel support items, and keep the weekly pack factual."
         note="Fact requires evidence links"
+        collapsible
+        defaultOpen={false}
         items={[
           {
             title: "Capture the assurance signal",

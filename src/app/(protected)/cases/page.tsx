@@ -1,4 +1,5 @@
 import { CaseManagementWorkbench } from "@/components/CaseManagementWorkbench";
+import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
@@ -36,10 +37,31 @@ export default async function CasesPage() {
 
   return (
     <section className="space-y-6">
+      <StickyPageHeader
+        eyebrow="Cases"
+        title="Case management workbench"
+        description="A case is the working unit. Evidence and correspondence support the case while the operational work happens here."
+        context="Structure → Link → Decide → Draft → Review"
+        primaryAction={{ href: "/drafts", label: "Open Drafts" }}
+        secondaryActions={[
+          { href: "/import", label: "Import" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+        quickLinks={[
+          { href: "/import", label: "Import" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/drafts", label: "Drafts" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+      />
+
       <WorkflowChecklist
         title="Case workflow"
         description="Cases are where the work is managed. Attach evidence, inspect linked correspondence, and only then prepare or review drafts."
         note="Drafts remain pending red-team"
+        collapsible
+        defaultOpen={false}
         items={[
           {
             title: "Open the case",

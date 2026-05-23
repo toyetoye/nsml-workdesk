@@ -1,4 +1,5 @@
 import { getAiConfigStatus } from "@/lib/ai/config";
+import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { getActiveWritingStyleProfile } from "@/lib/persistence/repository";
 import {
@@ -24,10 +25,31 @@ export default async function DraftsPage() {
 
   return (
     <section className="space-y-6">
+      <StickyPageHeader
+        eyebrow="Drafts"
+        title="Draft workbench"
+        description="Drafts are generated replies only. They stay pending red-team review until a review verdict says they can be copied."
+        context="Draft pending red-team → Passed → Needs evidence → Rejected"
+        primaryAction={{ href: "/cases", label: "Open Cases" }}
+        secondaryActions={[
+          { href: "/import", label: "Import" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+        quickLinks={[
+          { href: "/cases", label: "Cases" },
+          { href: "/import", label: "Import" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+      />
+
       <WorkflowChecklist
         title="Draft workflow"
         description="Generate a draft, run red-team review, then copy the reviewed text only when it is safe to do so."
         note="Copy remains disabled until safe_to_copy"
+        collapsible
+        defaultOpen={false}
         items={[
           {
             title: "Review the generated draft",

@@ -34,6 +34,7 @@ import {
   type StatusTone,
 } from "@/lib/mock-data";
 import { saveCaseAction } from "@/app/(protected)/cases/actions";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { generateCaseDraftAction, triageCaseAction } from "@/app/(protected)/ai/actions";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { DraftResultPanel } from "@/components/DraftResultPanel";
@@ -623,20 +624,19 @@ export function CaseManagementWorkbench({
                   </div>
                 </div>
 
-                <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Create from intake item
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    This is a reference placeholder only. Real intake-to-case connection comes
-                    later.
-                  </p>
+                <CollapsibleSection
+                  title="Create from intake item"
+                  description="This is a reference placeholder only. Real intake-to-case connection comes later."
+                  defaultOpen={false}
+                  className="overflow-hidden"
+                  bodyClassName="p-3 pt-0"
+                >
                   <div className="mt-3">
                     <button type="button" className="btn-secondary w-full" disabled>
                       Create from intake item
                     </button>
                   </div>
-                </div>
+                </CollapsibleSection>
               </div>
 
               <div className="mt-4">
@@ -728,14 +728,15 @@ export function CaseManagementWorkbench({
               </div>
 
               <div className="mt-4 grid gap-4 xl:grid-cols-2">
-                <section className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Paperclip aria-hidden className="text-teal-700" size={18} />
-                      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                        Linked evidence
-                      </h3>
-                    </div>
+                <CollapsibleSection
+                  title="Linked evidence"
+                  description="Evidence linked to the selected case stays visible here."
+                  defaultOpen={false}
+                  summaryBadge={<Paperclip aria-hidden className="text-teal-700" size={18} />}
+                  className="overflow-hidden"
+                  bodyClassName="p-3 pt-0"
+                >
+                  <div className="flex items-center justify-end gap-2">
                     <button
                       type="button"
                       className="btn-secondary px-3 py-2 text-sm"
@@ -832,15 +833,16 @@ export function CaseManagementWorkbench({
                       />
                     )}
                   </div>
-                </section>
+                </CollapsibleSection>
 
-                <section className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                  <div className="flex items-center gap-2">
-                    <Link2 aria-hidden className="text-teal-700" size={18} />
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                      Linked correspondence
-                    </h3>
-                  </div>
+                <CollapsibleSection
+                  title="Linked correspondence"
+                  description="Imported correspondence linked to this case stays visible as evidence context."
+                  defaultOpen={false}
+                  summaryBadge={<Link2 aria-hidden className="text-teal-700" size={18} />}
+                  className="overflow-hidden"
+                  bodyClassName="p-3 pt-0"
+                >
                   <p className="mt-2 text-sm leading-6 text-slate-600">
                     Imported correspondence linked to this case stays visible as evidence context.
                   </p>
@@ -893,7 +895,7 @@ export function CaseManagementWorkbench({
                       />
                     )}
                   </div>
-                </section>
+                </CollapsibleSection>
               </div>
 
               {attachOpen && selectedCase ? (
@@ -930,33 +932,35 @@ export function CaseManagementWorkbench({
                 </div>
               ) : null}
 
-              <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
-                <div className="flex items-center gap-2">
-                  <Activity aria-hidden className="text-teal-700" size={18} />
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    Timeline / activity
-                  </h3>
-                </div>
-
-                <div className="mt-3 space-y-2">
-                  {selectedCase.timelineEvents.map((event) => (
-                    <article
-                      key={event.id}
-                      className="rounded-md border border-slate-200 bg-white p-3"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-bold text-slate-950">{event.title}</p>
-                            <StatusBadge tone={event.tone}>{event.tone}</StatusBadge>
+              <div className="mt-4">
+                <CollapsibleSection
+                  title="Timeline / activity"
+                  description="Case timeline and activity notes stay available here without crowding the main case summary."
+                  defaultOpen={false}
+                  summaryBadge={<Activity aria-hidden className="text-teal-700" size={18} />}
+                  className="overflow-hidden"
+                  bodyClassName="p-3 pt-0"
+                >
+                  <div className="mt-3 space-y-2">
+                    {selectedCase.timelineEvents.map((event) => (
+                      <article
+                        key={event.id}
+                        className="rounded-md border border-slate-200 bg-white p-3"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-bold text-slate-950">{event.title}</p>
+                              <StatusBadge tone={event.tone}>{event.tone}</StatusBadge>
+                            </div>
+                            <p className="mt-1 text-sm leading-6 text-slate-600">{event.note}</p>
                           </div>
-                          <p className="mt-1 text-sm leading-6 text-slate-600">{event.note}</p>
+                          <span className="text-xs text-slate-500">{event.dateTime}</span>
                         </div>
-                        <span className="text-xs text-slate-500">{event.dateTime}</span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                      </article>
+                    ))}
+                  </div>
+                </CollapsibleSection>
               </div>
 
               <div className="mt-4 grid gap-3 lg:grid-cols-2">

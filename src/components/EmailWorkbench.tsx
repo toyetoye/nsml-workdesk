@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Building2,
   CalendarDays,
-  Filter,
   FolderOpen,
   LockKeyhole,
   Mail,
@@ -16,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { generateThreadDraftAction, triageThreadAction } from "@/app/(protected)/ai/actions";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 import {
   allWorkspaces,
   importedEmailThreads,
@@ -419,24 +419,18 @@ export function EmailWorkbench({
         Workspace: {currentWorkspaceLabel}
       </div>
 
-      <div className="rounded-md border border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Filter aria-hidden className="text-teal-700" size={18} />
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Filters</p>
-              <p className="mt-1 text-xs text-slate-500">
-                Threading remains deterministic. Unclear matches stay separate and may be surfaced as
-                possible related.
-              </p>
-            </div>
-          </div>
-
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <CollapsibleSection
+        title="Filters"
+        description="Threading remains deterministic. Unclear matches stay separate and may be surfaced as possible related."
+        defaultOpen={false}
+        summaryBadge={
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             {filteredThreads.length} thread{filteredThreads.length === 1 ? "" : "s"}
-          </div>
-        </div>
-
+          </span>
+        }
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
         <div className="mt-4 grid gap-3 lg:grid-cols-3 xl:grid-cols-6">
           {scope === "import" ? (
             <Field label="Workspace">
@@ -524,24 +518,17 @@ export function EmailWorkbench({
             />
           </Field>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {archiveSurfaceVisible ? (
-        <div className="card border border-dashed border-slate-300 bg-slate-50 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                Archive / bulk import planning
-              </p>
-              <h3 className="mt-1 text-xl font-bold text-slate-950">ZIP / PST / archive import</h3>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                Archive extraction is future work. This placeholder keeps the pathway visible without
-                implying that ZIP, PST, or archive ingestion is already enabled.
-              </p>
-            </div>
-            <Archive aria-hidden className="text-slate-400" size={20} />
-          </div>
-
+        <CollapsibleSection
+          title="Archive / bulk import planning"
+          description="Archive extraction is future work. This placeholder keeps the pathway visible without implying that ZIP, PST, or archive ingestion is already enabled."
+          defaultOpen={false}
+          summaryBadge={<Archive aria-hidden className="text-slate-400" size={20} />}
+          className="overflow-hidden"
+          bodyClassName="p-4 pt-0"
+        >
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <button type="button" className="btn-secondary" disabled>
               Prepare archive import
@@ -551,7 +538,7 @@ export function EmailWorkbench({
             </button>
             <span className="text-xs text-slate-500">Disabled until archive extraction is approved.</span>
           </div>
-        </div>
+        </CollapsibleSection>
       ) : null}
 
       {!filteredThreads.length || !selectedThread ? (
@@ -915,21 +902,18 @@ export function EmailWorkbench({
               />
             </section>
 
-            <section className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Possible related
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    Conservative subject and sender matching only. Unclear matches stay separate.
-                  </p>
-                </div>
+            <CollapsibleSection
+              title="Possible related"
+              description="Conservative subject and sender matching only. Unclear matches stay separate."
+              defaultOpen={false}
+              summaryBadge={
                 <StatusBadge tone="neutral">
                   {possibleRelatedThreads.length} match{possibleRelatedThreads.length === 1 ? "" : "es"}
                 </StatusBadge>
-              </div>
-
+              }
+              className="overflow-hidden mt-5"
+              bodyClassName="p-3 pt-0"
+            >
               <div className="mt-3 space-y-2">
                 {possibleRelatedThreads.length > 0 ? (
                   possibleRelatedThreads.map((thread) => (
@@ -959,7 +943,7 @@ export function EmailWorkbench({
                   </div>
                 )}
               </div>
-            </section>
+            </CollapsibleSection>
           </article>
         </div>
       )}

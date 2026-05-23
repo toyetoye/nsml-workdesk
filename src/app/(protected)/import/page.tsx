@@ -2,6 +2,8 @@ import { BulkEvidenceIntakePanel } from "@/components/BulkEvidenceIntakePanel";
 import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
@@ -46,10 +48,31 @@ export default async function ImportPage() {
 
   return (
     <section className="space-y-6">
+      <StickyPageHeader
+        eyebrow="Import"
+        title="Capture and intake"
+        description="Start with capture, then structure imported material, link it to the right workstream, and keep the next safe action obvious."
+        context="Capture → Structure → Link"
+        primaryAction={{ href: "#capture", label: "Capture" }}
+        secondaryActions={[
+          { href: "/cases", label: "Cases" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/drafts", label: "Drafts" },
+        ]}
+        quickLinks={[
+          { href: "#capture", label: "Capture" },
+          { href: "#bulk-import", label: "Bulk Import" },
+          { href: "#parsed-threads", label: "Review Parsed Threads" },
+          { href: "#route-link", label: "Route / Link" },
+        ]}
+      />
+
       <WorkflowChecklist
         title="Import flow"
         description="Start with intake, stage evidence, then decide whether the item belongs in correspondence, a case, or a draft path."
         note="AI and persistence may fall back"
+        collapsible
+        defaultOpen={false}
         items={[
           {
             title: "Stage the item",
@@ -80,42 +103,64 @@ export default async function ImportPage() {
         ]}
       />
 
-      <BulkEvidenceIntakePanel
-        key={bulkBatches.map((batch) => batch.batch_id).join("|") || "bulk-batches-empty"}
-        initialBatches={bulkBatches}
-        initialBatchItems={bulkBatchItems}
-        persistenceEnabled={isPersistenceAvailable()}
-        evidenceStorageEnabled={hasEvidenceStorageConfig()}
-        manualIntakeHref="#manual-intake"
-      />
+      <section id="capture" className="space-y-4">
+        <ImportIntakeWorkbench
+          initialItems={initialItems}
+          initialEvidence={initialEvidence}
+          persistenceEnabled={isPersistenceAvailable()}
+          aiConfig={aiConfig}
+          writingStyleProfileName={writingStyleProfile.profile_name}
+        />
+      </section>
 
-      <ImportIntakeWorkbench
-        initialItems={initialItems}
-        initialEvidence={initialEvidence}
-        persistenceEnabled={isPersistenceAvailable()}
-        aiConfig={aiConfig}
-        writingStyleProfileName={writingStyleProfile.profile_name}
-      />
+      <section id="bulk-import">
+        <BulkEvidenceIntakePanel
+          key={bulkBatches.map((batch) => batch.batch_id).join("|") || "bulk-batches-empty"}
+          initialBatches={bulkBatches}
+          initialBatchItems={bulkBatchItems}
+          persistenceEnabled={isPersistenceAvailable()}
+          evidenceStorageEnabled={hasEvidenceStorageConfig()}
+          manualIntakeHref="#manual-intake"
+        />
+      </section>
 
-      <EvidenceStorageWorkbench
-        initialEvidence={initialEvidence}
-        persistenceEnabled={isPersistenceAvailable()}
-        parsingEnabled={hasEvidenceStorageConfig()}
-        mode="import"
-        defaultWorkspaceAssignment="Import/Staging"
-      />
+      <CollapsibleSection
+        title="Evidence storage"
+        description="Private file storage and parsing placeholders remain visible here when you need to stage or inspect evidence."
+        defaultOpen={false}
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
+        <EvidenceStorageWorkbench
+          initialEvidence={initialEvidence}
+          persistenceEnabled={isPersistenceAvailable()}
+          parsingEnabled={hasEvidenceStorageConfig()}
+          mode="import"
+          defaultWorkspaceAssignment="Import/Staging"
+        />
+      </CollapsibleSection>
 
-      <EmailWorkbench
-        scope="import"
-        sectionLabel="Imported Correspondence Viewer"
-        sectionDescription="Imported and unclassified threads appear here for review after intake. This is a correspondence viewer, not a mail client."
-        emptyStateTitle="No imported threads yet"
-        emptyStateMessage="Imported correspondence waiting for classification will appear here after it enters staging."
-        parsedThreads={parsedThreads}
-        sourceEvidenceRecords={initialEvidence}
-        aiConfig={aiConfig}
-        triageRedirectTo="/import"
-      />
+      <section id="parsed-threads">
+        <CollapsibleSection
+          title="Review Parsed Threads"
+          description="Imported and unclassified threads appear here for review after intake. This is a correspondence viewer, not a mail client."
+          defaultOpen={false}
+          className="overflow-hidden"
+          bodyClassName="p-4 pt-0"
+        >
+          <EmailWorkbench
+            scope="import"
+            sectionLabel="Imported Correspondence Viewer"
+            sectionDescription="Imported and unclassified threads appear here for review after intake. This is a correspondence viewer, not a mail client."
+            emptyStateTitle="No imported threads yet"
+            emptyStateMessage="Imported correspondence waiting for classification will appear here after it enters staging."
+            parsedThreads={parsedThreads}
+            sourceEvidenceRecords={initialEvidence}
+            aiConfig={aiConfig}
+            triageRedirectTo="/import"
+          />
+        </CollapsibleSection>
+      </section>
     </section>
   );
 }

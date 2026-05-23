@@ -113,6 +113,43 @@ function copyableLabel(review?: DraftRedTeamReviewRow | null) {
   return review?.safe_to_copy ? "Copy reviewed draft" : "Copy reviewed draft";
 }
 
+type DraftView = "pending_red_team" | "passed" | "needs_evidence" | "rejected";
+
+function draftViewForDraft(
+  draft: DraftResponsePlaceholderRow,
+  review?: DraftRedTeamReviewRow | null,
+): DraftView {
+  if (!review) {
+    return "pending_red_team";
+  }
+
+  if (review.verdict === "pass" || review.verdict === "pass_with_caution") {
+    return "passed";
+  }
+
+  if (review.verdict === "needs_more_evidence" || draft.status === "needs_evidence") {
+    return "needs_evidence";
+  }
+
+  return "rejected";
+}
+
+function draftViewLabel(view: DraftView) {
+  if (view === "pending_red_team") {
+    return "Pending Red-Team";
+  }
+
+  if (view === "passed") {
+    return "Passed";
+  }
+
+  if (view === "needs_evidence") {
+    return "Needs Evidence";
+  }
+
+  return "Rejected";
+}
+
 export function DraftsWorkbench({
   drafts,
   initialReviews,
@@ -134,6 +171,7 @@ export function DraftsWorkbench({
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewNotice, setReviewNotice] = useState<string | null>(null);
   const [copyNoticeByDraftId, setCopyNoticeByDraftId] = useState<Record<string, string>>({});
+  const [activeView, setActiveView] = useState<DraftView>("pending_red_team");
 
   const sortedDrafts = useMemo(
     () =>
@@ -142,6 +180,15 @@ export function DraftsWorkbench({
           new Date(right.created_at).getTime() - new Date(left.created_at).getTime(),
       ),
     [draftRows],
+  );
+
+  const filteredDrafts = useMemo(
+    () =>
+      sortedDrafts.filter((draft) => {
+        const review = reviewsByDraftId[draft.draft_id] ?? null;
+        return draftViewForDraft(draft, review) === activeView;
+      }),
+    [activeView, reviewsByDraftId, sortedDrafts],
   );
 
   const reviewMap = useMemo(
@@ -160,6 +207,12 @@ export function DraftsWorkbench({
   const evidenceCount = sortedDrafts.filter(
     (item) => reviewMap.get(item.draft_id)?.verdict === "needs_more_evidence",
   ).length;
+  const viewCounts: Record<DraftView, number> = {
+    pending_red_team: sortedDrafts.filter((item) => draftViewForDraft(item, reviewMap.get(item.draft_id) ?? null) === "pending_red_team").length,
+    passed: sortedDrafts.filter((item) => draftViewForDraft(item, reviewMap.get(item.draft_id) ?? null) === "passed").length,
+    needs_evidence: sortedDrafts.filter((item) => draftViewForDraft(item, reviewMap.get(item.draft_id) ?? null) === "needs_evidence").length,
+    rejected: sortedDrafts.filter((item) => draftViewForDraft(item, reviewMap.get(item.draft_id) ?? null) === "rejected").length,
+  };
 
   async function handleRunReview(draft: DraftResponsePlaceholderRow) {
     if (!aiConfig.enabled || reviewTargetId === draft.draft_id) {
@@ -285,9 +338,29 @@ export function DraftsWorkbench({
         </div>
       ) : null}
 
-      {sortedDrafts.length > 0 ? (
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(viewCounts) as DraftView[]).map((view) => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => setActiveView(view)}
+            className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition ${
+              activeView === view
+                ? "border-teal-300 bg-teal-50 text-teal-900"
+                : "border-slate-200 bg-white text-slate-700 hover:border-teal-200 hover:text-teal-800"
+            }`}
+          >
+            {draftViewLabel(view)}
+            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600">
+              {viewCounts[view]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {filteredDrafts.length > 0 ? (
         <div className="space-y-3">
-          {sortedDrafts.map((draft) => {
+          {filteredDrafts.map((draft) => {
             const review = reviewMap.get(draft.draft_id) ?? null;
             const safeToCopy = review?.safe_to_copy ?? false;
 
@@ -490,7 +563,18 @@ export function DraftsWorkbench({
           })}
         </div>
       ) : (
-        <EmptyDrafts />
+        <EmptyDrafts
+          title={
+            sortedDrafts.length > 0
+              ? `No ${draftViewLabel(activeView).toLowerCase()} drafts`
+              : "No generated drafts yet"
+          }
+          message={
+            sortedDrafts.length > 0
+              ? `Try a different draft status or return to source material if this view needs more evidence.`
+              : "Generate a draft from import, correspondence, or case workbench to create a not-ready draft record. Session-only drafts will appear here when persistence is unavailable."
+          }
+        />
       )}
     </section>
   );
@@ -517,7 +601,7 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EmptyDrafts() {
+function EmptyDrafts({ title, message }: { title: string; message: string }) {
   return (
     <div className="card p-5">
       <div className="flex items-start gap-4">
@@ -526,13 +610,10 @@ function EmptyDrafts() {
         </div>
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-            No generated drafts yet
+            {title}
           </p>
           <h2 className="mt-2 text-xl font-bold text-slate-950">Draft records will appear here</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Generate a draft from import, correspondence, or case workbench to create a not-ready
-            draft record. Session-only drafts will appear here when persistence is unavailable.
-          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{message}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link href="/import" className="btn-secondary">
               Open Import

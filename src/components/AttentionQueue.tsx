@@ -35,6 +35,7 @@ export function AttentionQueue({
   emptyStateTitle,
   emptyStateMessage,
   groupedByWaitingOnType = false,
+  bare = false,
 }: {
   title: string;
   description: string;
@@ -42,6 +43,7 @@ export function AttentionQueue({
   emptyStateTitle: string;
   emptyStateMessage: string;
   groupedByWaitingOnType?: boolean;
+  bare?: boolean;
 }) {
   if (groupedByWaitingOnType) {
     const grouped = {
@@ -52,7 +54,7 @@ export function AttentionQueue({
     };
 
     return (
-      <section className="card p-4">
+      <section className={bare ? "space-y-4" : "card p-4"}>
         <SectionHeader title={title} description={description} />
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -84,7 +86,7 @@ export function AttentionQueue({
   }
 
   return (
-    <section className="card p-4">
+    <section className={bare ? "space-y-4" : "card p-4"}>
       <SectionHeader title={title} description={description} />
 
       <div className="mt-4 space-y-3">

@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import { AttentionQueue } from "@/components/AttentionQueue";
 import { DashboardCard } from "@/components/DashboardCard";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import {
@@ -132,32 +134,41 @@ export function DashboardCommandCenter() {
     return matched.length > 0 ? matched : vesselSnapshots;
   }, [workspaceFilter]);
 
+  const collapsedQueueKeys: DashboardQueueGroup[] = [
+    "waiting-on-others",
+    "decision-required",
+    "drafts",
+    "needs-evidence",
+  ];
+
   return (
     <section className="space-y-6">
-      <header className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-            NSML WorkDesk
-          </p>
-          <h1 className="mt-2 text-4xl font-bold text-slate-950">
-            Dashboard command centre
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-            A private operations desk for vessel work, project follow-up, evidence,
-            decisions, reviewed response preparation, and quick queue triage.
-          </p>
-        </div>
-
-        <Link href="/import" className="btn-primary">
-          <ArrowRight aria-hidden size={18} />
-          Start at Import
-        </Link>
-      </header>
+      <StickyPageHeader
+        eyebrow="NSML WorkDesk"
+        title="Dashboard command centre"
+        description="A private operations desk for vessel work, project follow-up, evidence, decisions, reviewed response preparation, and quick queue triage."
+        context="Capture → Structure → Link → Decide → Draft → Review → Copy"
+        primaryAction={{ href: "/import", label: "Start at Import", variant: "primary" }}
+        secondaryActions={[
+          { href: "/cases", label: "Cases" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/drafts", label: "Drafts" },
+        ]}
+        quickLinks={[
+          { href: "/import", label: "Import" },
+          { href: "/cases", label: "Cases" },
+          { href: "/assurance", label: "Assurance" },
+          { href: "/drafts", label: "Drafts" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+      />
 
       <WorkflowChecklist
         title="Workflow path"
         description="Follow the same path every time so intake, correspondence, cases, drafts, and review stay in sync."
         note="Copy is only available after red-team review"
+        collapsible
+        defaultOpen={false}
         items={[
           {
             title: "Start with intake",
@@ -209,21 +220,14 @@ export function DashboardCommandCenter() {
         ]}
       />
 
-      <section className="card p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-              Filters
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-slate-950">Workspace and status filters</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Filter the mock queue by workspace and queue status. The counts and queue
-              items update client-side only.
-            </p>
-          </div>
-          <Filter aria-hidden className="text-teal-700" size={20} />
-        </div>
-
+      <CollapsibleSection
+        title="Filters"
+        description="Workspace and status filters for the mock queue. The counts and queue items update client-side only."
+        summaryBadge={<Filter aria-hidden className="text-teal-700" size={18} />}
+        defaultOpen={false}
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
         <div className="mt-4 grid gap-4">
           <FilterRow
             label="Workspace"
@@ -238,7 +242,7 @@ export function DashboardCommandCenter() {
             onChange={(value) => setStatusFilter(value as StatusFilter)}
           />
         </div>
-      </section>
+      </CollapsibleSection>
 
       <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {topCards.map((status) => (
@@ -246,32 +250,47 @@ export function DashboardCommandCenter() {
         ))}
       </section>
 
-      {queueSectionOrder.map((section) => (
-        <AttentionQueue
-          key={section.key}
-          title={section.title}
-          description={section.description}
-          items={filteredQueueItems.filter((item) => item.group === section.key)}
-          emptyStateTitle={section.emptyStateTitle}
-          emptyStateMessage={section.emptyStateMessage}
-          groupedByWaitingOnType={section.groupedByWaitingOnType}
-        />
-      ))}
+      {queueSectionOrder.map((section) => {
+        const items = filteredQueueItems.filter((item) => item.group === section.key);
+        const queue = (
+          <AttentionQueue
+            title={section.title}
+            description={section.description}
+            items={items}
+            emptyStateTitle={section.emptyStateTitle}
+            emptyStateMessage={section.emptyStateMessage}
+            groupedByWaitingOnType={section.groupedByWaitingOnType}
+            bare={collapsedQueueKeys.includes(section.key)}
+          />
+        );
+
+        if (!collapsedQueueKeys.includes(section.key)) {
+          return <div key={section.key}>{queue}</div>;
+        }
+
+        return (
+          <CollapsibleSection
+            key={section.key}
+            title={section.title}
+            description={section.description}
+            summaryBadge={<StatusBadge tone="neutral">{items.length}</StatusBadge>}
+            defaultOpen={false}
+            className="overflow-hidden"
+            bodyClassName="p-4 pt-0"
+          >
+            {queue}
+          </CollapsibleSection>
+        );
+      })}
 
       <section className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                Recent Import Activity
-              </p>
-              <h2 className="mt-1 text-2xl font-bold text-slate-950">Recent intake trail</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Recent imported material and staging notes, shown as mock intake activity.
-              </p>
-            </div>
-          </div>
-
+        <CollapsibleSection
+          title="Recent Import Activity"
+          description="Recent imported material and staging notes, shown as mock intake activity."
+          defaultOpen={false}
+          className="overflow-hidden"
+          bodyClassName="p-4 pt-0"
+        >
           <div className="mt-4 grid gap-3">
             {recentImports.length > 0 ? (
               recentImports.map((item) => <RecentImportCard key={item.id} item={item} />)
@@ -282,27 +301,21 @@ export function DashboardCommandCenter() {
               />
             )}
           </div>
-        </div>
+        </CollapsibleSection>
 
-        <aside className="card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-                Vessel Snapshot
-              </p>
-              <h2 className="mt-1 text-2xl font-bold text-slate-950">Fleet snapshot</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Quick view of vessel workload and the next obvious action.
-              </p>
-            </div>
-          </div>
-
+        <CollapsibleSection
+          title="Vessel Snapshot"
+          description="Quick view of vessel workload and the next obvious action."
+          defaultOpen={false}
+          className="overflow-hidden"
+          bodyClassName="p-4 pt-0"
+        >
           <div className="mt-4 grid gap-3">
             {vesselSnapshotItems.map((snapshot) => (
               <VesselSnapshotCard key={snapshot.workspaceKey} snapshot={snapshot} />
             ))}
           </div>
-        </aside>
+        </CollapsibleSection>
       </section>
     </section>
   );

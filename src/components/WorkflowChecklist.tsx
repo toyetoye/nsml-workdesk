@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 
 export type WorkflowChecklistItem = {
   title: string;
@@ -15,6 +16,8 @@ type WorkflowChecklistProps = {
   items: WorkflowChecklistItem[];
   note?: string;
   compact?: boolean;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 };
 
 export function WorkflowChecklist({
@@ -23,9 +26,11 @@ export function WorkflowChecklist({
   items,
   note,
   compact = false,
+  collapsible = false,
+  defaultOpen = true,
 }: WorkflowChecklistProps) {
-  return (
-    <section className="card p-4">
+  const content = (
+    <>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
@@ -80,6 +85,23 @@ export function WorkflowChecklist({
           </article>
         ))}
       </div>
-    </section>
+    </>
   );
+
+  if (collapsible) {
+    return (
+      <CollapsibleSection
+        title={title}
+        description={description}
+        defaultOpen={defaultOpen}
+        summaryBadge={note ? <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{note}</span> : undefined}
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
+        {content}
+      </CollapsibleSection>
+    );
+  }
+
+  return <section className="card p-4">{content}</section>;
 }

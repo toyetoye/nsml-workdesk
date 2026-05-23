@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, ClipboardList, Upload } from "lucide-react";
+import { ClipboardList, Upload } from "lucide-react";
+import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import type {
   EmailThreadScope,
@@ -46,23 +47,24 @@ export async function WorkspacePage({
 
   return (
     <section className="space-y-6">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-teal-800"
-      >
-        <ArrowLeft aria-hidden size={16} />
-        Dashboard
-      </Link>
-
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-          {workspace.type} Workspace
-        </p>
-        <h1 className="mt-2 text-4xl font-bold text-slate-950">{workspace.name}</h1>
-        <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-          {workspace.description}
-        </p>
-      </header>
+      <StickyPageHeader
+        eyebrow={`${workspace.type} Workspace`}
+        title={workspace.name}
+        description={workspace.description}
+        context="Keep the next safe action obvious"
+        primaryAction={{ href: "/cases", label: "Open Cases" }}
+        secondaryActions={[
+          { href: "/import", label: "Import" },
+          { href: "/drafts", label: "Drafts" },
+          { href: "/settings/writing-style", label: "Writing Style" },
+        ]}
+        quickLinks={[
+          { href: "/dashboard", label: "Dashboard" },
+          { href: "/import", label: "Import" },
+          { href: "/cases", label: "Cases" },
+          { href: "/drafts", label: "Drafts" },
+        ]}
+      />
 
       <WorkspaceSummary workspace={workspace} />
 
@@ -70,6 +72,8 @@ export async function WorkspacePage({
         title="Workflow path for this workspace"
         description="Use this workspace as the operational thread view, then jump to cases or drafts when the thread needs action."
         note="Workspace-specific correspondence only"
+        collapsible
+        defaultOpen={false}
         items={[
           {
             title: "Review the current thread list",

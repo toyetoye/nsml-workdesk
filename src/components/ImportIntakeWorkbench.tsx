@@ -13,6 +13,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { saveIntakeItemAction } from "@/app/(protected)/import/actions";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { generateIntakeDraftAction, triageIntakeItemAction } from "@/app/(protected)/ai/actions";
 import { TriageResultPanel } from "@/components/TriageResultPanel";
 import { DraftResultPanel } from "@/components/DraftResultPanel";
@@ -491,19 +492,14 @@ export function ImportIntakeWorkbench({
             </div>
           </form>
 
-          <div className="card p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  File upload placeholder
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Real file storage and parsing are not active yet.
-                </p>
-              </div>
-              <Upload aria-hidden className="text-teal-700" size={18} />
-            </div>
-
+          <CollapsibleSection
+            title="File upload placeholder"
+            description="Real file storage and parsing are not active yet."
+            defaultOpen={false}
+            summaryBadge={<Upload aria-hidden className="text-teal-700" size={18} />}
+            className="overflow-hidden"
+            bodyClassName="p-4 pt-0"
+          >
             <div className="mt-4 rounded-md border border-dashed border-slate-300 bg-slate-50 p-4">
               <p className="text-sm font-semibold text-slate-900">Drop files here later</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -517,23 +513,18 @@ export function ImportIntakeWorkbench({
                 <span className="text-xs text-slate-500">Disabled until a later sprint.</span>
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
         </div>
 
         <div className="space-y-4">
-          <div className="card p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  Recent intake / import batch list
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Session list of intake items and simulated classifications.
-                </p>
-              </div>
-              <ClipboardList aria-hidden className="text-teal-700" size={18} />
-            </div>
-
+          <CollapsibleSection
+            title="Recent intake / import batch list"
+            description="Session list of intake items and simulated classifications."
+            defaultOpen={false}
+            summaryBadge={<ClipboardList aria-hidden className="text-teal-700" size={18} />}
+            className="overflow-hidden"
+            bodyClassName="p-4 pt-0"
+          >
             <div className="mt-3 space-y-2">
               {items.length > 0 ? (
                 items.map((item) => {
@@ -558,7 +549,9 @@ export function ImportIntakeWorkbench({
                           <p className="truncate text-sm font-bold text-slate-950">{item.title}</p>
                           <p className="mt-1 truncate text-xs text-slate-600">{item.senderSource}</p>
                         </div>
-                        <StatusBadge tone={statusTone[item.status]}>{itemStatusLabel(item.status)}</StatusBadge>
+                        <StatusBadge tone={statusTone[item.status]}>
+                          {itemStatusLabel(item.status)}
+                        </StatusBadge>
                       </div>
 
                       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -582,7 +575,7 @@ export function ImportIntakeWorkbench({
                 />
               )}
             </div>
-          </div>
+          </CollapsibleSection>
 
           <div className="card p-4">
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4">
@@ -685,7 +678,7 @@ export function ImportIntakeWorkbench({
                     </div>
                   </div>
 
-                  <div className="rounded-md border border-teal-200 bg-teal-50 p-3">
+                  <div id="route-link" className="rounded-md border border-teal-200 bg-teal-50 p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
                       Routing controls
                     </p>
