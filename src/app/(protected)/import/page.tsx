@@ -59,6 +59,7 @@ export default async function ImportPage() {
               { href: "/projects", label: "Projects" },
               { href: "/other", label: "Other" },
               { href: "/cases", label: "Cases" },
+              { href: "/assurance", label: "Assurance" },
               { href: "/drafts", label: "Drafts" },
               { href: "/settings/writing-style", label: "Writing Style" },
             ],

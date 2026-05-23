@@ -179,6 +179,13 @@ export function DashboardCommandCenter() {
             ],
           },
           {
+            title: "Track assurance and governance signals",
+            description:
+              "Capture vessel support feedback, request specifics, and keep unverified governance concerns separate from facts.",
+            href: "/assurance",
+            actionLabel: "Open Assurance",
+          },
+          {
             title: "Manage cases and decisions",
             description:
               "Open the case workbench to attach evidence, inspect linked correspondence, and keep the next action visible.",

@@ -54,6 +54,7 @@ export default async function DraftsPage() {
               "If the draft is blocked or needs evidence, go back to import, correspondence, or the case workbench.",
             href: "/import",
             actionLabel: "Open Import",
+            links: [{ href: "/assurance", label: "Assurance" }],
           },
         ]}
       />

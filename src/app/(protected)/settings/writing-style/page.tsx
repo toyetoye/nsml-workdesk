@@ -34,6 +34,7 @@ export default async function WritingStylePage() {
               "If the source material needs more context, stage or upload it again from the import workbench.",
             href: "/import",
             actionLabel: "Open Import",
+            links: [{ href: "/assurance", label: "Assurance" }],
           },
         ]}
       />

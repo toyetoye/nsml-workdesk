@@ -52,6 +52,7 @@ export default async function CasesPage() {
               "Add supporting files, parse eligible EMLs, or check the imported thread trail before moving forward.",
             href: "/import",
             actionLabel: "Open Import",
+            links: [{ href: "/assurance", label: "Assurance" }],
           },
           {
             title: "Triage, draft, and review",
@@ -66,6 +67,13 @@ export default async function CasesPage() {
               "If the wording needs a different tone, update the writing style profile before generating the next draft.",
             href: "/settings/writing-style",
             actionLabel: "Open Writing Style",
+          },
+          {
+            title: "Track assurance signals",
+            description:
+              "Capture vessel support concerns and governance signals in /assurance so broad feedback becomes evidence-backed action.",
+            href: "/assurance",
+            actionLabel: "Open Assurance",
           },
         ]}
       />

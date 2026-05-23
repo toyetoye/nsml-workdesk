@@ -13,6 +13,11 @@ import {
   type ImportIntakeItem,
   type RecentImportActivity,
 } from "@/lib/mock-data";
+import {
+  assuranceSignalSeedRows,
+  vesselEngagementLogSeedRows,
+  vesselSupportItemSeedRows,
+} from "@/lib/assurance/mock-data";
 import { deriveInitialEvidenceParseStatus } from "@/lib/email-ingestion/shared";
 import {
   defaultWritingStyleProfile,
@@ -21,6 +26,8 @@ import {
 import { createPersistenceClient, isPersistenceAvailable } from "./client";
 import type {
   AuditLogRow,
+  AssuranceSignalInput,
+  AssuranceSignalRow,
   CaseCorrespondenceLinkRow,
   CaseEvidenceLinkRow,
   CaseInput,
@@ -44,6 +51,10 @@ import type {
   TimelineEventRow,
   WritingStyleProfileInput,
   WritingStyleProfileRow,
+  VesselEngagementLogInput,
+  VesselEngagementLogRow,
+  VesselSupportItemInput,
+  VesselSupportItemRow,
   WorkspaceRow,
 } from "./types";
 
@@ -63,6 +74,9 @@ type PersistenceStore = {
   draft_red_team_reviews: DraftRedTeamReviewRow[];
   writing_style_profiles: WritingStyleProfileRow[];
   audit_logs: AuditLogRow[];
+  assurance_signals: AssuranceSignalRow[];
+  vessel_support_items: VesselSupportItemRow[];
+  vessel_engagement_logs: VesselEngagementLogRow[];
 };
 
 type RepoQueryResult = {
@@ -356,6 +370,9 @@ function createFallbackStore(): PersistenceStore {
       },
     ],
     audit_logs: [],
+    assurance_signals: assuranceSignalSeedRows.map((item) => ({ ...item })),
+    vessel_support_items: vesselSupportItemSeedRows.map((item) => ({ ...item })),
+    vessel_engagement_logs: vesselEngagementLogSeedRows.map((item) => ({ ...item })),
   };
 }
 
@@ -412,6 +429,24 @@ function resolveCaseIdFromThreadRef(threadRef: string) {
   const linkedCase = linkedThread ? fallbackStore.cases.find((item) => item.case_id === linkedThread.linkedCase) : null;
 
   return linkedCase?.case_id ?? null;
+}
+
+function normalizeList(values?: string[] | null) {
+  return [...new Set((values ?? []).map((value) => value.trim()).filter(Boolean))];
+}
+
+function toIsoDate(display: string | null | undefined) {
+  if (!display) {
+    return null;
+  }
+
+  const parsed = new Date(display);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return display.slice(0, 10) || null;
+  }
+
+  return parsed.toISOString().slice(0, 10);
 }
 
 export async function listWorkspaces() {
@@ -689,6 +724,224 @@ export async function saveEvidence(input: EvidenceInput): Promise<WriteResult<Ev
   }
 
   return { row: data as EvidenceRow, persisted: true };
+}
+
+export async function listAssuranceSignals(caseId?: string) {
+  const fallback = caseId
+    ? fallbackStore.assurance_signals.filter((item) => item.linked_case_id === caseId)
+    : fallbackStore.assurance_signals;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  let query = client
+    .from("assurance_signals")
+    .select("*")
+    .order("date_time", { ascending: false });
+
+  if (caseId) {
+    query = query.eq("linked_case_id", caseId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as AssuranceSignalRow[];
+}
+
+export async function saveAssuranceSignal(
+  input: AssuranceSignalInput,
+): Promise<WriteResult<AssuranceSignalRow>> {
+  const evidenceLinks = normalizeList(input.evidence_links);
+
+  const row: AssuranceSignalRow = {
+    assurance_signal_id: input.assurance_signal_id ?? `assurance-signal-${randomUUID()}`,
+    date_time: toIsoDateTime(input.date_time ?? nowIso()),
+    signal_title: input.signal_title ?? "Untitled assurance signal",
+    signal_type: input.signal_type ?? "Governance signal",
+    source_type: input.source_type ?? "Other",
+    source_name_optional: input.source_name_optional ?? null,
+    audience: input.audience ?? "Management",
+    related_vessel_optional: input.related_vessel_optional ?? null,
+    related_department: input.related_department ?? "Operations",
+    summary: input.summary ?? "",
+    exact_comment_optional: input.exact_comment_optional ?? null,
+    evidence_level: input.evidence_level ?? "Reported",
+    confidence: input.confidence ?? "Medium",
+    operational_risk: input.operational_risk ?? "",
+    reputational_risk: input.reputational_risk ?? "",
+    governance_risk: input.governance_risk ?? "",
+    required_action: input.required_action ?? "",
+    action_owner: input.action_owner ?? "",
+    due_date: toIsoDate(input.due_date),
+    status: input.status ?? "Open",
+    evidence_links: evidenceLinks,
+    notes: input.notes ?? "",
+    linked_case_id: input.linked_case_id ?? null,
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.assurance_signals, "assurance_signal_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("assurance_signals").upsert(row).select().single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.assurance_signals, "assurance_signal_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as AssuranceSignalRow, persisted: true };
+}
+
+export async function listVesselSupportItems(caseId?: string) {
+  const fallback = caseId
+    ? fallbackStore.vessel_support_items.filter((item) => item.linked_case_id === caseId)
+    : fallbackStore.vessel_support_items;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  let query = client
+    .from("vessel_support_items")
+    .select("*")
+    .order("date_raised", { ascending: false });
+
+  if (caseId) {
+    query = query.eq("linked_case_id", caseId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as VesselSupportItemRow[];
+}
+
+export async function saveVesselSupportItem(
+  input: VesselSupportItemInput,
+): Promise<WriteResult<VesselSupportItemRow>> {
+  const row: VesselSupportItemRow = {
+    support_item_id: input.support_item_id ?? `support-item-${randomUUID()}`,
+    vessel: input.vessel ?? "Unassigned vessel",
+    issue_title: input.issue_title ?? "Untitled support item",
+    issue_description: input.issue_description ?? "",
+    date_raised: toIsoDate(input.date_raised ?? nowIso()) ?? toIsoDate(nowIso()) ?? "2026-01-01",
+    raised_by: input.raised_by ?? "Unknown",
+    category: input.category ?? "Technical",
+    priority: input.priority ?? "Medium",
+    risk_level: input.risk_level ?? "Medium",
+    superintendent_owner: input.superintendent_owner ?? "Unassigned",
+    vessel_owner: input.vessel_owner ?? "Unassigned",
+    office_support_required: input.office_support_required ?? "",
+    current_status: input.current_status ?? "Open",
+    blocker_type: input.blocker_type ?? "None",
+    last_action_taken: input.last_action_taken ?? "",
+    last_contact_date: toIsoDate(input.last_contact_date ?? null),
+    next_action: input.next_action ?? "",
+    due_date: toIsoDate(input.due_date ?? null),
+    close_out_evidence: input.close_out_evidence ?? "",
+    status: input.status ?? "Tracking",
+    evidence_links: normalizeList(input.evidence_links),
+    linked_case_id: input.linked_case_id ?? null,
+    source_signal_id: input.source_signal_id ?? null,
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.vessel_support_items, "support_item_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("vessel_support_items").upsert(row).select().single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.vessel_support_items, "support_item_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as VesselSupportItemRow, persisted: true };
+}
+
+export async function listVesselEngagementLogs(caseId?: string) {
+  const fallback = caseId
+    ? fallbackStore.vessel_engagement_logs.filter((item) => item.linked_case_id === caseId)
+    : fallbackStore.vessel_engagement_logs;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  let query = client
+    .from("vessel_engagement_logs")
+    .select("*")
+    .order("date_time", { ascending: false });
+
+  if (caseId) {
+    query = query.eq("linked_case_id", caseId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as VesselEngagementLogRow[];
+}
+
+export async function saveVesselEngagementLog(
+  input: VesselEngagementLogInput,
+): Promise<WriteResult<VesselEngagementLogRow>> {
+  const row: VesselEngagementLogRow = {
+    engagement_log_id: input.engagement_log_id ?? `engagement-log-${randomUUID()}`,
+    vessel: input.vessel ?? "Unassigned vessel",
+    date_time: toIsoDateTime(input.date_time ?? nowIso()),
+    engagement_type: input.engagement_type ?? "Call",
+    attendees: normalizeList(input.attendees),
+    topics_discussed: normalizeList(input.topics_discussed),
+    actions_agreed: normalizeList(input.actions_agreed),
+    owner: input.owner ?? "Unassigned",
+    due_date: toIsoDate(input.due_date ?? null),
+    follow_up_required: input.follow_up_required ?? false,
+    evidence_link: input.evidence_link ?? "",
+    linked_case_id: input.linked_case_id ?? null,
+    linked_signal_id: input.linked_signal_id ?? null,
+    linked_support_item_id: input.linked_support_item_id ?? null,
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.vessel_engagement_logs, "engagement_log_id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("vessel_engagement_logs").upsert(row).select().single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.vessel_engagement_logs, "engagement_log_id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as VesselEngagementLogRow, persisted: true };
 }
 
 export async function listCorrespondenceThreads(caseId?: string) {
@@ -1355,6 +1608,9 @@ export function getMockWorkspaceSnapshots(): {
   correspondenceThreads: CorrespondenceThreadRow[];
   correspondenceMessages: CorrespondenceMessageRow[];
   timelineEvents: TimelineEventRow[];
+  assuranceSignals: AssuranceSignalRow[];
+  vesselSupportItems: VesselSupportItemRow[];
+  vesselEngagementLogs: VesselEngagementLogRow[];
 } {
   return {
     workspaces: clone(fallbackStore.workspaces),
@@ -1365,6 +1621,9 @@ export function getMockWorkspaceSnapshots(): {
     correspondenceThreads: clone(fallbackStore.correspondence_threads),
     correspondenceMessages: clone(fallbackStore.correspondence_messages),
     timelineEvents: clone(fallbackStore.timeline_events),
+    assuranceSignals: clone(fallbackStore.assurance_signals),
+    vesselSupportItems: clone(fallbackStore.vessel_support_items),
+    vesselEngagementLogs: clone(fallbackStore.vessel_engagement_logs),
   };
 }
 

@@ -1,4 +1,14 @@
 import type { WritingStyleProfileSnapshot } from "@/lib/writing-style/profile";
+import type {
+  AssuranceBlockerType,
+  AssuranceConfidence,
+  AssuranceEvidenceLevel,
+  AssuranceEngagementType,
+  AssurancePriority,
+  AssuranceRiskLevel,
+  AssuranceSignalStatus,
+  AssuranceSupportCategory,
+} from "@/lib/assurance/types";
 
 export type Json =
   | string
@@ -331,6 +341,81 @@ export type EvidenceInput = Partial<EvidenceRow> & {
   parsed_at?: string | null;
 };
 
+export type AssuranceSignalRow = {
+  assurance_signal_id: string;
+  date_time: string;
+  signal_title: string;
+  signal_type: string;
+  source_type: string;
+  source_name_optional: string | null;
+  audience: string;
+  related_vessel_optional: string | null;
+  related_department: string;
+  summary: string;
+  exact_comment_optional: string | null;
+  evidence_level: AssuranceEvidenceLevel;
+  confidence: AssuranceConfidence;
+  operational_risk: string;
+  reputational_risk: string;
+  governance_risk: string;
+  required_action: string;
+  action_owner: string;
+  due_date: string | null;
+  status: AssuranceSignalStatus;
+  evidence_links: string[];
+  notes: string;
+  linked_case_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VesselSupportItemRow = {
+  support_item_id: string;
+  vessel: string;
+  issue_title: string;
+  issue_description: string;
+  date_raised: string;
+  raised_by: string;
+  category: AssuranceSupportCategory;
+  priority: AssurancePriority;
+  risk_level: AssuranceRiskLevel;
+  superintendent_owner: string;
+  vessel_owner: string;
+  office_support_required: string;
+  current_status: string;
+  blocker_type: AssuranceBlockerType;
+  last_action_taken: string;
+  last_contact_date: string | null;
+  next_action: string;
+  due_date: string | null;
+  close_out_evidence: string;
+  status: string;
+  evidence_links: string[];
+  linked_case_id: string | null;
+  source_signal_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VesselEngagementLogRow = {
+  engagement_log_id: string;
+  vessel: string;
+  date_time: string;
+  engagement_type: AssuranceEngagementType;
+  attendees: string[];
+  topics_discussed: string[];
+  actions_agreed: string[];
+  owner: string;
+  due_date: string | null;
+  follow_up_required: boolean;
+  evidence_link: string;
+  linked_case_id: string | null;
+  linked_signal_id: string | null;
+  linked_support_item_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DraftResponseInput = Partial<DraftResponsePlaceholderRow> & {
   draft_id?: string;
   case_id?: string | null;
@@ -451,6 +536,20 @@ export type ImportBatchInput = Partial<ImportBatchRow> & {
   status: string;
 };
 
+export type AssuranceSignalInput = Partial<AssuranceSignalRow> & {
+  assurance_signal_id?: string;
+  evidence_links?: string[];
+};
+
+export type VesselSupportItemInput = Partial<VesselSupportItemRow> & {
+  support_item_id?: string;
+  evidence_links?: string[];
+};
+
+export type VesselEngagementLogInput = Partial<VesselEngagementLogRow> & {
+  engagement_log_id?: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -469,6 +568,9 @@ export interface Database {
       draft_red_team_reviews: Table<DraftRedTeamReviewRow>;
       writing_style_profiles: Table<WritingStyleProfileRow>;
       audit_logs: Table<AuditLogRow>;
+      assurance_signals: Table<AssuranceSignalRow>;
+      vessel_support_items: Table<VesselSupportItemRow>;
+      vessel_engagement_logs: Table<VesselEngagementLogRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

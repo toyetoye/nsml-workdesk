@@ -6,6 +6,7 @@ import {
   Home,
   Inbox,
   PenLine,
+  ShieldAlert,
   Ship,
   Upload,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/other", label: "Other", icon: Inbox },
   { href: "/import", label: "Import", icon: Upload },
   { href: "/cases", label: "Cases", icon: ClipboardList },
+  { href: "/assurance", label: "Assurance", icon: ShieldAlert },
   { href: "/drafts", label: "Drafts", icon: FileEdit },
   { href: "/settings/writing-style", label: "Writing Style", icon: PenLine },
 ];
@@ -55,7 +57,7 @@ export function Sidebar() {
           Boundary
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-200">
-          No Outlook connection, email sending, database, or AI workflow in Sprint 000.
+          Protected NSML WorkDesk shell. No Outlook connection, email sending, or unsupported automation.
         </p>
       </div>
     </aside>
