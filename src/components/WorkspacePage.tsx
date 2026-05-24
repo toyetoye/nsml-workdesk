@@ -121,17 +121,21 @@ export async function WorkspacePage({
 
       <PageSectionTabs sections={sections} activeKey={activeView} />
 
-      <WorkspaceSummary workspace={workspace} compact />
+      {isOverview ? (
+        <>
+          <WorkspaceSummary workspace={workspace} compact />
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-        {overviewCards.map((card) => (
-          <article key={card.label} className="card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
-          </article>
-        ))}
-      </section>
+          <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            {overviewCards.map((card) => (
+              <article key={card.label} className="card p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+                <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
+              </article>
+            ))}
+          </section>
+        </>
+      ) : null}
 
       {isOverview ? (
         <section className="grid gap-4 lg:grid-cols-2">

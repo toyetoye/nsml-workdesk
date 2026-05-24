@@ -30,15 +30,15 @@ export const importSections: NavigationSection[] = [
   { key: "manual", label: "Manual Intake", href: "/import?view=manual" },
   { key: "bulk", label: "Bulk Evidence Intake", href: "/import?view=bulk" },
   { key: "parsed", label: "Parsed Threads", href: "/import?view=parsed" },
-  { key: "route", label: "Route / Link", href: "/import?view=route" },
+  { key: "route-link", label: "Route / Link", href: "/import?view=route-link" },
 ];
 
 export const assuranceSections: NavigationSection[] = [
   { key: "overview", label: "Overview", href: "/assurance" },
   { key: "signals", label: "Signals", href: "/assurance?view=signals" },
-  { key: "support", label: "Support Items", href: "/assurance?view=support" },
-  { key: "engagement", label: "Engagement Log", href: "/assurance?view=engagement" },
-  { key: "weekly", label: "Weekly Pack", href: "/assurance?view=weekly" },
+  { key: "support-items", label: "Support Items", href: "/assurance?view=support-items" },
+  { key: "engagement-log", label: "Engagement Log", href: "/assurance?view=engagement-log" },
+  { key: "weekly-pack", label: "Weekly Pack", href: "/assurance?view=weekly-pack" },
 ];
 
 export const caseSections: NavigationSection[] = [

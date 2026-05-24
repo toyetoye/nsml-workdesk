@@ -1,7 +1,6 @@
 import { AssuranceWorkbench } from "@/components/AssuranceWorkbench";
 import { PageSectionTabs } from "@/components/PageSectionTabs";
 import { StickyPageHeader } from "@/components/StickyPageHeader";
-import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { assuranceSections } from "@/components/navigation";
 import { resolveView } from "@/lib/navigation-view";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
@@ -16,9 +15,9 @@ import { mapEvidenceRowsToRecords } from "@/lib/workbench-data";
 
 type SearchParamsValue = Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined> | undefined> | undefined;
 
-type AssuranceView = "overview" | "signals" | "support" | "engagement" | "weekly";
+type AssuranceView = "overview" | "signals" | "support-items" | "engagement-log" | "weekly-pack";
 
-const assuranceViews: AssuranceView[] = ["overview", "signals", "support", "engagement", "weekly"];
+const assuranceViews: AssuranceView[] = ["overview", "signals", "support-items", "engagement-log", "weekly-pack"];
 
 export default async function AssurancePage({
   searchParams,
@@ -34,14 +33,18 @@ export default async function AssurancePage({
   ]);
 
   const evidenceRecords = mapEvidenceRowsToRecords(evidenceRows);
-  const activeView = (await resolveView(searchParams, assuranceViews, "overview")) as AssuranceView;
+  const activeView = (await resolveView(searchParams, assuranceViews, "overview", {
+    support: "support-items",
+    engagement: "engagement-log",
+    weekly: "weekly-pack",
+  })) as AssuranceView;
   const isOverview = activeView === "overview";
   const workbenchTab: "signals" | "support" | "engagement" | "weekly" =
     activeView === "signals"
       ? "signals"
-      : activeView === "support"
+      : activeView === "support-items"
         ? "support"
-        : activeView === "engagement"
+        : activeView === "engagement-log"
           ? "engagement"
           : "weekly";
 
@@ -86,15 +89,17 @@ export default async function AssurancePage({
 
       <PageSectionTabs sections={assuranceSections} activeKey={activeView} />
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {overviewCards.map((card) => (
-          <article key={card.label} className="card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
-          </article>
-        ))}
-      </section>
+      {isOverview ? (
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {overviewCards.map((card) => (
+            <article key={card.label} className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       {isOverview ? (
         <section className="grid gap-4 lg:grid-cols-2">
@@ -121,57 +126,6 @@ export default async function AssurancePage({
             </div>
           </article>
         </section>
-      ) : null}
-
-      {activeView !== "overview" ? (
-        <WorkflowChecklist
-          title="Assurance workflow"
-          description="Capture the signal, attach evidence, convert broad feedback into vessel support items, and keep the weekly pack factual."
-          note="Fact requires evidence links"
-          collapsible
-          compact
-          defaultOpen={false}
-          items={[
-            {
-              title: "Capture the assurance signal",
-              description:
-                "Record the source, the audience, the related vessel or department, and the evidence level before the concern is stored.",
-              links: [
-                { href: "/import", label: "Import" },
-                { href: "/cases", label: "Cases" },
-                { href: "/drafts", label: "Drafts" },
-              ],
-            },
-            {
-              title: "Request specifics and attach evidence",
-              description:
-                "Use the request-specifics prompt when feedback is broad or anonymous, then link the evidence before marking anything as Fact.",
-              href: "/import",
-              actionLabel: "Open Import",
-            },
-            {
-              title: "Convert verified issues into tracked support",
-              description:
-                "When the vessel, issue, date, person, expected support, actual response, status, and close-out are clear, create the support item.",
-              href: "/cases",
-              actionLabel: "Open Cases",
-            },
-            {
-              title: "Review the weekly evidence pack",
-              description:
-                "Use the deterministic weekly summary to see delivered support, escalations, blockers, engagements, and next week priorities.",
-            },
-            {
-              title: "Keep the wording neutral",
-              description:
-                "If a concern is governance-related or still unverified, keep it reported and review the writing style or related source material before closing it out.",
-              links: [
-                { href: "/settings/writing-style", label: "Writing Style" },
-                { href: "/dashboard", label: "Dashboard" },
-              ],
-            },
-          ]}
-        />
       ) : null}
 
       {activeView !== "overview" ? (

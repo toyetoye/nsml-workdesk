@@ -364,8 +364,9 @@ export function ImportIntakeWorkbench({
               <PlusCircle aria-hidden className="text-teal-700" size={18} />
             </div>
 
-            <div className="mt-4 grid gap-3">
-              <Field label="Subject / title">
+            <div className="mt-4 grid gap-3 xl:grid-cols-2">
+              <div className="xl:col-span-2">
+                <Field label="Subject / title">
                 <input
                   type="text"
                   value={form.title}
@@ -373,7 +374,8 @@ export function ImportIntakeWorkbench({
                   className="field-input"
                   placeholder="e.g. Class survey request awaiting evidence"
                 />
-              </Field>
+                </Field>
+              </div>
 
               <div className="grid gap-3 md:grid-cols-2">
                 <Field label="Source type">
@@ -485,7 +487,7 @@ export function ImportIntakeWorkbench({
                   {saving ? "Saving..." : "Save intake item"}
                 </button>
                 <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-700">Preview:</span> {selectedSourceLabel} ·{" "}
+                  <span className="font-semibold text-slate-700">Preview:</span> {selectedSourceLabel} |{" "}
                   {selectedStatusLabel}
                 </div>
               </div>

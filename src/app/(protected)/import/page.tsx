@@ -3,7 +3,6 @@ import { EmailWorkbench } from "@/components/EmailWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
 import { PageSectionTabs } from "@/components/PageSectionTabs";
 import { StickyPageHeader } from "@/components/StickyPageHeader";
-import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { importSections } from "@/components/navigation";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
@@ -27,9 +26,9 @@ import { resolveView } from "@/lib/navigation-view";
 
 type SearchParamsValue = Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined> | undefined> | undefined;
 
-type ImportView = "overview" | "manual" | "bulk" | "parsed" | "route";
+type ImportView = "overview" | "manual" | "bulk" | "parsed" | "route-link";
 
-const importViews: ImportView[] = ["overview", "manual", "bulk", "parsed", "route"];
+const importViews: ImportView[] = ["overview", "manual", "bulk", "parsed", "route-link"];
 
 export default async function ImportPage({
   searchParams,
@@ -57,7 +56,9 @@ export default async function ImportPage({
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
   const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows);
   const aiConfig = getAiConfigStatus();
-  const activeView = (await resolveView(searchParams, importViews, "overview")) as ImportView;
+  const activeView = (await resolveView(searchParams, importViews, "overview", {
+    route: "route-link",
+  })) as ImportView;
   const isOverview = activeView === "overview";
 
   const overviewCards = [
@@ -138,45 +139,6 @@ export default async function ImportPage({
         </section>
       ) : null}
 
-      {activeView !== "overview" ? (
-        <WorkflowChecklist
-          title="Import flow"
-          description="Start with intake, stage evidence, then decide whether the item belongs in correspondence, a case, or a draft path."
-          note="AI and persistence may fall back"
-          collapsible
-          compact
-          defaultOpen={false}
-          items={[
-            {
-              title: "Stage the item",
-              description:
-                "Paste a note or email, or save a manual intake record so the source material is captured first.",
-            },
-            {
-              title: "Upload or parse evidence",
-              description:
-                "Attach private files here, then parse EML metadata only when the file is eligible.",
-            },
-            {
-              title: "Move the work forward",
-              description:
-                "Use workspace correspondence, cases, drafts, and writing style settings to keep the response path coherent.",
-              links: [
-                { href: "/vessels/lng-portharcourt-ii", label: "LNG PORTHARCOURT II" },
-                { href: "/vessels/lpg-alfred-temile", label: "LPG ALFRED TEMILE" },
-                { href: "/vessels/lpg-alfred-temile-10", label: "LPG ALFRED TEMILE 10" },
-                { href: "/projects", label: "Projects" },
-                { href: "/other", label: "Other" },
-                { href: "/cases", label: "Cases" },
-                { href: "/assurance", label: "Assurance" },
-                { href: "/drafts", label: "Drafts" },
-                { href: "/settings/writing-style", label: "Writing Style" },
-              ],
-            },
-          ]}
-        />
-      ) : null}
-
       {activeView === "manual" ? (
         <section id="capture" className="space-y-4">
           <ImportIntakeWorkbench
@@ -218,7 +180,7 @@ export default async function ImportPage({
         </section>
       ) : null}
 
-      {activeView === "route" ? (
+      {activeView === "route-link" ? (
         <section className="grid gap-4 lg:grid-cols-2">
           <article className="card p-4">
             <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Route / Link</p>

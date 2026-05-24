@@ -1,7 +1,6 @@
 import { CaseManagementWorkbench } from "@/components/CaseManagementWorkbench";
 import { PageSectionTabs } from "@/components/PageSectionTabs";
 import { StickyPageHeader } from "@/components/StickyPageHeader";
-import { WorkflowChecklist } from "@/components/WorkflowChecklist";
 import { caseSections } from "@/components/navigation";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
@@ -103,15 +102,17 @@ export default async function CasesPage({
 
       <PageSectionTabs sections={caseSections} activeKey={activeView} />
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {overviewCards.map((card) => (
-          <article key={card.label} className="card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
-          </article>
-        ))}
-      </section>
+      {isOverview ? (
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {overviewCards.map((card) => (
+            <article key={card.label} className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       {isOverview ? (
         <section className="grid gap-4 lg:grid-cols-2">
@@ -138,52 +139,6 @@ export default async function CasesPage({
             </div>
           </article>
         </section>
-      ) : null}
-
-      {activeView !== "overview" ? (
-        <WorkflowChecklist
-          title="Case workflow"
-          description="Cases are where the work is managed. Attach evidence, inspect linked correspondence, and only then prepare or review drafts."
-          note="Drafts remain pending red-team"
-          collapsible
-          defaultOpen={false}
-          items={[
-            {
-              title: "Open the case",
-              description:
-                "Use the selected case detail pane to see the current status, owner, waiting party, and next action.",
-            },
-            {
-              title: "Attach evidence or correspondence",
-              description:
-                "Add supporting files, parse eligible EMLs, or check the imported thread trail before moving forward.",
-              href: "/import",
-              actionLabel: "Open Import",
-              links: [{ href: "/assurance", label: "Assurance" }],
-            },
-            {
-              title: "Triage, draft, and review",
-              description:
-                "Run triage on the selected case, generate a draft, then open /drafts to run red-team and copy only if safe.",
-              href: "/drafts",
-              actionLabel: "Open Drafts",
-            },
-            {
-              title: "Adjust writing style if needed",
-              description:
-                "If the wording needs a different tone, update the writing style profile before generating the next draft.",
-              href: "/settings/writing-style",
-              actionLabel: "Open Writing Style",
-            },
-            {
-              title: "Track assurance signals",
-              description:
-                "Capture vessel support concerns and governance signals in /assurance so broad feedback becomes evidence-backed action.",
-              href: "/assurance",
-              actionLabel: "Open Assurance",
-            },
-          ]}
-        />
       ) : null}
 
       {activeView !== "overview" ? (

@@ -858,7 +858,7 @@ export function AssuranceWorkbench({
               <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
                 New signal
               </p>
-              <div className="mt-3 space-y-3">
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <TextField
                   label="Signal title"
                   value={signalForm.signal_title}
@@ -1146,7 +1146,7 @@ export function AssuranceWorkbench({
               className="overflow-hidden"
               bodyClassName="p-4 pt-0"
             >
-              <div className="mt-3 space-y-3">
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <TextField
                   label="Vessel"
                   value={supportForm.vessel}
@@ -1412,7 +1412,7 @@ export function AssuranceWorkbench({
               className="overflow-hidden"
               bodyClassName="p-4 pt-0"
             >
-              <div className="mt-3 space-y-3">
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <TextField
                   label="Vessel"
                   value={engagementForm.vessel}
