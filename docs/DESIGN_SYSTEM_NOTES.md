@@ -136,6 +136,20 @@ Current usage:
 - workspace / status filters
 - some queue and mode switchers
 
+### Dashboard overview pattern
+
+Role:
+
+- keep the dashboard as a short overview and navigation surface rather than a workbench
+
+Current behavior:
+
+- high-level overview cards only
+- clickable module cards
+- small attention strip limited to highest-priority items
+- no workflow checklist, detailed queues, recent import detail, vessel snapshots, or secondary status groups on the dashboard
+- CoS Assistant rail hidden on the dashboard surface
+
 ## Visual tokens
 
 These are the current visual behaviors that should be preserved and refined, not replaced.
@@ -235,6 +249,12 @@ Semantic colors currently represent:
 - drafts that are not safe to copy must never look copy-ready
 - reviewed drafts that are safe to copy should be obvious, but still manual
 
+### Dashboard overview versus module detail
+
+- dashboard content should stay high-level and click-through only
+- detailed operational work belongs inside `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages
+- dashboard cards should never become send, copy, AI action, or automatic workflow controls
+
 ## Implementation guidance for later Codex work
 
 - update shared components first
@@ -242,4 +262,4 @@ Semantic colors currently represent:
 - do not alter access, red-team, or copy safety
 - let Figma refine hierarchy and spacing before introducing new visual patterns
 - prefer consolidation over creating page-specific one-off widgets
-
+- keep the dashboard overview-only and move detailed work into the module pages

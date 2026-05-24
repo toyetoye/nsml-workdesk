@@ -516,3 +516,28 @@ Notes:
 - Bulk intake structures exported email evidence; it does not connect to Outlook, interpret the meaning of the emails, create conclusions, or decide accountability.
 - Imported email content is evidence of message content. Conclusions drawn from that content still require classification as Fact, Reported, Inference, or Assumption.
 - No Outlook integration, Microsoft Graph, IMAP/SMTP, live mailbox connection, email sending, PST parsing, bulk AI triage, automatic routing, automatic assurance conclusions, disciplinary findings, or sentiment/political scoring.
+
+## Sprint 020B
+
+Complete.
+
+Delivered:
+
+- dashboard simplified into a one-page overview and navigation hub
+- dashboard no longer acts as a workbench
+- high-level overview cards only
+- clickable module cards
+- top attention strip limited to highest-priority items
+- workflow checklist removed from dashboard
+- detailed queues removed from dashboard
+- recent import detail removed from dashboard
+- vessel snapshots removed from dashboard
+- secondary status groups removed from dashboard
+- dashboard assistant rail hidden
+- detailed workflows remain inside `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages
+- Playwright `ui:audit` confirms the dashboard fits in one viewport
+
+Notes:
+
+- Dashboard is for overview and navigation only. Detailed operational work belongs inside the relevant module page.
+- No backend changes, AI changes, parsing changes, Outlook/email changes, auth changes, or safety-model changes were made.

@@ -4,6 +4,8 @@ Sprint 018 records the current NSML WorkDesk interface before any Figma-led refi
 
 This is a documentation-only audit. It captures the present page structure, reusable patterns, workflow flow, long-page pain points, screenshot targets, and the constraints Figma and Codex must preserve.
 
+Sprint 020B simplified the dashboard into a one-page overview and navigation hub, and the Playwright `ui:audit` confirmed that the dashboard now fits within one viewport.
+
 ## Scope
 
 Pages audited:
@@ -61,18 +63,20 @@ That flow appears in different forms on different pages:
 
 Current structure:
 
-- sticky page header
-- workflow checklist
-- actionable command-centre cards
-- urgent attention / queue-style blocks
-- recent import and vessel snapshot areas
-- CoS Assistant panel in the shell
+- compact sticky page header
+- high-level overview cards
+- clickable module cards
+- small top attention strip
+- no workflow checklist or detailed queue on the dashboard
+- no recent import detail or vessel snapshot blocks on the dashboard
+- CoS Assistant hidden from the dashboard surface
 
 Observed intent:
 
-- show fewer but more actionable blocks
-- guide the user into import, correspondence, cases, drafts, assurance, and writing style
-- keep the first viewport focused on what needs action
+- show a one-page overview and navigation hub
+- guide the user into import, assurance, cases, drafts, vessels, and writing style
+- keep the first viewport focused on high-level counts, module cards, and top attention items
+- keep detailed workbench content inside the module pages
 
 ### `/import`
 
@@ -218,10 +222,9 @@ Documented reusable patterns already in the app:
 
 ## Long-page pain points
 
-Sprint 017 reduced some page length, but the current pain points remain:
+Sprint 017 and Sprint 020B reduced page length in different ways, but the remaining pain points are now concentrated in the module pages:
 
 - pages still run long when all guidance, filters, and reference content are open together
-- dashboard needs a clearer command-centre hierarchy
 - import still has multiple lanes that can compete for attention
 - assurance needs tighter grouping so evidence guardrails stay strong without feeling heavy
 - cases needs the selected case to remain dominant while evidence and correspondence recede
@@ -269,4 +272,3 @@ The Figma review should focus on:
 - letting secondary/reference panels recede
 - improving selected-state treatment
 - keeping active work distinct from background context
-

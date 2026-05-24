@@ -197,3 +197,9 @@ Reason: The product needs a disciplined way to convert broad support feedback an
 Decision: Sprint 016 adds bulk Outlook evidence intake as server-side ZIP-of-EMLs ingestion with PST preservation-only handling, manual pasted email fallback guidance, and conservative batch limits, but it does not connect to Outlook or parse PST files in-app.
 
 Reason: The product needs a practical way to bring in exported email evidence without live mailbox integration while preserving evidence safety, traceability, and the distinction between imported message content and downstream conclusions.
+
+## D034 - Dashboard is overview and navigation only
+
+Decision: Sprint 020B simplifies the dashboard into a one-page overview and navigation hub with high-level counts, clickable module cards, and a small attention strip, while keeping detailed workflows inside the relevant module pages.
+
+Reason: The dashboard should help the user orient quickly and click through to the right place. Operational detail belongs in `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages, where the work can be handled without turning the dashboard into a workbench.

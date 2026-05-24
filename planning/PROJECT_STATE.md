@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 016 complete.
+Sprint 020B complete.
 
 ## Active sprint
 
-Sprint 017 - next approved sprint.
+Sprint 020B - complete.
 
 ## Confirmed decisions
 
@@ -75,6 +75,18 @@ Sprint 017 - next approved sprint.
 - Sprint 015 keeps the assurance module evidence-backed and action-tracking only; it does not allow unsupported allegations to be stored as facts, does not create disciplinary conclusions, and does not add email sending, Outlook integration, automatic escalation, political/sentiment scoring, or automatic AI conclusions.
 - Sprint 016 added Bulk Outlook Evidence Intake as a safe server-side ZIP-of-EMLs ingestion workflow under `/import`, with PST preservation-only handling, manual pasted email fallback guidance, batch summary/status tracking, optional case/assurance/support-item links, and reuse of the existing EML parser and deterministic threading spine.
 - Sprint 016 keeps bulk intake as exported evidence handling only; it does not connect to Outlook, Microsoft Graph, IMAP, SMTP, or live mailbox services, and it does not parse PST files in-app.
+- Sprint 017 improved workflow compression with sticky headers, collapsible sections, and clearer next-best-action guidance across the major operational surfaces.
+- Sprint 017 does not add new backend capability, AI capability, parsing capability, Outlook integration, email sending, or safety changes.
+- Sprint 018 added the UI audit, Figma design-system brief, screenshot checklist, and design handoff documents for future visual refinement.
+- Sprint 018 does not change app functionality or the live route surface.
+- Sprint 019 added the capture plan and Playwright audit fallback for the live app, with screenshots stored outside the tracked source tree.
+- Sprint 019 does not change app behavior, auth, or the safety model.
+- Sprint 020A refined dashboard, import, and assurance hierarchy without changing functionality.
+- Sprint 020A does not add backend capability, AI capability, parsing capability, Outlook integration, or email sending.
+- Sprint 020B simplified the dashboard into a one-page overview and navigation hub with high-level overview cards, clickable module cards, and a top attention strip limited to highest-priority items.
+- Sprint 020B removed workflow checklist, detailed queues, recent import detail, vessel snapshots, secondary status groups, and the dashboard assistant rail from the dashboard surface.
+- Sprint 020B keeps detailed workflows inside `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages.
+- Sprint 020B does not change backend behavior, AI behavior, parsing behavior, Outlook/email behavior, auth, or the safety model.
 
 ## Product rules
 
@@ -85,6 +97,7 @@ Sprint 017 - next approved sprint.
 - Production readiness must classify states honestly: ready, intentionally disabled, development fallback, or production misconfigured / fail closed.
 - Bulk intake structures exported email evidence; it does not connect to Outlook, interpret the meaning of the emails, create conclusions, or decide accountability.
 - Imported email content is evidence of message content. Conclusions drawn from that content must still be classified as Fact, Reported, Inference, or Assumption.
+- Dashboard is for overview and navigation only. Detailed operational work belongs inside the relevant module page.
 
 ## Next action
 

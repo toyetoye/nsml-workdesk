@@ -251,3 +251,9 @@ Mitigation: Reinforce the rule that imported content is evidence of the message 
 Risk: Bulk export intake could be misread as a live Outlook connection.
 
 Mitigation: Keep the workflow framed as exported evidence intake only and explicitly state that Outlook, Microsoft Graph, IMAP/SMTP, live mailbox access, and email sending are out of scope.
+
+## R042 - Dashboard workbench regression
+
+Risk: The dashboard could drift back into a detailed operational workbench and crowd out the overview role.
+
+Mitigation: Keep the dashboard limited to overview cards, module cards, and a small attention strip; leave workflow checklists, queue detail, vessel snapshots, recent import detail, and other operational depth inside the relevant module pages.
