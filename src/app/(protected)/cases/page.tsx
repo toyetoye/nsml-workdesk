@@ -1,6 +1,8 @@
 import { CaseManagementWorkbench } from "@/components/CaseManagementWorkbench";
+import { PageSectionTabs } from "@/components/PageSectionTabs";
 import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
+import { caseSections } from "@/components/navigation";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
@@ -9,6 +11,8 @@ import {
   listCases,
   listCorrespondenceMessages,
   listCorrespondenceThreads,
+  listDraftRedTeamReviews,
+  listDraftResponses,
   listEvidence,
   listTimelineEvents,
 } from "@/lib/persistence/repository";
@@ -17,23 +21,69 @@ import {
   mapEvidenceRowsToRecords,
   mapParsedCorrespondenceRowsToThreads,
 } from "@/lib/workbench-data";
+import { resolveView } from "@/lib/navigation-view";
 
-export default async function CasesPage() {
-  const [caseRows, timelineRows, evidenceRows, threadRows, messageRows, writingStyleProfile] = await Promise.all([
+type SearchParamsValue = Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined> | undefined> | undefined;
+
+type CaseView = "overview" | "active" | "evidence" | "correspondence" | "drafts";
+
+const caseViews: CaseView[] = ["overview", "active", "evidence", "correspondence", "drafts"];
+
+export default async function CasesPage({
+  searchParams,
+}: {
+  searchParams?: SearchParamsValue;
+}) {
+  const [
+    caseRows,
+    timelineRows,
+    evidenceRows,
+    threadRows,
+    messageRows,
+    writingStyleProfile,
+    draftRows,
+    reviewRows,
+  ] = await Promise.all([
     listCases(),
     listTimelineEvents(),
     listEvidence(),
     listCorrespondenceThreads(),
     listCorrespondenceMessages(),
     getActiveWritingStyleProfile(),
+    listDraftResponses(),
+    listDraftRedTeamReviews(),
   ]);
   const initialCases = mapCaseRowsToRecords(caseRows, timelineRows);
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
-  const parsedCorrespondenceThreads = mapParsedCorrespondenceRowsToThreads(
-    threadRows,
-    messageRows,
-  );
+  const parsedCorrespondenceThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows);
   const aiConfig = getAiConfigStatus();
+  const activeView = (await resolveView(searchParams, caseViews, "overview")) as CaseView;
+  const isOverview = activeView === "overview";
+
+  const reviewedDraftIds = new Set(reviewRows.map((review) => review.draft_id));
+  const pendingRedTeamCount = draftRows.filter((draft) => !reviewedDraftIds.has(draft.draft_id)).length;
+  const overviewCards = [
+    {
+      label: "Active cases",
+      count: initialCases.length,
+      summary: "Case work that needs decisions, evidence, or replies.",
+    },
+    {
+      label: "Evidence",
+      count: initialEvidence.length,
+      summary: "Linked evidence waiting to support the case record.",
+    },
+    {
+      label: "Correspondence",
+      count: parsedCorrespondenceThreads.length,
+      summary: "Parsed threads tied to the case trail.",
+    },
+    {
+      label: "Drafts pending red-team",
+      count: pendingRedTeamCount,
+      summary: "Drafts still waiting for safe-to-copy review.",
+    },
+  ];
 
   return (
     <section className="space-y-6">
@@ -41,74 +91,112 @@ export default async function CasesPage() {
         eyebrow="Cases"
         title="Case management workbench"
         description="A case is the working unit. Evidence and correspondence support the case while the operational work happens here."
-        context="Structure → Link → Decide → Draft → Review"
-        primaryAction={{ href: "/drafts", label: "Open Drafts" }}
+        context="Structure -> Link -> Decide -> Draft -> Review"
+        primaryAction={{ href: "/cases?view=active", label: "Active Cases" }}
         secondaryActions={[
           { href: "/import", label: "Import" },
           { href: "/assurance", label: "Assurance" },
           { href: "/settings/writing-style", label: "Writing Style" },
         ]}
-        quickLinks={[
-          { href: "/import", label: "Import" },
-          { href: "/assurance", label: "Assurance" },
-          { href: "/drafts", label: "Drafts" },
-          { href: "/settings/writing-style", label: "Writing Style" },
-        ]}
+        quickLinks={caseSections.map((section) => ({ href: section.href, label: section.label }))}
       />
 
-      <WorkflowChecklist
-        title="Case workflow"
-        description="Cases are where the work is managed. Attach evidence, inspect linked correspondence, and only then prepare or review drafts."
-        note="Drafts remain pending red-team"
-        collapsible
-        defaultOpen={false}
-        items={[
-          {
-            title: "Open the case",
-            description:
-              "Use the selected case detail pane to see the current status, owner, waiting party, and next action.",
-          },
-          {
-            title: "Attach evidence or correspondence",
-            description:
-              "Add supporting files, parse eligible EMLs, or check the imported thread trail before moving forward.",
-            href: "/import",
-            actionLabel: "Open Import",
-            links: [{ href: "/assurance", label: "Assurance" }],
-          },
-          {
-            title: "Triage, draft, and review",
-            description:
-              "Run triage on the selected case, generate a draft, then open /drafts to run red-team and copy only if safe.",
-            href: "/drafts",
-            actionLabel: "Open Drafts",
-          },
-          {
-            title: "Adjust writing style if needed",
-            description:
-              "If the wording needs a different tone, update the writing style profile before generating the next draft.",
-            href: "/settings/writing-style",
-            actionLabel: "Open Writing Style",
-          },
-          {
-            title: "Track assurance signals",
-            description:
-              "Capture vessel support concerns and governance signals in /assurance so broad feedback becomes evidence-backed action.",
-            href: "/assurance",
-            actionLabel: "Open Assurance",
-          },
-        ]}
-      />
+      <PageSectionTabs sections={caseSections} activeKey={activeView} />
 
-      <CaseManagementWorkbench
-        initialCases={initialCases}
-        initialEvidence={initialEvidence}
-        parsedCorrespondenceThreads={parsedCorrespondenceThreads}
-        persistenceEnabled={isPersistenceAvailable()}
-        parsingEnabled={hasEvidenceStorageConfig()}
-        aiConfig={aiConfig}
-        writingStyleProfileName={writingStyleProfile.profile_name}
-      />
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {overviewCards.map((card) => (
+          <article key={card.label} className="card p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
+          </article>
+        ))}
+      </section>
+
+      {isOverview ? (
+        <section className="grid gap-4 lg:grid-cols-2">
+          <article className="card p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Next best action</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">Open the active case</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Cases are where the detailed work lives. Use the case workbench when evidence, correspondence, or drafting needs action.
+            </p>
+          </article>
+
+          <article className="card p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Quick links</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {caseSections.slice(1).map((section) => (
+                <a
+                  key={section.key}
+                  href={section.href}
+                  className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-800"
+                >
+                  {section.label}
+                </a>
+              ))}
+            </div>
+          </article>
+        </section>
+      ) : null}
+
+      {activeView !== "overview" ? (
+        <WorkflowChecklist
+          title="Case workflow"
+          description="Cases are where the work is managed. Attach evidence, inspect linked correspondence, and only then prepare or review drafts."
+          note="Drafts remain pending red-team"
+          collapsible
+          defaultOpen={false}
+          items={[
+            {
+              title: "Open the case",
+              description:
+                "Use the selected case detail pane to see the current status, owner, waiting party, and next action.",
+            },
+            {
+              title: "Attach evidence or correspondence",
+              description:
+                "Add supporting files, parse eligible EMLs, or check the imported thread trail before moving forward.",
+              href: "/import",
+              actionLabel: "Open Import",
+              links: [{ href: "/assurance", label: "Assurance" }],
+            },
+            {
+              title: "Triage, draft, and review",
+              description:
+                "Run triage on the selected case, generate a draft, then open /drafts to run red-team and copy only if safe.",
+              href: "/drafts",
+              actionLabel: "Open Drafts",
+            },
+            {
+              title: "Adjust writing style if needed",
+              description:
+                "If the wording needs a different tone, update the writing style profile before generating the next draft.",
+              href: "/settings/writing-style",
+              actionLabel: "Open Writing Style",
+            },
+            {
+              title: "Track assurance signals",
+              description:
+                "Capture vessel support concerns and governance signals in /assurance so broad feedback becomes evidence-backed action.",
+              href: "/assurance",
+              actionLabel: "Open Assurance",
+            },
+          ]}
+        />
+      ) : null}
+
+      {activeView !== "overview" ? (
+        <CaseManagementWorkbench
+          initialCases={initialCases}
+          initialEvidence={initialEvidence}
+          parsedCorrespondenceThreads={parsedCorrespondenceThreads}
+          persistenceEnabled={isPersistenceAvailable()}
+          parsingEnabled={hasEvidenceStorageConfig()}
+          aiConfig={aiConfig}
+          writingStyleProfileName={writingStyleProfile.profile_name}
+        />
+      ) : null}
     </section>
   );
 }

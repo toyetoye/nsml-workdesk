@@ -350,6 +350,7 @@ export function AssuranceWorkbench({
   evidenceRecords,
   caseRows,
   persistenceEnabled,
+  initialTab = "signals",
 }: {
   initialSignals: AssuranceSignalRow[];
   initialSupportItems: VesselSupportItemRow[];
@@ -357,8 +358,9 @@ export function AssuranceWorkbench({
   evidenceRecords: EvidenceRecord[];
   caseRows: CaseRow[];
   persistenceEnabled: boolean;
+  initialTab?: AssuranceTab;
 }) {
-  const [activeTab, setActiveTab] = useState<AssuranceTab>("signals");
+  const [activeTab, setActiveTab] = useState<AssuranceTab>(initialTab);
   const [signals, setSignals] = useState<AssuranceSignalRow[]>(() => [...initialSignals]);
   const [supportItems, setSupportItems] = useState<VesselSupportItemRow[]>(() => [...initialSupportItems]);
   const [engagementLogs, setEngagementLogs] = useState<VesselEngagementLogRow[]>(() => [

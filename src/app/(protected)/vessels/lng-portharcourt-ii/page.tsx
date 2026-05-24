@@ -1,7 +1,13 @@
 import { WorkspacePage } from "@/components/WorkspacePage";
 import { vesselWorkspaces } from "@/lib/mock-data";
 
-export default function LngPortharcourtIiPage() {
+type SearchParamsValue = Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined> | undefined> | undefined;
+
+export default function LngPortharcourtIiPage({
+  searchParams,
+}: {
+  searchParams?: SearchParamsValue;
+}) {
   return (
     <WorkspacePage
       workspace={vesselWorkspaces[0]}
@@ -10,6 +16,7 @@ export default function LngPortharcourtIiPage() {
       correspondenceDescription="Imported correspondence classified to this vessel lives here after intake."
       emptyStateTitle="No vessel correspondence yet"
       emptyStateMessage="When imported emails are classified to LNG PORTHARCOURT II, they will appear here with their thread history and attachments."
+      searchParams={searchParams}
     />
   );
 }

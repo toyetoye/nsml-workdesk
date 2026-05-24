@@ -1,10 +1,10 @@
 import { BulkEvidenceIntakePanel } from "@/components/BulkEvidenceIntakePanel";
 import { EmailWorkbench } from "@/components/EmailWorkbench";
-import { EvidenceStorageWorkbench } from "@/components/EvidenceStorageWorkbench";
 import { ImportIntakeWorkbench } from "@/components/ImportIntakeWorkbench";
-import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { PageSectionTabs } from "@/components/PageSectionTabs";
 import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { WorkflowChecklist } from "@/components/WorkflowChecklist";
+import { importSections } from "@/components/navigation";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { hasEvidenceStorageConfig } from "@/lib/persistence/config";
 import { isPersistenceAvailable } from "@/lib/persistence/client";
@@ -17,13 +17,25 @@ import {
   listEvidence,
   listIntakeItems,
 } from "@/lib/persistence/repository";
+import { importWorkspaceAssignments } from "@/lib/mock-data";
 import {
   mapEvidenceRowsToRecords,
   mapIntakeRowsToItems,
   mapParsedCorrespondenceRowsToThreads,
 } from "@/lib/workbench-data";
+import { resolveView } from "@/lib/navigation-view";
 
-export default async function ImportPage() {
+type SearchParamsValue = Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined> | undefined> | undefined;
+
+type ImportView = "overview" | "manual" | "bulk" | "parsed" | "route";
+
+const importViews: ImportView[] = ["overview", "manual", "bulk", "parsed", "route"];
+
+export default async function ImportPage({
+  searchParams,
+}: {
+  searchParams?: SearchParamsValue;
+}) {
   const [
     intakeRows,
     evidenceRows,
@@ -45,6 +57,31 @@ export default async function ImportPage() {
   const initialEvidence = mapEvidenceRowsToRecords(evidenceRows);
   const parsedThreads = mapParsedCorrespondenceRowsToThreads(threadRows, messageRows);
   const aiConfig = getAiConfigStatus();
+  const activeView = (await resolveView(searchParams, importViews, "overview")) as ImportView;
+  const isOverview = activeView === "overview";
+
+  const overviewCards = [
+    {
+      label: "Manual intake items",
+      count: initialItems.length,
+      summary: "Pasted emails and manual notes waiting to be structured.",
+    },
+    {
+      label: "Bulk evidence batches",
+      count: bulkBatches.length,
+      summary: "ZIP-of-EMLs, PST preservation, and batch tracking.",
+    },
+    {
+      label: "Parsed threads",
+      count: parsedThreads.length,
+      summary: "Imported correspondence ready for review or routing.",
+    },
+    {
+      label: "Route targets",
+      count: importWorkspaceAssignments.length,
+      summary: "Import, vessels, projects, other, and assurance destinations.",
+    },
+  ];
 
   return (
     <section className="space-y-6">
@@ -52,76 +89,107 @@ export default async function ImportPage() {
         eyebrow="Import"
         title="Capture and intake"
         description="Start with capture, then structure imported material, link it to the right workstream, and keep the next safe action obvious."
-        context="Capture → Structure → Link"
-        primaryAction={{ href: "#capture", label: "Capture" }}
+        context="Capture -> Structure -> Link"
+        primaryAction={{ href: "/import?view=manual", label: "Capture" }}
         secondaryActions={[
           { href: "/cases", label: "Cases" },
           { href: "/assurance", label: "Assurance" },
           { href: "/drafts", label: "Drafts" },
         ]}
-        quickLinks={[
-          { href: "#capture", label: "Capture" },
-          { href: "#bulk-import", label: "Bulk Import" },
-          { href: "#parsed-threads", label: "Review Parsed Threads" },
-          { href: "#route-link", label: "Route / Link" },
-        ]}
+        quickLinks={importSections.map((section) => ({ href: section.href, label: section.label }))}
       />
 
-      <WorkflowChecklist
-        title="Import flow"
-        description="Start with intake, stage evidence, then decide whether the item belongs in correspondence, a case, or a draft path."
-        note="AI and persistence may fall back"
-        collapsible
-        compact
-        defaultOpen={false}
-        items={[
-          {
-            title: "Stage the item",
-            description:
-              "Paste a note or email, or save a manual intake record so the source material is captured first.",
-          },
-          {
-            title: "Upload or parse evidence",
-            description:
-              "Attach private files here, then parse EML metadata only when the file is eligible.",
-          },
-          {
-            title: "Move the work forward",
-            description:
-              "Use workspace correspondence, cases, drafts, and writing style settings to keep the response path coherent.",
-            links: [
-              { href: "/vessels/lng-portharcourt-ii", label: "LNG PORTHARCOURT II" },
-              { href: "/vessels/lpg-alfred-temile", label: "LPG ALFRED TEMILE" },
-              { href: "/vessels/lpg-alfred-temile-10", label: "LPG ALFRED TEMILE 10" },
-              { href: "/projects", label: "Projects" },
-              { href: "/other", label: "Other" },
-              { href: "/cases", label: "Cases" },
-              { href: "/assurance", label: "Assurance" },
-              { href: "/drafts", label: "Drafts" },
-              { href: "/settings/writing-style", label: "Writing Style" },
-            ],
-          },
-        ]}
-      />
+      <PageSectionTabs sections={importSections} activeKey={activeView} />
 
-      <section id="capture" className="space-y-4">
-        <ImportIntakeWorkbench
-          initialItems={initialItems}
-          initialEvidence={initialEvidence}
-          persistenceEnabled={isPersistenceAvailable()}
-          aiConfig={aiConfig}
-          writingStyleProfileName={writingStyleProfile.profile_name}
-        />
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {overviewCards.map((card) => (
+          <article key={card.label} className="card p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
+          </article>
+        ))}
       </section>
 
-      <CollapsibleSection
-        title="Bulk Evidence Intake"
-        description="ZIP-of-EMLs, selected EML upload, PST preservation, and manual fallback stay visible here without dominating the first viewport."
-        summaryBadge={<span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{bulkBatches.length} batch{bulkBatches.length === 1 ? "" : "es"}</span>}
-        defaultOpen={false}
-        className="overflow-hidden"
-        bodyClassName="p-4 pt-0"
-      >
+      {isOverview ? (
+        <section className="grid gap-4 lg:grid-cols-2">
+          <article className="card p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Next best action</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">Choose the intake path</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Use Manual Intake for urgent pasted material, Bulk Evidence Intake for exported EML batches, Parsed Threads for review, or Route / Link when the item needs assignment.
+            </p>
+          </article>
+
+          <article className="card p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Shortcuts</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {importSections.slice(1).map((section) => (
+                <a
+                  key={section.key}
+                  href={section.href}
+                  className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-800"
+                >
+                  {section.label}
+                </a>
+              ))}
+            </div>
+          </article>
+        </section>
+      ) : null}
+
+      {activeView !== "overview" ? (
+        <WorkflowChecklist
+          title="Import flow"
+          description="Start with intake, stage evidence, then decide whether the item belongs in correspondence, a case, or a draft path."
+          note="AI and persistence may fall back"
+          collapsible
+          compact
+          defaultOpen={false}
+          items={[
+            {
+              title: "Stage the item",
+              description:
+                "Paste a note or email, or save a manual intake record so the source material is captured first.",
+            },
+            {
+              title: "Upload or parse evidence",
+              description:
+                "Attach private files here, then parse EML metadata only when the file is eligible.",
+            },
+            {
+              title: "Move the work forward",
+              description:
+                "Use workspace correspondence, cases, drafts, and writing style settings to keep the response path coherent.",
+              links: [
+                { href: "/vessels/lng-portharcourt-ii", label: "LNG PORTHARCOURT II" },
+                { href: "/vessels/lpg-alfred-temile", label: "LPG ALFRED TEMILE" },
+                { href: "/vessels/lpg-alfred-temile-10", label: "LPG ALFRED TEMILE 10" },
+                { href: "/projects", label: "Projects" },
+                { href: "/other", label: "Other" },
+                { href: "/cases", label: "Cases" },
+                { href: "/assurance", label: "Assurance" },
+                { href: "/drafts", label: "Drafts" },
+                { href: "/settings/writing-style", label: "Writing Style" },
+              ],
+            },
+          ]}
+        />
+      ) : null}
+
+      {activeView === "manual" ? (
+        <section id="capture" className="space-y-4">
+          <ImportIntakeWorkbench
+            initialItems={initialItems}
+            initialEvidence={initialEvidence}
+            persistenceEnabled={isPersistenceAvailable()}
+            aiConfig={aiConfig}
+            writingStyleProfileName={writingStyleProfile.profile_name}
+          />
+        </section>
+      ) : null}
+
+      {activeView === "bulk" ? (
         <section id="bulk-import">
           <BulkEvidenceIntakePanel
             key={bulkBatches.map((batch) => batch.batch_id).join("|") || "bulk-batches-empty"}
@@ -129,35 +197,13 @@ export default async function ImportPage() {
             initialBatchItems={bulkBatchItems}
             persistenceEnabled={isPersistenceAvailable()}
             evidenceStorageEnabled={hasEvidenceStorageConfig()}
-            manualIntakeHref="#manual-intake"
+            manualIntakeHref="/import?view=manual#capture"
           />
         </section>
-      </CollapsibleSection>
+      ) : null}
 
-      <CollapsibleSection
-        title="Evidence storage"
-        description="Private file storage and parsing placeholders remain visible here when you need to stage or inspect evidence."
-        defaultOpen={false}
-        className="overflow-hidden"
-        bodyClassName="p-4 pt-0"
-      >
-        <EvidenceStorageWorkbench
-          initialEvidence={initialEvidence}
-          persistenceEnabled={isPersistenceAvailable()}
-          parsingEnabled={hasEvidenceStorageConfig()}
-          mode="import"
-          defaultWorkspaceAssignment="Import/Staging"
-        />
-      </CollapsibleSection>
-
-      <section id="parsed-threads">
-        <CollapsibleSection
-          title="Review Parsed Threads"
-          description="Imported and unclassified threads appear here for review after intake. This is a correspondence viewer, not a mail client."
-          defaultOpen={false}
-          className="overflow-hidden"
-          bodyClassName="p-4 pt-0"
-        >
+      {activeView === "parsed" ? (
+        <section id="parsed-threads">
           <EmailWorkbench
             scope="import"
             sectionLabel="Imported Correspondence Viewer"
@@ -169,8 +215,50 @@ export default async function ImportPage() {
             aiConfig={aiConfig}
             triageRedirectTo="/import"
           />
-        </CollapsibleSection>
-      </section>
+        </section>
+      ) : null}
+
+      {activeView === "route" ? (
+        <section className="grid gap-4 lg:grid-cols-2">
+          <article className="card p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Route / Link</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">Choose the destination</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Use the imported item to decide whether the work belongs in correspondence, a case, assurance, or a drafting path.
+            </p>
+          </article>
+
+          <article className="card p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Quick links</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                { href: "/cases", label: "Cases" },
+                { href: "/assurance", label: "Assurance" },
+                { href: "/drafts", label: "Drafts" },
+                { href: "/settings/writing-style", label: "Writing Style" },
+                { href: "/vessels/lng-portharcourt-ii", label: "LNG Port Harcourt II" },
+              ].map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-800"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </article>
+        </section>
+      ) : null}
+
+      {activeView === "overview" ? (
+        <section className="card p-4">
+          <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Overview</p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Capture stays on this page, but the detailed surfaces live in the manual, bulk, parsed, and route child views.
+          </p>
+        </section>
+      ) : null}
     </section>
   );
 }

@@ -156,12 +156,14 @@ export function DraftsWorkbench({
   caseTitles,
   aiConfig,
   writingStyleProfileName,
+  initialView = "pending_red_team",
 }: {
   drafts: DraftResponsePlaceholderRow[];
   initialReviews: DraftRedTeamReviewRow[];
   caseTitles: Map<string, string>;
   aiConfig: AiConfigStatus;
   writingStyleProfileName?: string | null;
+  initialView?: DraftView;
 }) {
   const [draftRows] = useState<DraftResponsePlaceholderRow[]>(() => [...drafts]);
   const [reviewsByDraftId, setReviewsByDraftId] = useState<Record<string, DraftRedTeamReviewRow>>(() =>
@@ -171,7 +173,7 @@ export function DraftsWorkbench({
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewNotice, setReviewNotice] = useState<string | null>(null);
   const [copyNoticeByDraftId, setCopyNoticeByDraftId] = useState<Record<string, string>>({});
-  const [activeView, setActiveView] = useState<DraftView>("pending_red_team");
+  const [activeView, setActiveView] = useState<DraftView>(initialView);
 
   const sortedDrafts = useMemo(
     () =>
