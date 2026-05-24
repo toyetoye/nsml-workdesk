@@ -40,6 +40,13 @@ const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: "Needs Evidence", value: "needs-evidence" },
 ];
 
+const primaryStatusGroups: DashboardQueueGroup[] = [
+  "urgent",
+  "pending-my-reply",
+  "decision-required",
+  "needs-evidence",
+];
+
 const queueSectionOrder: Array<{
   key: DashboardQueueGroup;
   title: string;
@@ -123,6 +130,16 @@ export function DashboardCommandCenter() {
     }));
   }, [filteredQueueItems]);
 
+  const primaryCards = useMemo(
+    () => topCards.filter((card) => primaryStatusGroups.includes(card.group)),
+    [topCards],
+  );
+
+  const secondaryCards = useMemo(
+    () => topCards.filter((card) => !primaryStatusGroups.includes(card.group)),
+    [topCards],
+  );
+
   const recentImports = useMemo(() => {
     if (workspaceFilter === "all") return recentImportActivity;
     return recentImportActivity.filter((item) => item.workspaceKey === workspaceFilter);
@@ -168,6 +185,7 @@ export function DashboardCommandCenter() {
         description="Follow the same path every time so intake, correspondence, cases, drafts, and review stay in sync."
         note="Copy is only available after red-team review"
         collapsible
+        compact
         defaultOpen={false}
         items={[
           {
@@ -244,11 +262,26 @@ export function DashboardCommandCenter() {
         </div>
       </CollapsibleSection>
 
-      <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-        {topCards.map((status) => (
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {primaryCards.map((status) => (
           <DashboardCard key={status.label} status={status} />
         ))}
       </section>
+
+      <CollapsibleSection
+        title="Secondary status counts"
+        description="Less urgent counts stay available here so the first viewport stays focused on the highest-signal work."
+        summaryBadge={<StatusBadge tone="neutral">{secondaryCards.length}</StatusBadge>}
+        defaultOpen={false}
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
+        <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {secondaryCards.map((status) => (
+            <DashboardCard key={status.label} status={status} />
+          ))}
+        </section>
+      </CollapsibleSection>
 
       {queueSectionOrder.map((section) => {
         const items = filteredQueueItems.filter((item) => item.group === section.key);

@@ -627,8 +627,8 @@ export function AssuranceWorkbench({
       <header className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-end">
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Assurance</p>
-          <h1 className="text-4xl font-bold text-slate-950">Vessel assurance and governance tracker</h1>
-          <p className="max-w-4xl text-base leading-7 text-slate-600">
+          <h1 className="text-3xl font-bold text-slate-950">Vessel assurance and governance tracker</h1>
+          <p className="max-w-4xl text-sm leading-6 text-slate-600">
             Capture support feedback, vessel comments, audit notes, and governance signals as
             evidence-backed records. Keep the language neutral, track the actions, and avoid
             turning reported concerns into unsupported facts.
@@ -660,15 +660,23 @@ export function AssuranceWorkbench({
         </div>
       </header>
 
-      <section className="card p-4">
+      <CollapsibleSection
+        title="Guardrails"
+        description="Fact requires evidence. Reported, Inference, and Assumption stay separate, and neutral wording stays visible."
+        summaryBadge={
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            No political diary
+          </span>
+        }
+        defaultOpen={false}
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
-              Guardrails
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-slate-950">
               Evidence levels and neutral wording
-            </h2>
+            </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Fact = directly evidenced. Reported = stated but not independently verified.
               Inference = reasonable interpretation from multiple signals. Assumption = possible
@@ -679,10 +687,10 @@ export function AssuranceWorkbench({
             </p>
           </div>
           <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            No political diary, no sentiment scoring, no disciplinary conclusions
+            No sentiment scoring or disciplinary conclusions
           </div>
         </div>
-      </section>
+      </CollapsibleSection>
 
       <div className="flex flex-wrap gap-2">
         <button type="button" className={tabButtonClass("signals")} onClick={() => setActiveTab("signals")}>

@@ -72,6 +72,7 @@ export default async function ImportPage() {
         description="Start with intake, stage evidence, then decide whether the item belongs in correspondence, a case, or a draft path."
         note="AI and persistence may fall back"
         collapsible
+        compact
         defaultOpen={false}
         items={[
           {
@@ -113,16 +114,25 @@ export default async function ImportPage() {
         />
       </section>
 
-      <section id="bulk-import">
-        <BulkEvidenceIntakePanel
-          key={bulkBatches.map((batch) => batch.batch_id).join("|") || "bulk-batches-empty"}
-          initialBatches={bulkBatches}
-          initialBatchItems={bulkBatchItems}
-          persistenceEnabled={isPersistenceAvailable()}
-          evidenceStorageEnabled={hasEvidenceStorageConfig()}
-          manualIntakeHref="#manual-intake"
-        />
-      </section>
+      <CollapsibleSection
+        title="Bulk Evidence Intake"
+        description="ZIP-of-EMLs, selected EML upload, PST preservation, and manual fallback stay visible here without dominating the first viewport."
+        summaryBadge={<span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{bulkBatches.length} batch{bulkBatches.length === 1 ? "" : "es"}</span>}
+        defaultOpen={false}
+        className="overflow-hidden"
+        bodyClassName="p-4 pt-0"
+      >
+        <section id="bulk-import">
+          <BulkEvidenceIntakePanel
+            key={bulkBatches.map((batch) => batch.batch_id).join("|") || "bulk-batches-empty"}
+            initialBatches={bulkBatches}
+            initialBatchItems={bulkBatchItems}
+            persistenceEnabled={isPersistenceAvailable()}
+            evidenceStorageEnabled={hasEvidenceStorageConfig()}
+            manualIntakeHref="#manual-intake"
+          />
+        </section>
+      </CollapsibleSection>
 
       <CollapsibleSection
         title="Evidence storage"

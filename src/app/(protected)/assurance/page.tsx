@@ -42,6 +42,7 @@ export default async function AssurancePage() {
         description="Capture the signal, attach evidence, convert broad feedback into vessel support items, and keep the weekly pack factual."
         note="Fact requires evidence links"
         collapsible
+        compact
         defaultOpen={false}
         items={[
           {
