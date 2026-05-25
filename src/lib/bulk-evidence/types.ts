@@ -80,3 +80,43 @@ export type BulkEvidenceBatchOutcome = {
     sourcePathInArchive: string | null;
   }>;
 };
+
+export type BulkEvidenceActionStatus = BulkEvidenceBatchStatus;
+
+export type BulkEvidenceActionSummary = {
+  totalFiles: number;
+  parsedEml: number;
+  evidenceOnly: number;
+  preservationOnly: number;
+  unsupported: number;
+  failed: number;
+  warnings: number;
+  skipped?: number;
+  parsedSuccessfully?: number;
+};
+
+export type BulkEvidenceActionItem = {
+  fileName: string;
+  extension: string;
+  status: BulkEvidenceItemStatus;
+  message: string;
+  sourcePathInArchive?: string | null;
+  sourceKind?: BulkEvidenceSourceKind;
+  note?: string;
+};
+
+export type BulkEvidenceActionDiagnostics = BulkEvidenceBatchDiagnostics;
+
+export type BulkEvidenceActionResult = {
+  ok: boolean;
+  message: string;
+  status: BulkEvidenceActionStatus;
+  batchId: string;
+  summary: BulkEvidenceActionSummary;
+  items: BulkEvidenceActionItem[];
+  warnings: string[];
+  diagnostics?: BulkEvidenceActionDiagnostics;
+  // Legacy compatibility aliases during the transition.
+  batchStatus?: BulkEvidenceBatchStatus;
+  note?: string;
+};

@@ -19,7 +19,14 @@ import type {
   BulkEvidenceBatchItemRow,
   BulkEvidenceBatchRow,
 } from "@/lib/persistence/types";
-import type { BulkEvidenceBatchMode } from "@/lib/bulk-evidence/types";
+import type {
+  BulkEvidenceActionItem,
+  BulkEvidenceActionDiagnostics,
+  BulkEvidenceActionResult,
+  BulkEvidenceActionStatus,
+  BulkEvidenceActionSummary,
+  BulkEvidenceBatchMode,
+} from "@/lib/bulk-evidence/types";
 import type { ImportWorkspaceAssignment, StatusTone } from "@/lib/mock-data";
 import { formatEvidenceSize } from "@/lib/workbench-data";
 
@@ -121,6 +128,190 @@ function fileAcceptForMode() {
   return bulkEvidenceAccept;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string");
+}
+
+function isActionStatus(value: unknown): value is BulkEvidenceActionStatus {
+  return (
+    value === "staged" ||
+    value === "processing" ||
+    value === "completed" ||
+    value === "completed_with_warnings" ||
+    value === "failed"
+  );
+}
+
+function isActionItemStatus(value: unknown): value is BulkEvidenceActionItem["status"] {
+  return (
+    value === "parsed" ||
+    value === "evidence_only" ||
+    value === "preservation_only" ||
+    value === "skipped" ||
+    value === "failed" ||
+    value === "unsupported"
+  );
+}
+
+function normalizeActionSummary(summary: unknown): BulkEvidenceActionSummary | null {
+  if (!isRecord(summary)) {
+    return null;
+  }
+
+  const totalFiles = Number(summary.totalFiles ?? 0);
+  const parsedEml = Number(summary.parsedEml ?? summary.parsedSuccessfully ?? 0);
+  const evidenceOnly = Number(summary.evidenceOnly ?? 0);
+  const preservationOnly = Number(summary.preservationOnly ?? 0);
+  const unsupported = Number(summary.unsupported ?? 0);
+  const failed = Number(summary.failed ?? 0);
+  const warnings = Number(summary.warnings ?? 0);
+  const skipped = summary.skipped === undefined ? undefined : Number(summary.skipped);
+
+  if (
+    [totalFiles, parsedEml, evidenceOnly, preservationOnly, unsupported, failed, warnings].some((value) =>
+      Number.isNaN(value),
+    ) ||
+    (skipped !== undefined && Number.isNaN(skipped))
+  ) {
+    return null;
+  }
+
+  return {
+    totalFiles,
+    parsedEml,
+    evidenceOnly,
+    preservationOnly,
+    unsupported,
+    failed,
+    warnings,
+    skipped,
+    parsedSuccessfully: Number(summary.parsedSuccessfully ?? parsedEml),
+  };
+}
+
+function normalizeActionItems(items: unknown): BulkEvidenceActionItem[] | null {
+  if (!Array.isArray(items)) {
+    return null;
+  }
+
+  const normalized: BulkEvidenceActionItem[] = [];
+
+  for (const item of items) {
+    if (!isRecord(item)) {
+      return null;
+    }
+
+    if (
+      typeof item.fileName !== "string" ||
+      typeof item.extension !== "string" ||
+      typeof item.message !== "string" ||
+      !isActionItemStatus(item.status)
+    ) {
+      return null;
+    }
+
+    normalized.push({
+      fileName: item.fileName,
+      extension: item.extension,
+      status: item.status,
+      message: item.message,
+      sourcePathInArchive: typeof item.sourcePathInArchive === "string" ? item.sourcePathInArchive : null,
+      sourceKind: typeof item.sourceKind === "string" ? item.sourceKind as BulkEvidenceActionItem["sourceKind"] : undefined,
+      note: typeof item.note === "string" ? item.note : undefined,
+    });
+  }
+
+  return normalized;
+}
+
+function normalizeActionDiagnostics(value: unknown): BulkEvidenceActionDiagnostics | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const fileCountReceived = Number(value.fileCountReceived ?? 0);
+  const extensionsReceived = isStringArray(value.extensionsReceived) ? value.extensionsReceived : null;
+  const acceptedCount = Number(value.acceptedCount ?? 0);
+  const parsedCount = Number(value.parsedCount ?? 0);
+  const evidenceOnlyCount = Number(value.evidenceOnlyCount ?? 0);
+  const preservationOnlyCount = Number(value.preservationOnlyCount ?? 0);
+  const unsupportedCount = Number(value.unsupportedCount ?? 0);
+  const failedCount = Number(value.failedCount ?? 0);
+  const failureStage = value.failureStage;
+  const errorCode = value.errorCode;
+
+  if (
+    !extensionsReceived ||
+    [fileCountReceived, acceptedCount, parsedCount, evidenceOnlyCount, preservationOnlyCount, unsupportedCount, failedCount].some((entry) =>
+      Number.isNaN(entry),
+    ) ||
+    !(
+      failureStage === "none" ||
+      failureStage === "validation" ||
+      failureStage === "batch-processing" ||
+      failureStage === "zip-extraction" ||
+      failureStage === "storage" ||
+      failureStage === "parse" ||
+      failureStage === "system"
+    ) ||
+    !(errorCode === null || errorCode === undefined || typeof errorCode === "string")
+  ) {
+    return undefined;
+  }
+
+  return {
+    fileCountReceived,
+    extensionsReceived,
+    acceptedCount,
+    parsedCount,
+    evidenceOnlyCount,
+    preservationOnlyCount,
+    unsupportedCount,
+    failedCount,
+    failureStage,
+    errorCode: typeof errorCode === "string" ? errorCode : null,
+  };
+}
+
+function normalizeBulkEvidenceActionResult(value: unknown): BulkEvidenceActionResult | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const ok = value.ok;
+  const message = value.message;
+  const status = value.status ?? value.batchStatus;
+
+  if (typeof ok !== "boolean" || typeof message !== "string" || !isActionStatus(status)) {
+    return null;
+  }
+
+  const summary = normalizeActionSummary(value.summary);
+  const items = normalizeActionItems(value.items);
+  const warnings = isStringArray(value.warnings) ? value.warnings : null;
+
+  if (!summary || !items || !warnings) {
+    return null;
+  }
+
+  return {
+    ok,
+    message,
+    status,
+    batchId: typeof value.batchId === "string" ? value.batchId : "",
+    summary,
+    items,
+    warnings,
+    diagnostics: normalizeActionDiagnostics(value.diagnostics),
+    batchStatus: isActionStatus(value.batchStatus) ? value.batchStatus : status,
+    note: typeof value.note === "string" ? value.note : message,
+  };
+}
+
 export function BulkEvidenceIntakePanel({
   initialBatches,
   initialBatchItems,
@@ -144,6 +335,11 @@ export function BulkEvidenceIntakePanel({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [responseDebug, setResponseDebug] = useState<{
+    keys: string[];
+    status: string;
+    summary: string;
+  } | null>(null);
 
   const sortedBatches = useMemo(
     () => [...batches].sort((left, right) => right.updated_at.localeCompare(left.updated_at)),
@@ -229,12 +425,21 @@ export function BulkEvidenceIntakePanel({
       formData.set("linkedAssuranceSignalId", linkedAssuranceSignalId);
       formData.set("linkedVesselSupportItemId", linkedVesselSupportItemId);
 
-      const result = await processBulkEvidenceIntakeAction(formData);
+      const rawResult = await processBulkEvidenceIntakeAction(formData);
+      const result = normalizeBulkEvidenceActionResult(rawResult);
 
-      if (!result || typeof result.ok !== "boolean") {
+      if (!result) {
         throw new Error(
           "The bulk intake returned an invalid response. Please retry with a smaller batch or use Evidence Upload for unsupported files.",
         );
+      }
+
+      if (process.env.NODE_ENV !== "production") {
+        setResponseDebug({
+          keys: Object.keys((rawResult as Record<string, unknown>) ?? {}).sort(),
+          status: result.status,
+          summary: `total=${result.summary.totalFiles}, parsed=${result.summary.parsedEml}, evidenceOnly=${result.summary.evidenceOnly}, preservationOnly=${result.summary.preservationOnly}, unsupported=${result.summary.unsupported}, failed=${result.summary.failed}, warnings=${result.summary.warnings}`,
+        });
       }
 
       if (!result.ok) {
@@ -242,7 +447,7 @@ export function BulkEvidenceIntakePanel({
         return;
       }
 
-      setNotice(result.message || result.note);
+      setNotice(result.message || result.note || null);
       setBatches((current) => {
         const existing = current.filter((batch) => batch.batch_id !== result.batchId);
         return [
@@ -251,11 +456,11 @@ export function BulkEvidenceIntakePanel({
             batch_mode: batchMode,
             workspace_assignment: workspaceAssignment,
             source_label: sourceLabel,
-            status: result.batchStatus,
+            status: result.status,
             total_files: result.summary.totalFiles,
-            eml_files_found: result.summary.emlFilesFound,
-            parsed_successfully: result.summary.parsedSuccessfully,
-            skipped: result.summary.skipped,
+            eml_files_found: result.summary.parsedEml,
+            parsed_successfully: result.summary.parsedEml,
+            skipped: result.summary.skipped ?? 0,
             failed: result.summary.failed,
             unsupported: result.summary.unsupported,
             warnings: result.summary.warnings,
@@ -558,6 +763,15 @@ export function BulkEvidenceIntakePanel({
           {error ? (
             <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
               {error}
+            </div>
+          ) : null}
+
+          {process.env.NODE_ENV !== "production" && responseDebug ? (
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-6 text-slate-600">
+              <p className="font-semibold text-slate-700">Development response debug</p>
+              <p className="mt-1">Keys received: {responseDebug.keys.join(", ") || "none"}</p>
+              <p>Status received: {responseDebug.status}</p>
+              <p>Summary: {responseDebug.summary}</p>
             </div>
           ) : null}
 

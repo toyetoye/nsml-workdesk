@@ -6,8 +6,10 @@ import { buildIntakeItemFromSubmission, mapIntakeRowsToItems, type IntakeSubmiss
 import type { IntakeItemRow } from "@/lib/persistence/types";
 import { processBulkEvidenceIntake } from "@/lib/bulk-evidence/processor";
 import type {
+  BulkEvidenceActionResult,
   BulkEvidenceBatchMode,
   BulkEvidenceBatchOutcome,
+  BulkEvidenceBatchStatus,
   BulkEvidenceBatchSummary,
 } from "@/lib/bulk-evidence/types";
 import type { ImportWorkspaceAssignment } from "@/lib/mock-data";
@@ -60,36 +62,44 @@ export async function saveIntakeItemAction(
   };
 }
 
-type BulkIntakeActionResult = BulkEvidenceBatchOutcome & {
-  ok: boolean;
-  message: string;
-};
-
-function emptyBulkSummary(): BulkEvidenceBatchSummary {
+function emptyActionSummary(): BulkEvidenceActionResult["summary"] {
   return {
     totalFiles: 0,
-    emlFilesFound: 0,
-    parsedSuccessfully: 0,
+    parsedEml: 0,
     evidenceOnly: 0,
     preservationOnly: 0,
-    skipped: 0,
-    failed: 0,
     unsupported: 0,
+    failed: 0,
     warnings: 0,
+    skipped: 0,
+    parsedSuccessfully: 0,
   };
 }
 
-function structuredBulkFailure(message: string, diagnostics?: BulkEvidenceBatchOutcome["diagnostics"]): BulkIntakeActionResult {
-  const summary = emptyBulkSummary();
+function mapBatchStatus(status: BulkEvidenceBatchStatus): BulkEvidenceActionResult["status"] {
+  return status;
+}
 
+function sourceExtension(fileName: string) {
+  const dotIndex = fileName.lastIndexOf(".");
+
+  return dotIndex >= 0 ? fileName.slice(dotIndex + 1).toLowerCase() : "none";
+}
+
+function structuredBulkFailure(
+  message: string,
+  diagnostics?: BulkEvidenceBatchOutcome["diagnostics"],
+): BulkEvidenceActionResult {
   return {
     ok: false,
     batchId: "",
+    status: "failed",
     batchStatus: "failed",
-    summary,
+    summary: emptyActionSummary(),
     note: message,
     message,
     warnings: [message],
+    items: [],
     diagnostics: diagnostics ?? {
       fileCountReceived: 0,
       extensionsReceived: [],
@@ -105,6 +115,47 @@ function structuredBulkFailure(message: string, diagnostics?: BulkEvidenceBatchO
   };
 }
 
+function toActionSummary(summary: BulkEvidenceBatchSummary): BulkEvidenceActionResult["summary"] {
+  return {
+    totalFiles: summary.totalFiles,
+    parsedEml: summary.parsedSuccessfully,
+    parsedSuccessfully: summary.parsedSuccessfully,
+    evidenceOnly: summary.evidenceOnly,
+    preservationOnly: summary.preservationOnly,
+    unsupported: summary.unsupported,
+    failed: summary.failed,
+    warnings: summary.warnings,
+    skipped: summary.skipped,
+  };
+}
+
+function toActionItems(outcome: BulkEvidenceBatchOutcome): BulkEvidenceActionResult["items"] {
+  return (outcome.items ?? []).map((item) => ({
+    fileName: item.fileName,
+    extension: sourceExtension(item.sourcePathInArchive ?? item.fileName),
+    status: item.status,
+    message: item.note,
+    sourcePathInArchive: item.sourcePathInArchive,
+    sourceKind: item.sourceKind,
+    note: item.note,
+  }));
+}
+
+function toActionResult(outcome: BulkEvidenceBatchOutcome): BulkEvidenceActionResult {
+  return {
+    ok: outcome.batchStatus !== "failed",
+    batchId: outcome.batchId,
+    status: mapBatchStatus(outcome.batchStatus),
+    batchStatus: outcome.batchStatus,
+    summary: toActionSummary(outcome.summary),
+    note: outcome.note,
+    message: outcome.note,
+    warnings: outcome.warnings,
+    items: toActionItems(outcome),
+    diagnostics: outcome.diagnostics,
+  };
+}
+
 function readString(formData: FormData, key: string, fallback = "") {
   return String(formData.get(key) ?? fallback).trim();
 }
@@ -117,7 +168,7 @@ function readFiles(formData: FormData) {
 
 export async function processBulkEvidenceIntakeAction(
   formData: FormData,
-): Promise<BulkIntakeActionResult> {
+): Promise<BulkEvidenceActionResult> {
   const redirectTarget = readString(formData, "redirectTo", "/import");
   await requireWritableAccess(redirectTarget);
 
@@ -142,17 +193,9 @@ export async function processBulkEvidenceIntakeAction(
       linkedVesselSupportItemId,
     });
 
-    return {
-      ok: outcome.batchStatus !== "failed",
-      ...outcome,
-      message: outcome.note,
-    };
+    return toActionResult(outcome);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bulk evidence intake failed.";
-    return structuredBulkFailure(
-      message.includes("unexpected response")
-        ? "The bulk intake returned an invalid response. Please retry the batch or use Evidence Upload for unsupported files."
-        : message,
-    );
+    return structuredBulkFailure(message);
   }
 }
