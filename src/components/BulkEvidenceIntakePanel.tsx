@@ -40,12 +40,12 @@ const batchModeOptions: Array<{
     value: "selected-eml-files",
     label: "Selected evidence upload",
     description:
-      "Upload one or many exported .eml files. PDFs and Word documents in the same batch are stored as evidence only. Folder-style selection is supported where the browser allows it.",
+      "Upload one or many loose files. .eml files are parsed, PDFs and Word documents are stored as evidence only, and PST files stay preservation-only. Folder-style selection is supported where the browser allows it.",
   },
   {
     value: "zip-of-emls",
     label: "ZIP of EMLs",
-    description: "Upload a ZIP archive of exported .eml files for safe server-side extraction and parsing.",
+    description: "Upload a ZIP archive of exported .eml files for safe server-side extraction and parsing. Loose files can be mixed into the same batch.",
   },
   {
     value: "pst-preservation",
@@ -70,6 +70,7 @@ const batchStatusTone: Record<BulkEvidenceBatchRow["status"], StatusTone> = {
 const itemStatusTone: Record<BulkEvidenceBatchItemRow["status"], StatusTone> = {
   parsed: "accent",
   evidence_only: "neutral",
+  preservation_only: "warning",
   skipped: "neutral",
   failed: "danger",
   unsupported: "warning",
@@ -97,6 +98,8 @@ function itemStatusLabel(status: BulkEvidenceBatchItemRow["status"]) {
       return "Parsed";
     case "evidence_only":
       return "Evidence only";
+    case "preservation_only":
+      return "Preservation only";
     case "skipped":
       return "Skipped";
     case "failed":
@@ -111,16 +114,11 @@ function workspaceAssignmentLabel(workspace: ImportWorkspaceAssignment) {
   return workspace;
 }
 
-function fileAcceptForMode(mode: BulkEvidenceBatchMode) {
-  if (mode === "zip-of-emls") {
-    return ".zip,application/zip,application/x-zip-compressed";
-  }
+const bulkEvidenceAccept =
+  ".eml,.zip,.pst,.pdf,.doc,.docx,application/zip,application/x-zip-compressed,application/vnd.ms-outlook,message/rfc822,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-  if (mode === "pst-preservation") {
-    return ".pst,application/vnd.ms-outlook";
-  }
-
-  return ".eml,message/rfc822,.pdf,application/pdf,.doc,application/msword,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+function fileAcceptForMode() {
+  return bulkEvidenceAccept;
 }
 
 export function BulkEvidenceIntakePanel({
@@ -172,12 +170,18 @@ export function BulkEvidenceIntakePanel({
     [selectedItems],
   );
 
+  const selectedPreservationOnlyCount = useMemo(
+    () => selectedItems.filter((item) => item.status === "preservation_only").length,
+    [selectedItems],
+  );
+
   const selectedBatchSummary = selectedBatch
     ? [
         { label: "Total files", value: selectedBatch.total_files },
         { label: "EML files found", value: selectedBatch.eml_files_found },
         { label: "Parsed", value: selectedBatch.parsed_successfully },
         { label: "Evidence only", value: selectedEvidenceOnlyCount },
+        { label: "Preservation only", value: selectedPreservationOnlyCount },
         { label: "Skipped", value: selectedBatch.skipped },
         { label: "Failed", value: selectedBatch.failed },
         { label: "Unsupported", value: selectedBatch.unsupported },
@@ -229,7 +233,7 @@ export function BulkEvidenceIntakePanel({
 
       if (!result || typeof result.ok !== "boolean") {
         throw new Error(
-          "The bulk intake returned an invalid response. Please retry with a smaller batch or use Evidence Upload for PDF and Word documents.",
+          "The bulk intake returned an invalid response. Please retry with a smaller batch or use Evidence Upload for unsupported files.",
         );
       }
 
@@ -287,7 +291,7 @@ export function BulkEvidenceIntakePanel({
           : "Bulk evidence intake failed.";
       setError(
         message.includes("unexpected response")
-          ? "The bulk intake could not complete safely. Please retry with a smaller batch or use Evidence Upload for PDFs and Word documents."
+          ? "The bulk intake could not complete safely. Please retry with a smaller batch or use Evidence Upload for unsupported files."
           : message,
       );
     } finally {
@@ -505,14 +509,15 @@ export function BulkEvidenceIntakePanel({
                   <input
                     type="file"
                     name="files"
-                    multiple={batchMode === "selected-eml-files"}
-                    accept={fileAcceptForMode(batchMode)}
+                    multiple
+                    accept={fileAcceptForMode()}
                     onChange={handleFileChange}
                     className="field-input pt-2"
                   />
                   <p className="mt-2 text-xs leading-5 text-slate-500">
-                    ZIP extraction happens server-side only. Only exported .eml files are accepted from ZIP archives.
-                    PST files are preserved only and not parsed in this sprint.
+                    Upload one or many loose .eml, .pdf, .doc, .docx, or .pst files, or a ZIP of exported .eml
+                    files. ZIP extraction happens server-side only. PST files are preserved only and not parsed in
+                    this sprint.
                   </p>
                   <p className="mt-2 text-xs leading-5 text-slate-500">
                     Suggested first-pass limits: ZIP up to 50 MB, up to 200 .eml files per batch, extracted .eml files
@@ -536,10 +541,10 @@ export function BulkEvidenceIntakePanel({
               </button>
               <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
                 {batchMode === "zip-of-emls"
-                  ? "ZIP extraction is server-side only and path traversal is blocked."
+                  ? "ZIP extraction is server-side only and path traversal is blocked. Loose files can still be mixed into the same batch."
                   : batchMode === "pst-preservation"
                     ? "PST stays preservation-only and is not parsed."
-                    : "Selected EML files are parsed with the existing EML parser."}
+                    : "Selected .eml files are parsed with the existing EML parser. PDFs and Word docs are evidence-only."}
               </div>
             </div>
           </div>
@@ -746,7 +751,8 @@ export function BulkEvidenceIntakePanel({
                 <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-4">
                   <p className="text-sm font-semibold text-slate-900">No items yet</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Process a batch to populate the per-item parsed, skipped, failed, and unsupported states.
+                    Process a batch to populate the per-item parsed, evidence-only, preservation-only, skipped,
+                    failed, and unsupported states.
                   </p>
                 </div>
               )}

@@ -71,6 +71,7 @@ function emptyBulkSummary(): BulkEvidenceBatchSummary {
     emlFilesFound: 0,
     parsedSuccessfully: 0,
     evidenceOnly: 0,
+    preservationOnly: 0,
     skipped: 0,
     failed: 0,
     unsupported: 0,
@@ -137,7 +138,9 @@ export async function processBulkEvidenceIntakeAction(
   } catch (error) {
     const message = error instanceof Error ? error.message : "Bulk evidence intake failed.";
     return structuredBulkFailure(
-      message.includes("unexpected response") ? "The bulk intake could not be completed safely. Please retry with a smaller batch or use Evidence Upload for PDFs and Word documents." : message,
+      message.includes("unexpected response")
+        ? "The bulk intake could not be completed safely. Please retry with a smaller batch or use Evidence Upload for unsupported files."
+        : message,
     );
   }
 }

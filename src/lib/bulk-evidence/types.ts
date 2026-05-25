@@ -13,7 +13,13 @@ export type BulkEvidenceBatchStatus =
   | "completed_with_warnings"
   | "failed";
 
-export type BulkEvidenceItemStatus = "parsed" | "evidence_only" | "skipped" | "failed" | "unsupported";
+export type BulkEvidenceItemStatus =
+  | "parsed"
+  | "evidence_only"
+  | "preservation_only"
+  | "skipped"
+  | "failed"
+  | "unsupported";
 
 export type BulkEvidenceSourceKind = "zip" | "eml" | "pst" | "document" | "unsupported";
 
@@ -22,6 +28,7 @@ export type BulkEvidenceBatchSummary = {
   emlFilesFound: number;
   parsedSuccessfully: number;
   evidenceOnly: number;
+  preservationOnly: number;
   skipped: number;
   failed: number;
   unsupported: number;

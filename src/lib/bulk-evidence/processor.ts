@@ -92,18 +92,6 @@ function sourceKindForFile(file: File): BulkEvidenceSourceKind {
   return "unsupported";
 }
 
-function batchStatusFromSummary(summary: BulkEvidenceBatchSummary, fatalError: boolean): BulkEvidenceBatchStatus {
-  if (fatalError) {
-    return "failed";
-  }
-
-  if (summary.failed > 0 || summary.skipped > 0 || summary.unsupported > 0 || summary.warnings > 0) {
-    return summary.parsedSuccessfully > 0 ? "completed_with_warnings" : "completed_with_warnings";
-  }
-
-  return "completed";
-}
-
 async function saveFileAsEvidence(input: {
   file: File;
   title: string;
@@ -248,6 +236,7 @@ async function processEmlFile(input: {
     "Imported email content is evidence of the message content for investigation purposes.",
     input.sourcePathInArchive,
   );
+  const rawBuffer = Buffer.from(await input.file.arrayBuffer());
 
   const savedEvidence = await saveFileAsEvidence({
     file: input.file,
@@ -263,7 +252,9 @@ async function processEmlFile(input: {
     linkedIntakeItemRef: `Bulk batch ${input.batchId}`,
   });
 
-  const parseOutcome = await ingestEmlEvidence(savedEvidence.evidenceRow.evidence_id);
+  const parseOutcome = await ingestEmlEvidence(savedEvidence.evidenceRow.evidence_id, {
+    rawBuffer,
+  });
 
   return {
     evidenceRow: parseOutcome.evidenceRow,
@@ -292,6 +283,7 @@ export async function processBulkEvidenceIntake(
     emlFilesFound: 0,
     parsedSuccessfully: 0,
     evidenceOnly: 0,
+    preservationOnly: 0,
     skipped: 0,
     failed: 0,
     unsupported: 0,
@@ -300,7 +292,14 @@ export async function processBulkEvidenceIntake(
   const warnings: string[] = [];
   const savedItems: BulkEvidenceBatchItemRow[] = [];
   let originalArchiveEvidenceId: string | null = null;
-  let fatalError = false;
+  let fatalValidationError = false;
+
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[bulk-evidence] intake request", {
+      fileCount: input.files.length,
+      extensions: input.files.map((file) => file.name.split(".").pop()?.toLowerCase() ?? "none"),
+    });
+  }
 
   await saveBulkEvidenceBatch({
     batch_id: batchId,
@@ -343,353 +342,412 @@ export async function processBulkEvidenceIntake(
   });
 
   if (input.files.length === 0) {
-    fatalError = true;
+    fatalValidationError = true;
     warnings.push("No files were attached to the bulk intake request.");
   }
 
   if (input.files.length > MAX_EML_FILES_PER_BATCH) {
-    fatalError = true;
+    fatalValidationError = true;
     warnings.push(`The batch exceeds the ${MAX_EML_FILES_PER_BATCH} file limit.`);
   }
 
-  try {
-    if (!fatalError) {
+  const recordUnsupportedItem = (fileName: string, message: string) => {
+    savedItems.push({
+      batch_item_id: `bulk-batch-item-${randomUUID()}`,
+      batch_id: batchId,
+      source_kind: "unsupported",
+      file_name: fileName,
+      source_path_in_archive: null,
+      file_size_bytes: null,
+      status: "unsupported",
+      note: message,
+      evidence_id: null,
+      thread_id: null,
+      message_id: null,
+      parse_status: null,
+      parse_error: message,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    });
+    summary.unsupported += 1;
+    summary.warnings += 1;
+    warnings.push(message);
+  };
+
+  const recordFailedItem = (inputItem: {
+    fileName: string;
+    sourceKind: BulkEvidenceSourceKind;
+    fileSizeBytes: number | null;
+    message: string;
+    sourcePathInArchive?: string | null;
+    evidenceId?: string | null;
+  }) => {
+    savedItems.push({
+      batch_item_id: `bulk-batch-item-${randomUUID()}`,
+      batch_id: batchId,
+      source_kind: inputItem.sourceKind,
+      file_name: inputItem.fileName,
+      source_path_in_archive: inputItem.sourcePathInArchive ?? null,
+      file_size_bytes: inputItem.fileSizeBytes,
+      status: "failed",
+      note: inputItem.message,
+      evidence_id: inputItem.evidenceId ?? null,
+      thread_id: null,
+      message_id: null,
+      parse_status: null,
+      parse_error: inputItem.message,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    });
+    summary.failed += 1;
+    summary.warnings += 1;
+    warnings.push(inputItem.message);
+  };
+
+  if (!fatalValidationError) {
     for (const file of input.files) {
       summary.totalFiles += 1;
-
       const kind = sourceKindForFile(file);
 
-      if (kind === "zip") {
-        if (file.size > MAX_ZIP_BYTES) {
-          savedItems.push({
-            batch_item_id: `bulk-batch-item-${randomUUID()}`,
-            batch_id: batchId,
-            source_kind: "zip",
-            file_name: file.name,
-            source_path_in_archive: null,
-            file_size_bytes: file.size,
-            status: "failed",
-            note: `ZIP file exceeds the ${Math.round(MAX_ZIP_BYTES / 1024 / 1024)} MB limit.`,
-            evidence_id: null,
-            thread_id: null,
-            message_id: null,
-            parse_status: null,
-            parse_error: `ZIP file exceeds the ${Math.round(MAX_ZIP_BYTES / 1024 / 1024)} MB limit.`,
-            created_at: nowIso(),
-            updated_at: nowIso(),
-          });
-          summary.failed += 1;
-          summary.warnings += 1;
-          continue;
-        }
+      try {
+        if (kind === "zip") {
+          if (file.size > MAX_ZIP_BYTES) {
+            recordFailedItem({
+              fileName: file.name,
+              sourceKind: "zip",
+              fileSizeBytes: file.size,
+              message: `ZIP file exceeds the ${Math.round(MAX_ZIP_BYTES / 1024 / 1024)} MB limit.`,
+            });
+            continue;
+          }
 
-        const archive = await processArchiveEntry({
-          archiveFile: file,
-          workspaceAssignment: input.workspaceAssignment,
-          sourceLabel,
-          batchId,
-          linkedCaseId,
-          linkedCaseRef,
-        });
-
-        originalArchiveEvidenceId = archive.evidenceRow.evidence_id;
-        savedItems.push({
-          batch_item_id: `bulk-batch-item-${randomUUID()}`,
-          batch_id: batchId,
-          source_kind: "zip",
-          file_name: file.name,
-          source_path_in_archive: null,
-          file_size_bytes: file.size,
-          status: "evidence_only",
-          note: "ZIP archive preserved as evidence only before extracting EML entries.",
-          evidence_id: archive.evidenceRow.evidence_id,
-          thread_id: null,
-          message_id: null,
-          parse_status: archive.evidenceRow.parse_status,
-          parse_error: archive.evidenceRow.parse_error,
-          created_at: nowIso(),
-          updated_at: nowIso(),
-        });
-        summary.evidenceOnly += 1;
-
-        let extracted;
-        try {
-          extracted = await extractZipEntries(Buffer.from(await file.arrayBuffer()), {
-            maxFiles: MAX_EML_FILES_PER_BATCH,
-            maxSingleFileBytes: MAX_SINGLE_EML_BYTES,
-            maxTotalBytes: MAX_TOTAL_EXTRACTED_EML_BYTES,
-          });
-        } catch (error) {
-          fatalError = true;
-          const message = error instanceof Error ? error.message : "Failed to read the ZIP archive.";
-          warnings.push(message);
-          savedItems.push({
-            batch_item_id: `bulk-batch-item-${randomUUID()}`,
-            batch_id: batchId,
-            source_kind: "zip",
-            file_name: file.name,
-            source_path_in_archive: null,
-            file_size_bytes: file.size,
-            status: "failed",
-            note: message,
-            evidence_id: archive.evidenceRow.evidence_id,
-            thread_id: null,
-            message_id: null,
-            parse_status: null,
-            parse_error: message,
-            created_at: nowIso(),
-            updated_at: nowIso(),
-          });
-          summary.failed += 1;
-          summary.warnings += 1;
-          continue;
-        }
-
-        summary.emlFilesFound += extracted.entries.length;
-        for (const unsupported of extracted.unsupportedEntries) {
-          savedItems.push({
-            batch_item_id: `bulk-batch-item-${randomUUID()}`,
-            batch_id: batchId,
-            source_kind: "unsupported",
-            file_name: unsupported.fileName,
-            source_path_in_archive: unsupported.fileName,
-            file_size_bytes: null,
-            status: "unsupported",
-            note: unsupported.reason,
-            evidence_id: null,
-            thread_id: null,
-            message_id: null,
-            parse_status: null,
-            parse_error: unsupported.reason,
-            created_at: nowIso(),
-            updated_at: nowIso(),
-          });
-          summary.unsupported += 1;
-          summary.warnings += 1;
-          warnings.push(unsupported.reason);
-        }
-
-        for (const entry of extracted.entries) {
-          const emlFile = new File([new Uint8Array(entry.buffer)], entry.fileName, {
-            type: "message/rfc822",
-          });
-
-          const parsed = await processEmlFile({
-            file: emlFile,
+          const archive = await processArchiveEntry({
+            archiveFile: file,
             workspaceAssignment: input.workspaceAssignment,
             sourceLabel,
             batchId,
             linkedCaseId,
             linkedCaseRef,
-            sourcePathInArchive: entry.relativePath,
           });
 
-          const itemStatus: BulkEvidenceItemStatus =
-            parsed.parseStatus === "parsed"
-              ? "parsed"
-              : parsed.parseStatus === "failed"
-                ? "failed"
-                : parsed.supported
-                  ? "unsupported"
-                  : "skipped";
-
+          originalArchiveEvidenceId = archive.evidenceRow.evidence_id;
           savedItems.push({
             batch_item_id: `bulk-batch-item-${randomUUID()}`,
             batch_id: batchId,
-            source_kind: "eml",
-            file_name: entry.fileName,
-            source_path_in_archive: entry.relativePath,
-            file_size_bytes: entry.sizeBytes,
-            status: itemStatus,
-            note:
-              parsed.parseStatus === "parsed"
-                ? "Parsed successfully and threaded deterministically."
-                : parsed.parseError ?? parsed.note ?? "No parse result.",
-            evidence_id: parsed.evidenceRow.evidence_id,
-            thread_id: parsed.threadRow?.thread_id ?? null,
-            message_id: parsed.messageRow?.message_id ?? null,
-            parse_status: parsed.parseStatus,
-            parse_error: parsed.parseError,
+            source_kind: "zip",
+            file_name: file.name,
+            source_path_in_archive: null,
+            file_size_bytes: file.size,
+            status: "evidence_only",
+            note: "ZIP archive preserved as evidence only before extracting EML entries.",
+            evidence_id: archive.evidenceRow.evidence_id,
+            thread_id: null,
+            message_id: null,
+            parse_status: archive.evidenceRow.parse_status,
+            parse_error: archive.evidenceRow.parse_error,
             created_at: nowIso(),
             updated_at: nowIso(),
           });
+          summary.evidenceOnly += 1;
+          warnings.push("ZIP archive preserved as evidence only before extracting EML entries.");
 
-          if (itemStatus === "parsed") {
-            summary.parsedSuccessfully += 1;
-          } else if (itemStatus === "failed") {
-            summary.failed += 1;
-            summary.warnings += 1;
-            warnings.push(parsed.parseError ?? "An EML item failed to parse.");
-          } else if (itemStatus === "unsupported") {
-            summary.unsupported += 1;
-            summary.warnings += 1;
-            warnings.push(parsed.parseError ?? "An EML item was unsupported.");
-          } else {
-            summary.skipped += 1;
-            summary.warnings += 1;
-            warnings.push(parsed.note);
+          let extracted;
+          try {
+            extracted = await extractZipEntries(Buffer.from(await file.arrayBuffer()), {
+              maxFiles: MAX_EML_FILES_PER_BATCH,
+              maxSingleFileBytes: MAX_SINGLE_EML_BYTES,
+              maxTotalBytes: MAX_TOTAL_EXTRACTED_EML_BYTES,
+            });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to read the ZIP archive.";
+            recordFailedItem({
+              fileName: file.name,
+              sourceKind: "zip",
+              fileSizeBytes: file.size,
+              message,
+              evidenceId: archive.evidenceRow.evidence_id,
+            });
+            continue;
           }
+
+          summary.emlFilesFound += extracted.entries.length;
+
+          for (const unsupported of extracted.unsupportedEntries) {
+            recordUnsupportedItem(
+              unsupported.fileName,
+              `${unsupported.reason} Use Evidence Upload for unsupported file types.`,
+            );
+          }
+
+          for (const entry of extracted.entries) {
+            const emlFile = new File([new Uint8Array(entry.buffer)], entry.fileName, {
+              type: "message/rfc822",
+            });
+
+            try {
+              const parsed = await processEmlFile({
+                file: emlFile,
+                workspaceAssignment: input.workspaceAssignment,
+                sourceLabel,
+                batchId,
+                linkedCaseId,
+                linkedCaseRef,
+                sourcePathInArchive: entry.relativePath,
+              });
+
+              const itemStatus: BulkEvidenceItemStatus =
+                parsed.parseStatus === "parsed"
+                  ? "parsed"
+                  : parsed.parseStatus === "failed"
+                    ? "failed"
+                    : parsed.supported
+                      ? "unsupported"
+                      : "skipped";
+
+              savedItems.push({
+                batch_item_id: `bulk-batch-item-${randomUUID()}`,
+                batch_id: batchId,
+                source_kind: "eml",
+                file_name: entry.fileName,
+                source_path_in_archive: entry.relativePath,
+                file_size_bytes: entry.sizeBytes,
+                status: itemStatus,
+                note:
+                  parsed.parseStatus === "parsed"
+                    ? "Parsed successfully and threaded deterministically."
+                    : parsed.parseError ?? parsed.note ?? "No parse result.",
+                evidence_id: parsed.evidenceRow.evidence_id,
+                thread_id: parsed.threadRow?.thread_id ?? null,
+                message_id: parsed.messageRow?.message_id ?? null,
+                parse_status: parsed.parseStatus,
+                parse_error: parsed.parseError,
+                created_at: nowIso(),
+                updated_at: nowIso(),
+              });
+
+              if (itemStatus === "parsed") {
+                summary.parsedSuccessfully += 1;
+              } else if (itemStatus === "failed") {
+                summary.failed += 1;
+                summary.warnings += 1;
+                warnings.push(parsed.parseError ?? "An EML item failed to parse.");
+              } else if (itemStatus === "unsupported") {
+                summary.unsupported += 1;
+                summary.warnings += 1;
+                warnings.push(parsed.parseError ?? "An EML item was unsupported.");
+              } else {
+                summary.skipped += 1;
+                summary.warnings += 1;
+                warnings.push(parsed.note);
+              }
+            } catch (error) {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : `Failed to parse extracted EML: ${entry.relativePath}`;
+              recordFailedItem({
+                fileName: entry.fileName,
+                sourceKind: "eml",
+                fileSizeBytes: entry.sizeBytes,
+                message,
+                sourcePathInArchive: entry.relativePath,
+                evidenceId: null,
+              });
+            }
+          }
+
+          continue;
         }
 
-        continue;
-      }
+        if (kind === "eml") {
+          try {
+            const parsed = await processEmlFile({
+              file,
+              workspaceAssignment: input.workspaceAssignment,
+              sourceLabel,
+              batchId,
+              linkedCaseId,
+              linkedCaseRef,
+            });
 
-      if (kind === "pst") {
-        const preserved = await processPstArchive({
-          file,
-          workspaceAssignment: input.workspaceAssignment,
-          sourceLabel,
-          batchId,
-          linkedCaseId,
-          linkedCaseRef,
-        });
+            const itemStatus: BulkEvidenceItemStatus =
+              parsed.parseStatus === "parsed"
+                ? "parsed"
+                : parsed.parseStatus === "failed"
+                  ? "failed"
+                  : parsed.supported
+                    ? "unsupported"
+                    : "skipped";
 
-        if (!originalArchiveEvidenceId) {
-          originalArchiveEvidenceId = preserved.evidenceRow.evidence_id;
+            savedItems.push({
+              batch_item_id: `bulk-batch-item-${randomUUID()}`,
+              batch_id: batchId,
+              source_kind: "eml",
+              file_name: file.name,
+              source_path_in_archive: null,
+              file_size_bytes: file.size,
+              status: itemStatus,
+              note:
+                parsed.parseStatus === "parsed"
+                  ? "Parsed successfully and threaded deterministically."
+                  : parsed.parseError ?? parsed.note ?? "No parse result.",
+              evidence_id: parsed.evidenceRow.evidence_id,
+              thread_id: parsed.threadRow?.thread_id ?? null,
+              message_id: parsed.messageRow?.message_id ?? null,
+              parse_status: parsed.parseStatus,
+              parse_error: parsed.parseError,
+              created_at: nowIso(),
+              updated_at: nowIso(),
+            });
+
+            if (itemStatus === "parsed") {
+              summary.parsedSuccessfully += 1;
+            } else if (itemStatus === "failed") {
+              summary.failed += 1;
+              summary.warnings += 1;
+              warnings.push(parsed.parseError ?? "An EML item failed to parse.");
+            } else if (itemStatus === "unsupported") {
+              summary.unsupported += 1;
+              summary.warnings += 1;
+              warnings.push(parsed.parseError ?? "An EML item was unsupported.");
+            } else {
+              summary.skipped += 1;
+              summary.warnings += 1;
+              warnings.push(parsed.note);
+            }
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : `Failed to parse EML file: ${file.name}`;
+            recordFailedItem({
+              fileName: file.name,
+              sourceKind: "eml",
+              fileSizeBytes: file.size,
+              message,
+            });
+          }
+
+          continue;
         }
 
-        savedItems.push({
-          batch_item_id: `bulk-batch-item-${randomUUID()}`,
-          batch_id: batchId,
-          source_kind: "pst",
-          file_name: file.name,
-          source_path_in_archive: null,
-          file_size_bytes: file.size,
-          status: "evidence_only",
-          note: "PST stored as preservation evidence only. PST parsing is not available in this sprint.",
-          evidence_id: preserved.evidenceRow.evidence_id,
-          thread_id: null,
-          message_id: null,
-          parse_status: preserved.evidenceRow.parse_status,
-          parse_error: preserved.evidenceRow.parse_error,
-          created_at: nowIso(),
-          updated_at: nowIso(),
-        });
-        summary.evidenceOnly += 1;
-        continue;
-      }
+        if (kind === "document") {
+          try {
+            const preserved = await processDocumentFile({
+              file,
+              workspaceAssignment: input.workspaceAssignment,
+              sourceLabel,
+              batchId,
+              linkedCaseId,
+              linkedCaseRef,
+            });
 
-      if (kind === "eml") {
-        const parsed = await processEmlFile({
-          file,
-          workspaceAssignment: input.workspaceAssignment,
-          sourceLabel,
-          batchId,
-          linkedCaseId,
-          linkedCaseRef,
-        });
+            savedItems.push({
+              batch_item_id: `bulk-batch-item-${randomUUID()}`,
+              batch_id: batchId,
+              source_kind: "document",
+              file_name: file.name,
+              source_path_in_archive: null,
+              file_size_bytes: file.size,
+              status: "evidence_only",
+              note: "Stored as evidence only. No PDF or Word parsing is performed in this sprint.",
+              evidence_id: preserved.evidenceRow.evidence_id,
+              thread_id: null,
+              message_id: null,
+              parse_status: preserved.evidenceRow.parse_status,
+              parse_error: preserved.evidenceRow.parse_error,
+              created_at: nowIso(),
+              updated_at: nowIso(),
+            });
+            summary.evidenceOnly += 1;
+            warnings.push("PDF and Word documents were stored as evidence only.");
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : `Failed to store evidence file: ${file.name}`;
+            recordFailedItem({
+              fileName: file.name,
+              sourceKind: "document",
+              fileSizeBytes: file.size,
+              message,
+            });
+          }
 
-        const itemStatus: BulkEvidenceItemStatus =
-          parsed.parseStatus === "parsed"
-            ? "parsed"
-            : parsed.parseStatus === "failed"
-              ? "failed"
-              : parsed.supported
-                ? "unsupported"
-                : "skipped";
-
-        savedItems.push({
-          batch_item_id: `bulk-batch-item-${randomUUID()}`,
-          batch_id: batchId,
-          source_kind: "eml",
-          file_name: file.name,
-          source_path_in_archive: null,
-          file_size_bytes: file.size,
-          status: itemStatus,
-          note:
-            parsed.parseStatus === "parsed"
-              ? "Parsed successfully and threaded deterministically."
-              : parsed.parseError ?? parsed.note ?? "No parse result.",
-          evidence_id: parsed.evidenceRow.evidence_id,
-          thread_id: parsed.threadRow?.thread_id ?? null,
-          message_id: parsed.messageRow?.message_id ?? null,
-          parse_status: parsed.parseStatus,
-          parse_error: parsed.parseError,
-          created_at: nowIso(),
-          updated_at: nowIso(),
-        });
-
-        if (itemStatus === "parsed") {
-          summary.parsedSuccessfully += 1;
-        } else if (itemStatus === "failed") {
-          summary.failed += 1;
-          summary.warnings += 1;
-          warnings.push(parsed.parseError ?? "An EML item failed to parse.");
-        } else if (itemStatus === "unsupported") {
-          summary.unsupported += 1;
-          summary.warnings += 1;
-          warnings.push(parsed.parseError ?? "An EML item was unsupported.");
-        } else {
-          summary.skipped += 1;
-          summary.warnings += 1;
-          warnings.push(parsed.note);
+          continue;
         }
 
-        continue;
-      }
+        if (kind === "pst") {
+          try {
+            const preserved = await processPstArchive({
+              file,
+              workspaceAssignment: input.workspaceAssignment,
+              sourceLabel,
+              batchId,
+              linkedCaseId,
+              linkedCaseRef,
+            });
 
-      if (kind === "document") {
-        const preserved = await processDocumentFile({
-          file,
-          workspaceAssignment: input.workspaceAssignment,
-          sourceLabel,
-          batchId,
-          linkedCaseId,
-          linkedCaseRef,
+            if (!originalArchiveEvidenceId) {
+              originalArchiveEvidenceId = preserved.evidenceRow.evidence_id;
+            }
+
+            savedItems.push({
+              batch_item_id: `bulk-batch-item-${randomUUID()}`,
+              batch_id: batchId,
+              source_kind: "pst",
+              file_name: file.name,
+              source_path_in_archive: null,
+              file_size_bytes: file.size,
+              status: "preservation_only",
+              note: "PST stored as preservation evidence only. PST parsing is not available in this sprint.",
+              evidence_id: preserved.evidenceRow.evidence_id,
+              thread_id: null,
+              message_id: null,
+              parse_status: preserved.evidenceRow.parse_status,
+              parse_error: preserved.evidenceRow.parse_error,
+              created_at: nowIso(),
+              updated_at: nowIso(),
+            });
+            summary.preservationOnly += 1;
+            warnings.push("PST stored as preservation evidence only. PST parsing is not available in this sprint.");
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : `Failed to preserve PST file: ${file.name}`;
+            recordFailedItem({
+              fileName: file.name,
+              sourceKind: "pst",
+              fileSizeBytes: file.size,
+              message,
+            });
+          }
+
+          continue;
+        }
+
+        recordUnsupportedItem(
+          file.name,
+          `Unsupported file skipped: ${file.name}. Use Evidence Upload for unsupported file types.`,
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : `Bulk item failed: ${file.name}`;
+        recordFailedItem({
+          fileName: file.name,
+          sourceKind: kind,
+          fileSizeBytes: file.size,
+          message,
         });
-
-        savedItems.push({
-          batch_item_id: `bulk-batch-item-${randomUUID()}`,
-          batch_id: batchId,
-          source_kind: "document",
-          file_name: file.name,
-          source_path_in_archive: null,
-          file_size_bytes: file.size,
-          status: "evidence_only",
-          note: "Stored as evidence only. No PDF or Word parsing is performed in this sprint.",
-          evidence_id: preserved.evidenceRow.evidence_id,
-          thread_id: null,
-          message_id: null,
-          parse_status: preserved.evidenceRow.parse_status,
-          parse_error: preserved.evidenceRow.parse_error,
-          created_at: nowIso(),
-          updated_at: nowIso(),
-        });
-        summary.evidenceOnly += 1;
-        continue;
       }
-
-      savedItems.push({
-        batch_item_id: `bulk-batch-item-${randomUUID()}`,
-        batch_id: batchId,
-        source_kind: "unsupported",
-        file_name: file.name,
-        source_path_in_archive: null,
-        file_size_bytes: file.size,
-        status: "unsupported",
-        note: "Unsupported file type. Use Evidence Upload for this file, or upload .eml, ZIP of .eml, PST preservation, PDF, DOC, or DOCX through bulk intake.",
-        evidence_id: null,
-        thread_id: null,
-        message_id: null,
-        parse_status: null,
-        parse_error: "Unsupported file type.",
-        created_at: nowIso(),
-        updated_at: nowIso(),
-      });
-      summary.unsupported += 1;
-      summary.warnings += 1;
-      warnings.push(`Unsupported file skipped: ${file.name}. Use Evidence Upload for unsupported file types.`);
     }
   }
 
-  } catch (error) {
-    fatalError = true;
-    const safeMessage = error instanceof Error ? error.message : "Bulk intake failed unexpectedly.";
-    warnings.push(safeMessage);
-    summary.failed += 1;
-  }
-
-  const batchStatus = batchStatusFromSummary(summary, fatalError);
+  const acceptedCount = summary.parsedSuccessfully + summary.evidenceOnly + summary.preservationOnly;
+  const hadErrors = summary.failed + summary.unsupported + summary.skipped > 0;
+  const batchStatus: BulkEvidenceBatchStatus = fatalValidationError
+    ? "failed"
+    : acceptedCount > 0
+      ? hadErrors || warnings.length > 0
+        ? "completed_with_warnings"
+        : "completed"
+      : hadErrors
+        ? "failed"
+        : "completed";
 
   const batchRow: BulkEvidenceBatchRow = (
     await saveBulkEvidenceBatch({
@@ -746,7 +804,7 @@ export async function processBulkEvidenceIntake(
     batchStatus,
     note:
       batchStatus === "failed"
-        ? "The bulk intake failed. Review the warnings and try a smaller batch or a safer ZIP."
+        ? "The bulk intake could not complete safely. Please retry with a smaller batch or use Evidence Upload for PDFs and Word documents."
         : batchStatus === "completed_with_warnings"
           ? "The bulk intake completed with warnings. Review skipped, unsupported, and failed items."
           : "The bulk intake completed successfully.",

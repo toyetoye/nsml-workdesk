@@ -30,6 +30,10 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function bufferToArrayBuffer(buffer: Buffer) {
+  return Uint8Array.from(buffer).buffer;
+}
+
 function resolveWorkspaceKey(workspaceAssignment: string) {
   const normalized = workspaceAssignment.trim().toLowerCase();
 
@@ -76,14 +80,23 @@ function deriveThreadStatus(parseStatus: EmailParseStatus, linkedCaseId: string 
   return linkedCaseId ? "Pending My Reply" : "Waiting on Vessel";
 }
 
-export async function ingestEmlEvidence(evidenceId: string): Promise<EmailIngestionOutcome> {
+type IngestEmlOptions = {
+  rawBuffer?: Buffer | null;
+};
+
+export async function ingestEmlEvidence(
+  evidenceId: string,
+  options: IngestEmlOptions = {},
+): Promise<EmailIngestionOutcome> {
   const evidence = await getEvidenceById(evidenceId);
 
   if (!evidence) {
     throw new Error("Evidence record not found.");
   }
 
-  if (!hasEvidenceStorageConfig()) {
+  const rawBuffer = options.rawBuffer ?? null;
+
+  if (!hasEvidenceStorageConfig() && !rawBuffer) {
     const updated = await saveEvidence({
       ...evidence,
       parse_status: "unsupported",
@@ -142,6 +155,9 @@ export async function ingestEmlEvidence(evidenceId: string): Promise<EmailIngest
   });
 
   if (!staged.row.storage_bucket || !staged.row.storage_path) {
+    if (rawBuffer) {
+      // Continue with the in-memory buffer fallback below.
+    } else {
     const updated = await saveEvidence({
       ...staged.row,
       parse_status: "failed",
@@ -161,9 +177,21 @@ export async function ingestEmlEvidence(evidenceId: string): Promise<EmailIngest
       storageAvailable: true,
       note: "Private evidence file is missing storage metadata.",
     };
+    }
   }
 
-  const file = await downloadEvidenceFile(staged.row.storage_bucket, staged.row.storage_path);
+  let file =
+    hasEvidenceStorageConfig() && staged.row.storage_bucket && staged.row.storage_path
+      ? await downloadEvidenceFile(staged.row.storage_bucket, staged.row.storage_path)
+      : null;
+
+  if (!file && rawBuffer) {
+    file = {
+      buffer: bufferToArrayBuffer(rawBuffer),
+      mimeType: evidence.mime_type || null,
+      originalFilename: evidence.original_filename || null,
+    };
+  }
 
   if (!file) {
     const updated = await saveEvidence({
