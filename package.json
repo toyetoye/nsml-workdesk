@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "ims:index": "node scripts/ims/index-ims.mjs",
     "deploy:check": "node scripts/deploy-check.js",
     "ui:audit": "node scripts/ui-audit/playwright-audit.mjs"
   },

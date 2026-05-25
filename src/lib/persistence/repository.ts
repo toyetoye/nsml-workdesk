@@ -18,6 +18,14 @@ import {
   vesselEngagementLogSeedRows,
   vesselSupportItemSeedRows,
 } from "@/lib/assurance/mock-data";
+import type {
+  IMSIndexRunInput,
+  IMSIndexRunRow,
+  IMSReferenceChunkInput,
+  IMSReferenceChunkRow,
+  IMSReferenceDocumentInput,
+  IMSReferenceDocumentRow,
+} from "@/lib/ims/types";
 import { deriveInitialEvidenceParseStatus } from "@/lib/email-ingestion/shared";
 import type {
   BulkEvidenceBatchInput,
@@ -85,6 +93,9 @@ type PersistenceStore = {
   vessel_engagement_logs: VesselEngagementLogRow[];
   bulk_evidence_batches: BulkEvidenceBatchRow[];
   bulk_evidence_batch_items: BulkEvidenceBatchItemRow[];
+  ims_reference_documents: IMSReferenceDocumentRow[];
+  ims_reference_chunks: IMSReferenceChunkRow[];
+  ims_index_runs: IMSIndexRunRow[];
 };
 
 type RepoQueryResult = {
@@ -380,6 +391,9 @@ function createFallbackStore(): PersistenceStore {
     audit_logs: [],
     bulk_evidence_batches: [],
     bulk_evidence_batch_items: [],
+    ims_reference_documents: [],
+    ims_reference_chunks: [],
+    ims_index_runs: [],
     assurance_signals: assuranceSignalSeedRows.map((item) => ({ ...item })),
     vessel_support_items: vesselSupportItemSeedRows.map((item) => ({ ...item })),
     vessel_engagement_logs: vesselEngagementLogSeedRows.map((item) => ({ ...item })),
@@ -1741,6 +1755,275 @@ export async function appendAuditLog(
   return { row: data as AuditLogRow, persisted: true };
 }
 
+function normalizeIMSList(values?: string[] | null) {
+  return [...new Set((values ?? []).map((value) => value.trim()).filter(Boolean))];
+}
+
+function normalizeIMSStatus(value: string | undefined, fallback: string) {
+  return value?.trim() || fallback;
+}
+
+function scoreIMSChunk(
+  chunk: IMSReferenceChunkRow,
+  title: string,
+  queryTerms: string[],
+) {
+  const lowerTitle = title.toLowerCase();
+  const lowerHeading = (chunk.heading_optional ?? "").toLowerCase();
+  const lowerPath = chunk.source_path.toLowerCase();
+  const lowerKeywords = chunk.keywords_optional.map((keyword) => keyword.toLowerCase());
+  const lowerText = chunk.text.toLowerCase();
+  let score = 0;
+
+  for (const term of queryTerms) {
+    if (lowerTitle.includes(term)) {
+      score += 10;
+    }
+
+    if (lowerHeading.includes(term)) {
+      score += 8;
+    }
+
+    if (lowerPath.includes(term)) {
+      score += 4;
+    }
+
+    if (lowerKeywords.some((keyword) => keyword.includes(term) || term.includes(keyword))) {
+      score += 6;
+    }
+
+    if (lowerText.includes(term)) {
+      score += 2;
+    }
+  }
+
+  return score;
+}
+
+export async function listIMSDocuments() {
+  if (!isPersistenceAvailable()) {
+    return clone(fallbackStore.ims_reference_documents);
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("ims_reference_documents")
+    .select("*")
+    .order("indexed_at", { ascending: false });
+
+  if (error || !data) {
+    return clone(fallbackStore.ims_reference_documents);
+  }
+
+  return data as IMSReferenceDocumentRow[];
+}
+
+export async function saveIMSDocument(
+  input: IMSReferenceDocumentInput,
+): Promise<WriteResult<IMSReferenceDocumentRow>> {
+  const row: IMSReferenceDocumentRow = {
+    id: input.id ?? `ims-doc-${randomUUID()}`,
+    title: input.title ?? "Untitled IMS document",
+    source_path: input.source_path ?? "",
+    source_type: input.source_type ?? "unknown",
+    version_label: input.version_label ?? "",
+    effective_date_optional: input.effective_date_optional ?? null,
+    status: normalizeIMSStatus(input.status, "indexed") as IMSReferenceDocumentRow["status"],
+    indexed_at: input.indexed_at ?? nowIso(),
+    checksum_optional: input.checksum_optional ?? null,
+    notes: input.notes ?? "",
+    created_at: input.created_at ?? nowIso(),
+    updated_at: nowIso(),
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.ims_reference_documents, "id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("ims_reference_documents").upsert(row).select().single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.ims_reference_documents, "id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as IMSReferenceDocumentRow, persisted: true };
+}
+
+export async function listIMSChunks(documentId?: string) {
+  const fallback = documentId
+    ? fallbackStore.ims_reference_chunks.filter((item) => item.document_id === documentId)
+    : fallbackStore.ims_reference_chunks;
+
+  if (!isPersistenceAvailable()) {
+    return clone(fallback);
+  }
+
+  const client = getRepoClient();
+  let query = client
+    .from("ims_reference_chunks")
+    .select("*")
+    .order("chunk_index", { ascending: true });
+
+  if (documentId) {
+    query = query.eq("document_id", documentId);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return clone(fallback);
+  }
+
+  return data as IMSReferenceChunkRow[];
+}
+
+export async function saveIMSChunks(
+  input: IMSReferenceChunkInput[],
+): Promise<Array<WriteResult<IMSReferenceChunkRow>>> {
+  const results: Array<WriteResult<IMSReferenceChunkRow>> = [];
+
+  for (const item of input) {
+    const row: IMSReferenceChunkRow = {
+      id: item.id ?? `ims-chunk-${randomUUID()}`,
+      document_id: item.document_id ?? "",
+      source_path: item.source_path ?? "",
+      heading_optional: item.heading_optional ?? null,
+      chunk_index: item.chunk_index ?? 0,
+      text: item.text ?? "",
+      token_estimate: item.token_estimate ?? 0,
+      keywords_optional: normalizeIMSList(item.keywords_optional),
+      status: normalizeIMSStatus(item.status, "indexed") as IMSReferenceChunkRow["status"],
+      created_at: item.created_at ?? nowIso(),
+      updated_at: nowIso(),
+    };
+
+    if (!isPersistenceAvailable()) {
+      upsertById(fallbackStore.ims_reference_chunks, "id", row);
+      results.push({ row, persisted: false });
+      continue;
+    }
+
+    const client = getRepoClient();
+    const { data, error } = await client.from("ims_reference_chunks").upsert(row).select().single();
+
+    if (error || !data) {
+      upsertById(fallbackStore.ims_reference_chunks, "id", row);
+      results.push({ row, persisted: false });
+      continue;
+    }
+
+    results.push({ row: data as IMSReferenceChunkRow, persisted: true });
+  }
+
+  return results;
+}
+
+export async function searchIMSChunks(query: string, limit = 12) {
+  const terms = normalizeIMSList(
+    query
+      .toLowerCase()
+      .split(/[^a-z0-9]+/g)
+      .map((term) => term.trim())
+      .filter((term) => term.length >= 3),
+  );
+
+  const [documents, chunks] = await Promise.all([listIMSDocuments(), listIMSChunks()]);
+  const documentMap = new Map(documents.map((document) => [document.id, document] as const));
+
+  const scored = chunks
+    .map((chunk) => {
+      const document = documentMap.get(chunk.document_id);
+
+      if (!document || document.status !== "indexed") {
+        return null;
+      }
+
+      if (terms.length === 0) {
+        return {
+          chunk,
+          document,
+          score: 0,
+        };
+      }
+
+      const score = scoreIMSChunk(chunk, document.title, terms);
+
+      if (score <= 0) {
+        return null;
+      }
+
+      return {
+        chunk,
+        document,
+        score,
+      };
+    })
+    .filter((item): item is { chunk: IMSReferenceChunkRow; document: IMSReferenceDocumentRow; score: number } =>
+      Boolean(item),
+    )
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit);
+
+  return scored.map(({ chunk, document, score }) => ({
+    ...chunk,
+    document_title: document.title,
+    score,
+  }));
+}
+
+export async function listIMSIndexRuns() {
+  if (!isPersistenceAvailable()) {
+    return clone(fallbackStore.ims_index_runs);
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("ims_index_runs")
+    .select("*")
+    .order("started_at", { ascending: false });
+
+  if (error || !data) {
+    return clone(fallbackStore.ims_index_runs);
+  }
+
+  return data as IMSIndexRunRow[];
+}
+
+export async function saveIMSIndexRun(
+  input: IMSIndexRunInput,
+): Promise<WriteResult<IMSIndexRunRow>> {
+  const row: IMSIndexRunRow = {
+    id: input.id ?? `ims-index-run-${randomUUID()}`,
+    source_label: input.source_label ?? "IMS source",
+    status: normalizeIMSStatus(input.status, "running") as IMSIndexRunRow["status"],
+    total_files: input.total_files ?? 0,
+    indexed_files: input.indexed_files ?? 0,
+    skipped_files: input.skipped_files ?? 0,
+    failed_files: input.failed_files ?? 0,
+    warnings: normalizeIMSList(input.warnings),
+    started_at: input.started_at ?? nowIso(),
+    completed_at: input.completed_at ?? null,
+  };
+
+  if (!isPersistenceAvailable()) {
+    upsertById(fallbackStore.ims_index_runs, "id", row);
+    return { row, persisted: false };
+  }
+
+  const client = getRepoClient();
+  const { data, error } = await client.from("ims_index_runs").upsert(row).select().single();
+
+  if (error || !data) {
+    upsertById(fallbackStore.ims_index_runs, "id", row);
+    return { row, persisted: false };
+  }
+
+  return { row: data as IMSIndexRunRow, persisted: true };
+}
+
 export function getMockWorkspaceSnapshots(): {
   workspaces: WorkspaceRow[];
   importBatches: ImportBatchRow[];
@@ -1752,6 +2035,9 @@ export function getMockWorkspaceSnapshots(): {
   timelineEvents: TimelineEventRow[];
   bulkEvidenceBatches: BulkEvidenceBatchRow[];
   bulkEvidenceBatchItems: BulkEvidenceBatchItemRow[];
+  imsReferenceDocuments: IMSReferenceDocumentRow[];
+  imsReferenceChunks: IMSReferenceChunkRow[];
+  imsIndexRuns: IMSIndexRunRow[];
   assuranceSignals: AssuranceSignalRow[];
   vesselSupportItems: VesselSupportItemRow[];
   vesselEngagementLogs: VesselEngagementLogRow[];
@@ -1767,6 +2053,9 @@ export function getMockWorkspaceSnapshots(): {
     timelineEvents: clone(fallbackStore.timeline_events),
     bulkEvidenceBatches: clone(fallbackStore.bulk_evidence_batches),
     bulkEvidenceBatchItems: clone(fallbackStore.bulk_evidence_batch_items),
+    imsReferenceDocuments: clone(fallbackStore.ims_reference_documents),
+    imsReferenceChunks: clone(fallbackStore.ims_reference_chunks),
+    imsIndexRuns: clone(fallbackStore.ims_index_runs),
     assuranceSignals: clone(fallbackStore.assurance_signals),
     vesselSupportItems: clone(fallbackStore.vessel_support_items),
     vesselEngagementLogs: clone(fallbackStore.vessel_engagement_logs),

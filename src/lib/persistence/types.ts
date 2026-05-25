@@ -11,6 +11,14 @@ import type {
   AssuranceSupportCategory,
 } from "@/lib/assurance/types";
 import type {
+  IMSIndexRunRow,
+  IMSReferenceChunkRow,
+  IMSReferenceDocumentRow,
+  IMSReferenceChunkStatus,
+  IMSReferenceDocumentStatus,
+  IMSIndexRunStatus,
+} from "@/lib/ims/types";
+import type {
   BulkEvidenceBatchMode,
   BulkEvidenceBatchStatus,
   BulkEvidenceItemStatus,
@@ -633,6 +641,23 @@ export type VesselEngagementLogInput = Partial<VesselEngagementLogRow> & {
   engagement_log_id?: string;
 };
 
+export type IMSReferenceDocumentInput = Partial<IMSReferenceDocumentRow> & {
+  id?: string;
+  status?: IMSReferenceDocumentStatus;
+};
+
+export type IMSReferenceChunkInput = Partial<IMSReferenceChunkRow> & {
+  id?: string;
+  status?: IMSReferenceChunkStatus;
+  keywords_optional?: string[];
+};
+
+export type IMSIndexRunInput = Partial<IMSIndexRunRow> & {
+  id?: string;
+  status?: IMSIndexRunStatus;
+  warnings?: string[];
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -656,6 +681,9 @@ export interface Database {
       assurance_signals: Table<AssuranceSignalRow>;
       vessel_support_items: Table<VesselSupportItemRow>;
       vessel_engagement_logs: Table<VesselEngagementLogRow>;
+      ims_reference_documents: Table<IMSReferenceDocumentRow>;
+      ims_reference_chunks: Table<IMSReferenceChunkRow>;
+      ims_index_runs: Table<IMSIndexRunRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

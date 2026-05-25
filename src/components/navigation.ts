@@ -172,7 +172,10 @@ export const sidebarNavigation: NavigationNode[] = [
     label: "Settings",
     href: "/settings/writing-style",
     icon: Settings2,
-    sections: [{ key: "writing-style", label: "Writing Style", href: "/settings/writing-style" }],
+    sections: [
+      { key: "writing-style", label: "Writing Style", href: "/settings/writing-style" },
+      { key: "ims", label: "IMS Reference Library", href: "/settings/ims" },
+    ],
   },
 ];
 

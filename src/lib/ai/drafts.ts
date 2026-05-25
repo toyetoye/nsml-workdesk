@@ -2,6 +2,7 @@ import "server-only";
 
 import OpenAI from "openai";
 import { saveDraftResponse } from "@/lib/persistence/repository";
+import { formatIMSReferencePromptSection } from "@/lib/ims/search";
 import { buildWritingStylePromptSection } from "@/lib/writing-style/profile";
 import { getAiConfigStatus } from "./config";
 import type {
@@ -169,6 +170,10 @@ function normalizeDraftResult(parsed: unknown, request: DraftRequest): Structure
 
 function buildPrompt(request: DraftRequest) {
   const writingStyleSection = buildWritingStylePromptSection(request.writingStyleProfile);
+  const imsSection = formatIMSReferencePromptSection(
+    request.imsReferencesUsed ?? [],
+    request.imsReferenceNote ?? null,
+  );
 
   return [
     "Selected source type:",
@@ -205,6 +210,8 @@ function buildPrompt(request: DraftRequest) {
           ),
         ].join("\n")
       : "Existing triage context: none",
+    "",
+    imsSection,
   ].join("\n");
 }
 
@@ -233,6 +240,8 @@ export async function runDraftGeneration(request: DraftRequest): Promise<DraftRu
       provider: null,
       model: null,
       triageAuditLogId: request.triageContext?.auditLogId ?? null,
+      imsReferencesUsed: request.imsReferencesUsed ?? [],
+      imsReferenceNote: request.imsReferenceNote ?? null,
     };
   }
 
@@ -252,6 +261,8 @@ export async function runDraftGeneration(request: DraftRequest): Promise<DraftRu
       provider: null,
       model: null,
       triageAuditLogId: request.triageContext?.auditLogId ?? null,
+      imsReferencesUsed: request.imsReferencesUsed ?? [],
+      imsReferenceNote: request.imsReferenceNote ?? null,
     };
   }
 
@@ -312,5 +323,7 @@ export async function runDraftGeneration(request: DraftRequest): Promise<DraftRu
     provider: config.provider,
     model: config.model,
     triageAuditLogId: request.triageContext?.auditLogId ?? null,
+    imsReferencesUsed: request.imsReferencesUsed ?? [],
+    imsReferenceNote: request.imsReferenceNote ?? null,
   };
 }

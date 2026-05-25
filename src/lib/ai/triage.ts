@@ -3,6 +3,7 @@ import "server-only";
 import OpenAI from "openai";
 import { appendAuditLog } from "@/lib/persistence/repository";
 import type { Json } from "@/lib/persistence/types";
+import { formatIMSReferencePromptSection } from "@/lib/ims/search";
 import { getAiConfigStatus } from "./config";
 import type {
   StructuredTriageResult,
@@ -179,6 +180,11 @@ function normalizeTriageResult(parsed: unknown): StructuredTriageResult {
 }
 
 function buildPrompt(request: TriageRequest) {
+  const imsSection = formatIMSReferencePromptSection(
+    request.imsReferencesUsed ?? [],
+    request.imsReferenceNote ?? null,
+  );
+
   return [
     "Selected source type:",
     request.sourceType,
@@ -191,6 +197,8 @@ function buildPrompt(request: TriageRequest) {
     "",
     "Selected source material:",
     JSON.stringify(request.sourceSnapshot, null, 2),
+    "",
+    imsSection,
   ].join("\n");
 }
 
@@ -209,6 +217,8 @@ export async function runTriageAnalysis(request: TriageRequest): Promise<TriageR
       auditLogId: null,
       provider: null,
       model: null,
+      imsReferencesUsed: request.imsReferencesUsed ?? [],
+      imsReferenceNote: request.imsReferenceNote ?? null,
     };
   }
 
@@ -226,6 +236,8 @@ export async function runTriageAnalysis(request: TriageRequest): Promise<TriageR
       auditLogId: null,
       provider: null,
       model: null,
+      imsReferencesUsed: request.imsReferencesUsed ?? [],
+      imsReferenceNote: request.imsReferenceNote ?? null,
     };
   }
 
@@ -255,6 +267,8 @@ export async function runTriageAnalysis(request: TriageRequest): Promise<TriageR
       sourceIds: request.sourceIds,
       sourceLabel: request.sourceLabel,
       sourceSnapshot: request.sourceSnapshot as Json,
+      ims_references_used: request.imsReferencesUsed ?? [],
+      ims_reference_note: request.imsReferenceNote ?? null,
       provider: config.provider,
       model: config.model,
       triageResult: parsed,
@@ -274,5 +288,7 @@ export async function runTriageAnalysis(request: TriageRequest): Promise<TriageR
     auditLogId: auditLog.row.audit_id,
     provider: config.provider,
     model: config.model,
+    imsReferencesUsed: request.imsReferencesUsed ?? [],
+    imsReferenceNote: request.imsReferenceNote ?? null,
   };
 }

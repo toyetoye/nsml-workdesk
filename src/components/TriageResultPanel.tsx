@@ -3,8 +3,10 @@
 import type { ReactNode } from "react";
 import { Sparkles, Workflow } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { describeTriageSourceType } from "@/lib/ai/builders";
+import { IMSReferenceList } from "@/components/IMSReferenceList";
+import { describeTriageSourceType } from "@/lib/ai/descriptions";
 import type { StructuredTriageResult, TriageSourceType } from "@/lib/ai/types";
+import type { IMSReferenceUsage } from "@/lib/ims/types";
 
 const urgencyTone: Record<StructuredTriageResult["urgency_level"], "danger" | "warning" | "accent" | "neutral"> = {
   low: "neutral",
@@ -34,6 +36,8 @@ export function TriageResultPanel({
   persisted,
   provider,
   model,
+  imsReferencesUsed = [],
+  imsReferenceNote = null,
 }: {
   sourceType: TriageSourceType;
   sourceLabel: string;
@@ -46,6 +50,8 @@ export function TriageResultPanel({
   persisted?: boolean;
   provider?: string | null;
   model?: string | null;
+  imsReferencesUsed?: IMSReferenceUsage[];
+  imsReferenceNote?: string | null;
 }) {
   return (
     <section className="rounded-md border border-slate-200 bg-slate-50 p-4">
@@ -184,6 +190,14 @@ export function TriageResultPanel({
               )}
             </div>
           </div>
+
+          <IMSReferenceList
+            title="IMS references used"
+            note={imsReferenceNote}
+            references={imsReferencesUsed}
+            emptyLabel="No IMS reference used for this triage result."
+            compact
+          />
 
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">

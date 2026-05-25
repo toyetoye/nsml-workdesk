@@ -25,7 +25,7 @@ export async function triageIntakeItemAction(input: {
   evidenceRecords: EvidenceRecord[];
 }): Promise<TriageActionResponse> {
   await requireWritableAccess("/import");
-  return runTriageAnalysis(buildIntakeTriageRequest(input.item, input.evidenceRecords));
+  return runTriageAnalysis(await buildIntakeTriageRequest(input.item, input.evidenceRecords));
 }
 
 export async function triageThreadAction(input: {
@@ -34,7 +34,7 @@ export async function triageThreadAction(input: {
   redirectTo?: string;
 }): Promise<TriageActionResponse> {
   await requireWritableAccess(input.redirectTo ?? "/import");
-  return runTriageAnalysis(buildThreadTriageRequest(input.thread, input.evidenceRecords));
+  return runTriageAnalysis(await buildThreadTriageRequest(input.thread, input.evidenceRecords));
 }
 
 export async function triageCaseAction(input: {
@@ -44,7 +44,7 @@ export async function triageCaseAction(input: {
 }): Promise<TriageActionResponse> {
   await requireWritableAccess("/cases");
   return runTriageAnalysis(
-    buildCaseTriageRequest(input.caseRecord, input.evidenceRecords, input.correspondenceThreads),
+    await buildCaseTriageRequest(input.caseRecord, input.evidenceRecords, input.correspondenceThreads),
   );
 }
 
@@ -59,7 +59,7 @@ export async function generateIntakeDraftAction(input: {
   const writingStyleProfile = await getActiveWritingStyleProfile();
   const draftId = `draft-${input.item.id}-${Date.now()}`;
   return runDraftGeneration(
-    buildIntakeDraftRequest(
+    await buildIntakeDraftRequest(
       input.item,
       input.evidenceRecords,
       draftId,
@@ -90,7 +90,7 @@ export async function generateThreadDraftAction(input: {
   const writingStyleProfile = await getActiveWritingStyleProfile();
   const draftId = `draft-${input.thread.id}-${Date.now()}`;
   return runDraftGeneration(
-    buildThreadDraftRequest(
+    await buildThreadDraftRequest(
       input.thread,
       input.evidenceRecords,
       draftId,
@@ -121,7 +121,7 @@ export async function generateCaseDraftAction(input: {
   const writingStyleProfile = await getActiveWritingStyleProfile();
   const draftId = `draft-${input.caseRecord.caseId}-${Date.now()}`;
   return runDraftGeneration(
-    buildCaseDraftRequest(
+    await buildCaseDraftRequest(
       input.caseRecord,
       input.evidenceRecords,
       input.correspondenceThreads,

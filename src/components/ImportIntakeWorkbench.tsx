@@ -791,6 +791,8 @@ export function ImportIntakeWorkbench({
                     persisted={activeTriageOutcome?.persisted}
                     provider={activeTriageOutcome?.provider ?? null}
                     model={activeTriageOutcome?.model ?? null}
+                    imsReferencesUsed={activeTriageOutcome?.imsReferencesUsed ?? []}
+                    imsReferenceNote={activeTriageOutcome?.imsReferenceNote ?? null}
                   />
                   {activeTriageError ? (
                     <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">
@@ -815,6 +817,8 @@ export function ImportIntakeWorkbench({
                   model={activeDraftOutcome?.model ?? null}
                   triageAuditLogId={activeDraftOutcome?.triageAuditLogId ?? null}
                   writingStyleProfileName={writingStyleProfileName ?? null}
+                  imsReferencesUsed={activeDraftOutcome?.imsReferencesUsed ?? []}
+                  imsReferenceNote={activeDraftOutcome?.imsReferenceNote ?? null}
                 />
                   {activeDraftError ? (
                     <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-950">

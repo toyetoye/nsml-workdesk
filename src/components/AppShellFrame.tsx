@@ -20,7 +20,10 @@ type AppShellFrameProps = {
 export function AppShellFrame({ children, gate, sessionState, aiConfig }: AppShellFrameProps) {
   const pathname = usePathname();
   const hideAssistantRail =
-    pathname === "/dashboard" || pathname === "/import" || pathname === "/assurance";
+    pathname === "/dashboard" ||
+    pathname === "/import" ||
+    pathname === "/assurance" ||
+    pathname === "/settings/ims";
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">

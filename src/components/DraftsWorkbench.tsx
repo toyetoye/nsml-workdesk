@@ -508,6 +508,7 @@ export function DraftsWorkbench({
                         />
                       </div>
                     </div>
+
                   </div>
                 ) : null}
 

@@ -1,5 +1,6 @@
 import type { WritingStyleProfileSnapshot } from "@/lib/writing-style/profile";
 import type { DraftMode } from "./draft-modes";
+import type { IMSReferenceUsage } from "@/lib/ims/types";
 
 export type AiProvider = "openai";
 
@@ -48,6 +49,8 @@ export type TriageRequest = {
   sourceIds: string[];
   sourceLabel: string;
   sourceSnapshot: Record<string, unknown>;
+  imsReferencesUsed?: IMSReferenceUsage[];
+  imsReferenceNote?: string | null;
 };
 
 export type TriageRunOutcome = {
@@ -61,6 +64,8 @@ export type TriageRunOutcome = {
   auditLogId: string | null;
   provider: AiProvider | null;
   model: string | null;
+  imsReferencesUsed: IMSReferenceUsage[];
+  imsReferenceNote: string | null;
 };
 
 export type DraftStatus = "pending_red_team" | "needs_evidence" | "blocked";
@@ -102,6 +107,8 @@ export type DraftRequest = {
   draftId: string;
   toneMode: DraftMode;
   writingStyleProfile?: WritingStyleProfileSnapshot | null;
+  imsReferencesUsed?: IMSReferenceUsage[];
+  imsReferenceNote?: string | null;
   triageContext?: {
     sourceType: TriageSourceType;
     sourceIds: string[];
@@ -124,6 +131,8 @@ export type DraftRunOutcome = {
   provider: AiProvider | null;
   model: string | null;
   triageAuditLogId: string | null;
+  imsReferencesUsed: IMSReferenceUsage[];
+  imsReferenceNote: string | null;
 };
 
 export type StructuredRedTeamReview = {
@@ -164,4 +173,6 @@ export type RedTeamRunOutcome = {
   auditLogId: string | null;
   provider: AiProvider | null;
   model: string | null;
+  imsReferencesUsed: IMSReferenceUsage[];
+  imsReferenceNote: string | null;
 };

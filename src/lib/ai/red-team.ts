@@ -2,6 +2,7 @@ import "server-only";
 
 import OpenAI from "openai";
 import { appendAuditLog, saveDraftRedTeamReview } from "@/lib/persistence/repository";
+import { buildIMSReferencesForContext, formatIMSReferencePromptSection } from "@/lib/ims/search";
 import type { DraftResponsePlaceholderRow, Json } from "@/lib/persistence/types";
 import { getAiConfigStatus } from "./config";
 import { describeRedTeamVerdict } from "./red-team-builders";
@@ -168,7 +169,7 @@ function normalizeRedTeamReview(parsed: unknown, draft: DraftResponsePlaceholder
   };
 }
 
-function buildPrompt(draft: DraftResponsePlaceholderRow) {
+function buildPrompt(draft: DraftResponsePlaceholderRow, imsSection: string) {
   return [
     "Selected draft ID:",
     draft.draft_id,
@@ -209,6 +210,8 @@ function buildPrompt(draft: DraftResponsePlaceholderRow) {
     "Source snapshot:",
     JSON.stringify(draft.source_snapshot, null, 2),
     "",
+    imsSection,
+    "",
     "Do not rewrite the draft. Review it for safety to copy only.",
   ].join("\n");
 }
@@ -218,6 +221,29 @@ export async function runRedTeamReview(
 ): Promise<RedTeamRunOutcome> {
   const sourceType = draft.source_type as DraftSourceType;
   const config = getAiConfigStatus();
+  const sourceSnapshot = draft.source_snapshot as Record<string, unknown>;
+  const ims = await buildIMSReferencesForContext({
+    sourceType: draft.source_type,
+    sourceLabel: draft.source_label,
+    sourceSnapshot: {
+      ...sourceSnapshot,
+      draft: {
+        draftId: draft.draft_id,
+        draftBody: draft.draft_body,
+        draftPurpose: draft.draft_purpose,
+        evidenceBasis: draft.evidence_basis,
+        toneMode: draft.tone_mode,
+        assumptions: draft.assumptions,
+        missingInformation: draft.missing_information,
+        liabilityCautions: draft.liability_cautions,
+        recommendedAttachments: draft.recommended_attachments,
+        status: draft.status,
+        confidence: draft.confidence,
+      },
+    },
+    extraTerms: [draft.draft_body, draft.draft_purpose, draft.evidence_basis],
+  });
+  const imsSection = formatIMSReferencePromptSection(ims.references, ims.note);
 
   if (!config.enabled) {
     return {
@@ -233,6 +259,8 @@ export async function runRedTeamReview(
       auditLogId: null,
       provider: null,
       model: null,
+      imsReferencesUsed: ims.references,
+      imsReferenceNote: ims.note,
     };
   }
 
@@ -252,13 +280,15 @@ export async function runRedTeamReview(
       auditLogId: null,
       provider: null,
       model: null,
+      imsReferencesUsed: ims.references,
+      imsReferenceNote: ims.note,
     };
   }
 
   const response = await client.responses.create({
     model: config.model,
     instructions: RED_TEAM_INSTRUCTIONS,
-    input: buildPrompt(draft),
+    input: buildPrompt(draft, imsSection),
     text: {
       format: {
         type: "json_schema",
@@ -323,9 +353,11 @@ export async function runRedTeamReview(
     sourceIds: draft.source_ids,
     sourceLabel: draft.source_label,
     reviewResult: review,
-    reviewRecordId: saved.row.review_id,
-    auditLogId: audit.row.audit_id,
-    provider: config.provider,
-    model: config.model,
-  };
+      reviewRecordId: saved.row.review_id,
+      auditLogId: audit.row.audit_id,
+      provider: config.provider,
+      model: config.model,
+      imsReferencesUsed: ims.references,
+      imsReferenceNote: ims.note,
+    };
 }

@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Copy, FileEdit, ShieldCheck } from "lucide-react";
+import { IMSReferenceList } from "@/components/IMSReferenceList";
 import { StatusBadge } from "@/components/StatusBadge";
+import { describeDraftMode } from "@/lib/ai/descriptions";
 import { describeReadinessStatus, describeRedTeamVerdict } from "@/lib/ai/red-team-builders";
-import { describeDraftMode } from "@/lib/ai/draft-builders";
 import { runRedTeamReviewAction } from "@/app/(protected)/ai/actions";
 import type { DraftStatus, RedTeamRunOutcome, StructuredDraftResult } from "@/lib/ai/types";
+import type { IMSReferenceUsage } from "@/lib/ims/types";
 
 const statusTone: Record<DraftStatus, "danger" | "warning" | "accent" | "neutral"> = {
   pending_red_team: "warning",
@@ -50,6 +52,8 @@ type DraftResultPanelProps = {
   triageAuditLogId?: string | null;
   reviewDisabledReason?: string | null;
   writingStyleProfileName?: string | null;
+  imsReferencesUsed?: IMSReferenceUsage[];
+  imsReferenceNote?: string | null;
 };
 
 export function DraftResultPanel(props: DraftResultPanelProps) {
@@ -73,6 +77,8 @@ function DraftResultPanelBody({
   triageAuditLogId,
   reviewDisabledReason,
   writingStyleProfileName,
+  imsReferencesUsed = [],
+  imsReferenceNote = null,
 }: DraftResultPanelProps) {
   const [reviewOutcome, setReviewOutcome] = useState<RedTeamRunOutcome | null>(null);
   const [reviewRunning, setReviewRunning] = useState(false);
@@ -242,8 +248,8 @@ function DraftResultPanelBody({
             </div>
           </div>
         ) : (
-          <div className="mt-4 space-y-4">
-            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+            <div className="mt-4 space-y-4">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <ShieldCheck aria-hidden className="text-teal-700" size={16} />
                 <StatusBadge tone={safeToCopy ? "accent" : "warning"}>
@@ -286,10 +292,18 @@ function DraftResultPanelBody({
                   paste only.
                 </span>
               </div>
-            </div>
+              </div>
 
-            <div className="grid gap-3 lg:grid-cols-2">
-              <InfoCard label="Unsupported claims" value={joinList(activeReview.unsupported_claims)} />
+              <IMSReferenceList
+                title="IMS references used in red-team review"
+                note={reviewOutcome?.imsReferenceNote ?? null}
+                references={reviewOutcome?.imsReferencesUsed ?? []}
+                emptyLabel="No IMS reference used for red-team review."
+                compact
+              />
+
+              <div className="grid gap-3 lg:grid-cols-2">
+                <InfoCard label="Unsupported claims" value={joinList(activeReview.unsupported_claims)} />
               <InfoCard label="Liability risks" value={joinList(activeReview.liability_risks)} />
               <InfoCard label="Technical risks" value={joinList(activeReview.technical_risks)} />
               <InfoCard label="Tone risks" value={joinList(activeReview.tone_risks)} />
@@ -409,6 +423,14 @@ function DraftResultPanelBody({
               emptyLabel="No attachments recommended."
             />
           </div>
+
+          <IMSReferenceList
+            title="IMS references used in draft generation"
+            note={imsReferenceNote}
+            references={imsReferencesUsed}
+            emptyLabel="No IMS reference used for this draft."
+            compact
+          />
         </div>
       )}
     </section>
