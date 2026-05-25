@@ -150,6 +150,21 @@ Current behavior:
 - no workflow checklist, detailed queues, recent import detail, vessel snapshots, or secondary status groups on the dashboard
 - CoS Assistant rail hidden on the dashboard surface
 
+### Navigation tree and section tabs
+
+Role:
+
+- give the shell a major-area / child-view structure without flattening the whole app into one list
+
+Current behavior:
+
+- collapsible parent sections in the sidebar
+- route-aware auto-expansion for active parents
+- exclusive active child highlighting
+- page-level section tabs for overview/default and child views
+- mobile bottom navigation remains top-level only
+- child navigation stays inside the page surface rather than overloading the shell
+
 ## Visual tokens
 
 These are the current visual behaviors that should be preserved and refined, not replaced.
@@ -181,6 +196,8 @@ These are the current visual behaviors that should be preserved and refined, not
 - primary app content is centered in a wide content area
 - page descriptions and helper text typically max out at a readable line length
 - sidebar and top bar establish the shell boundaries
+- overview pages should stay compact
+- child views should use available desktop width without becoming visually dense
 
 ### Sticky offset
 
@@ -233,6 +250,8 @@ Semantic colors currently represent:
 
 - the selected item should be visually stronger than the list around it
 - active context must be obvious in list views and detail views
+- only one child item should be active at a time
+- overview is active only on overview/default views
 
 ### AI configured versus AI unavailable
 
@@ -254,6 +273,14 @@ Semantic colors currently represent:
 - dashboard content should stay high-level and click-through only
 - detailed operational work belongs inside `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages
 - dashboard cards should never become send, copy, AI action, or automatic workflow controls
+
+### Overview versus child work surfaces
+
+- parent routes act as overview pages
+- child views show only the selected work surface
+- overview content should not remain visible underneath child tabs
+- forms should use responsive desktop grids where the content benefits from width
+- long text fields should stay full width, while short structured fields can share columns
 
 ## Implementation guidance for later Codex work
 

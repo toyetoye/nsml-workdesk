@@ -2,11 +2,11 @@
 
 ## Current phase
 
-Sprint 020B complete.
+Sprint 021B complete.
 
 ## Active sprint
 
-Sprint 020B - complete.
+Sprint 021B - complete.
 
 ## Confirmed decisions
 
@@ -87,6 +87,14 @@ Sprint 020B - complete.
 - Sprint 020B removed workflow checklist, detailed queues, recent import detail, vessel snapshots, secondary status groups, and the dashboard assistant rail from the dashboard surface.
 - Sprint 020B keeps detailed workflows inside `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages.
 - Sprint 020B does not change backend behavior, AI behavior, parsing behavior, Outlook/email behavior, auth, or the safety model.
+- Sprint 021 added collapsible sidebar parent/child navigation, route-aware active parent expansion, active child highlighting, shared navigation tree helpers, shared page section tabs, and overview-first child views for import, vessels, assurance, cases, drafts, projects, and other work areas.
+- Sprint 021 keeps mobile bottom navigation top-level only and moves child navigation into page-level section chips or scoped views.
+- Sprint 021 does not add backend capability, AI capability, parsing capability, Outlook integration, email sending, or safety changes.
+- Sprint 021A tightened the overview/child split so overview content renders only on overview/default views and focused child views show only the selected work surface.
+- Sprint 021A widened the manual intake and assurance signal forms with responsive grid layouts while keeping long text fields full width and mobile behavior one-column.
+- Sprint 021A does not change backend, AI, parsing, Outlook, email, auth, access-gate, red-team, or evidence-guardrail behavior.
+- Sprint 021B fixed the sidebar active-state bug, removed duplicate assurance header/action rows from focused child views, widened the assurance signals/new signal layout, widened the import manual intake and selected intake detail layouts, and kept child views focused on the selected work surface.
+- Sprint 021B does not change backend, AI, parsing, Outlook/email, auth, red-team/copy gate, evidence guardrails, or the safety model.
 
 ## Product rules
 
@@ -98,6 +106,9 @@ Sprint 020B - complete.
 - Bulk intake structures exported email evidence; it does not connect to Outlook, interpret the meaning of the emails, create conclusions, or decide accountability.
 - Imported email content is evidence of message content. Conclusions drawn from that content must still be classified as Fact, Reported, Inference, or Assumption.
 - Dashboard is for overview and navigation only. Detailed operational work belongs inside the relevant module page.
+- Main sidebar sections represent major work areas, parent pages provide overview only, and detailed operational work belongs in child views or module-specific surfaces.
+- Only one child navigation item should be active at a time, and the overview child is active only when the current view is overview/default.
+- Forms should use available desktop width while remaining readable and safe on mobile.
 
 ## Next action
 

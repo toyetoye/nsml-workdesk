@@ -42,6 +42,26 @@ NSML WorkDesk is an operational workdesk for:
 
 The app is single-user, protected, and advisory-first. No send action exists.
 
+## Sprint 021 navigation model
+
+The current navigation model is overview-first:
+
+- the main sidebar is a collapsible tree of major work areas;
+- overview pages stay compact and click-through oriented;
+- child views or section tabs hold the detailed work;
+- the active child item is exclusive;
+- the overview child is active only on overview/default views;
+- mobile bottom navigation stays top-level only while page-level chips handle child views.
+
+Sprint 021A and Sprint 021B tightened the child-view focus further:
+
+- overview content now renders only on overview/default views;
+- selected child views show only the active work surface instead of repeating the full parent overview;
+- import manual intake and assurance signal forms now use responsive desktop grids rather than long narrow columns;
+- long text fields remain full width;
+- the assurance Signals/New Signal and import Manual Intake / selected intake detail surfaces now use the available width more effectively;
+- the sidebar active state is exclusive, so overview and child pills no longer appear active together.
+
 ## Workflow map
 
 The current workflow across the app should read as:
@@ -77,7 +97,6 @@ Observed intent:
 - guide the user into import, assurance, cases, drafts, vessels, and writing style
 - keep the first viewport focused on high-level counts, module cards, and top attention items
 - keep detailed workbench content inside the module pages
-
 ### `/import`
 
 Current structure:
@@ -96,6 +115,12 @@ Observed intent:
 - keep manual pasted intake visible
 - keep bulk import, evidence storage, and parsed thread review available but not dominant
 
+Observed 021A/021B update:
+
+- the overview content appears only on the overview/default view;
+- the manual intake and selected detail areas use a wider responsive layout;
+- child views now present focused work surfaces instead of stacked overview-plus-detail content.
+
 ### `/assurance`
 
 Current structure:
@@ -112,6 +137,13 @@ Observed intent:
 
 - keep fact / reported / inference / assumption distinctions visible
 - move from broad signal to request specifics to support item to engagement log to weekly pack
+
+Observed 021A/021B update:
+
+- the overview content appears only on the overview/default view;
+- the Signals child view no longer shows duplicate overview content underneath it;
+- the New Signal area uses more width and reads as a focused work surface rather than a narrow rail;
+- the sidebar now shows Signals active only when `view=signals`.
 
 ### `/cases`
 
@@ -130,6 +162,11 @@ Observed intent:
 - selected case should stay the visual center of gravity
 - evidence/correspondence/timeline can recede when not active
 - triage and drafting stay advisory and linked to the selected case
+
+Observed IA update:
+
+- overview content is reserved for the overview/default view;
+- the child views are focused and do not repeat the full parent overview stack underneath them.
 
 ### `/drafts`
 
@@ -158,6 +195,11 @@ Observed intent:
 - make safe-to-copy state impossible to miss
 - keep copy manual and explicitly reviewed
 
+Observed IA update:
+
+- overview content is reserved for the overview/default view;
+- child status views focus the selected work surface and no longer keep the full overview content visible underneath.
+
 ### `/settings/writing-style`
 
 Current structure:
@@ -173,6 +215,11 @@ Observed intent:
 - tune draft calibration
 - show that style cannot override evidence or safety
 - link the profile back to drafts, cases, import, and assurance
+
+Observed IA update:
+
+- the page remains an overview/settings surface rather than a detailed workbench;
+- the layout stays compact and the detailed workflow remains in the relevant downstream pages.
 
 ### Workspace correspondence pages
 
@@ -206,6 +253,12 @@ Observed intent:
 - collapse guidance/reference panels where possible
 - make the next safe action obvious without hiding the thread itself
 
+Observed IA update:
+
+- vessel root routes behave as overview pages;
+- vessel correspondence, cases, evidence, drafts, and assurance/support live behind child views;
+- overview content should not repeat under child views.
+
 ## Reusable UI patterns
 
 Documented reusable patterns already in the app:
@@ -213,6 +266,7 @@ Documented reusable patterns already in the app:
 - `StickyPageHeader`
 - `CollapsibleSection`
 - `WorkflowChecklist`
+- `PageSectionTabs`
 - status badges
 - cards
 - action buttons
@@ -231,6 +285,9 @@ Sprint 017 and Sprint 020B reduced page length in different ways, but the remain
 - drafts needs review state to be readable faster at a glance
 - writing-style needs a tighter summary-to-edit flow
 - workspace pages need a clearer split between active correspondence and supporting reference
+- the sidebar tree and page-level tabs need to keep child activation exclusive and obvious
+- child views should not repeat the full overview content beneath the active surface
+- important forms should not be trapped in narrow single-column layouts when desktop width is available
 
 ## Safety and workflow constraints
 
@@ -272,3 +329,5 @@ The Figma review should focus on:
 - letting secondary/reference panels recede
 - improving selected-state treatment
 - keeping active work distinct from background context
+- keeping overview-only pages short enough to read quickly while child views stay focused
+- preserving responsive form width so long text fields remain readable and safe on mobile

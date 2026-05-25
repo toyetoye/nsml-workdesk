@@ -257,3 +257,21 @@ Mitigation: Keep the workflow framed as exported evidence intake only and explic
 Risk: The dashboard could drift back into a detailed operational workbench and crowd out the overview role.
 
 Mitigation: Keep the dashboard limited to overview cards, module cards, and a small attention strip; leave workflow checklists, queue detail, vessel snapshots, recent import detail, and other operational depth inside the relevant module pages.
+
+## R043 - Sidebar state ambiguity
+
+Risk: Overview and child tabs could appear active at the same time, making the current view ambiguous.
+
+Mitigation: Keep overview active only on the overview/default view and make child activation exclusive so only the selected child item is highlighted.
+
+## R044 - Over-stacked child views
+
+Risk: Section tabs could leave overview content visible under selected child views, making pages long and hard to scan.
+
+Mitigation: Render overview content only on the overview/default view and keep child views focused on the selected work surface.
+
+## R045 - Narrow form columns
+
+Risk: Important forms and detail blocks could stay trapped in a single narrow column even when desktop width is available.
+
+Mitigation: Use responsive two- or three-column grids on desktop where safe, keep long text fields full width, and collapse to one column on mobile.

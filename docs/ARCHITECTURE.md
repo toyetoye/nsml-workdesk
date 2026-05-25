@@ -99,12 +99,44 @@ The app must continue to run locally without requiring Supabase, and the login/a
 - /drafts
 - /settings/writing-style
 
+## Sprint 021 Navigation Architecture
+
+Sprint 021 adds an overview-first navigation tree and section-tab model so major routes act as overview pages while child views hold the detailed work.
+
+The navigation architecture is structured around:
+
+- a shared sidebar navigation tree in `src/components/navigation.ts`;
+- collapsible parent sections with route-aware auto-expansion;
+- exclusive active child highlighting;
+- a shared `PageSectionTabs` component for overview/default and child views;
+- a navigation view resolver in `src/lib/navigation-view.ts`;
+- top-level mobile navigation that stays simple and does not mirror the full child tree;
+- overview pages that stay compact and route into detailed child views.
+
+The route/view model is structured around:
+
+- overview/default views showing only overview content;
+- child views showing only the selected work surface;
+- query-driven or section-tab-driven child navigation where it is cleaner than adding many new routes;
+- vessel root routes behaving as overview pages;
+- vessel correspondence, cases, evidence, drafts, and assurance/support living behind child views;
+- import, assurance, cases, drafts, projects, and other surfaces exposing overview plus child views.
+
+The UI must keep child activation exclusive: the overview child is active only when the current view is overview/default, and only one child item should be active at a time.
+
+## Sprint 021/021A/021B Notes
+
+- Sprint 021 introduces collapsible sidebar parent/child navigation, route-aware active parent expansion, active child highlighting, and page-level child tabs.
+- Sprint 021A keeps overview content visible only on overview/default views and widens forms/detail panels with responsive layouts.
+- Sprint 021B fixes sidebar active-state ambiguity, removes duplicate child-view header rows where they squeezed work surfaces, and widens assurance/import child layouts.
+
 ## Core Components
 
 - AppShell
 - Sidebar
 - TopBar
 - DashboardCard
+- PageSectionTabs
 - AttentionQueue
 - VesselWorkspace
 - ProjectWorkspace
@@ -117,6 +149,15 @@ The app must continue to run locally without requiring Supabase, and the login/a
 - DraftReviewPanel
 - StatusBadge
 - EvidenceList
+
+## Navigation Notes
+
+- Main sidebar sections represent major work areas.
+- Parent pages provide overview only.
+- Detailed operational work belongs in child views or module-specific surfaces.
+- Overview is active only when the current view is overview/default.
+- Forms should use available desktop width while remaining readable and safe on mobile.
+- Mobile bottom navigation remains top-level only.
 
 ## Persistence Notes
 

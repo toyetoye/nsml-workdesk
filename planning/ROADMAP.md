@@ -541,3 +541,80 @@ Notes:
 
 - Dashboard is for overview and navigation only. Detailed operational work belongs inside the relevant module page.
 - No backend changes, AI changes, parsing changes, Outlook/email changes, auth changes, or safety-model changes were made.
+
+## Sprint 021
+
+Complete.
+
+Delivered:
+
+- collapsible sidebar parent/child navigation
+- route-aware active parent expansion
+- active child highlighting
+- shared navigation tree in `src/components/navigation.ts`
+- shared `PageSectionTabs` component
+- navigation view resolver in `src/lib/navigation-view.ts`
+- main routes behaving as overview pages
+- child work surfaces available through query views / section tabs
+- vessel root pages behaving as overview pages
+- vessel correspondence / cases / evidence / drafts / assurance-support moved behind child views
+- import child views: Overview, Manual Intake, Bulk Evidence Intake, Parsed Threads, Route/Link
+- assurance child views: Overview, Signals, Support Items, Engagement Log, Weekly Pack
+- cases child views: Overview, Active Cases, Evidence, Correspondence, Drafts
+- drafts child views: Overview, Pending Red-Team, Passed, Needs Evidence, Rejected
+- projects / other child views for overview, correspondence, cases, evidence
+- mobile bottom navigation remains top-level only
+- child navigation handled through page-level section chips
+
+Notes:
+
+- Main sidebar sections represent major work areas.
+- Parent pages provide overview only.
+- Detailed operational work belongs in child views or module-specific surfaces.
+- Only one child navigation item should be active at a time.
+- Overview is active only when the current view is overview/default.
+- Forms should use available desktop width while remaining readable and safe on mobile.
+
+## Sprint 021A
+
+Complete.
+
+Delivered:
+
+- overview content renders only on overview/default views
+- selected child views behave as focused work surfaces
+- child tabs no longer keep full overview content visible underneath
+- import manual intake form uses a responsive grid
+- import selected intake detail uses a wider responsive layout
+- assurance signal/support/engagement forms use responsive two-column desktop grids
+- long text fields remain full width
+- mobile views collapse forms to one column
+- `resolveView` supports aliases for older query values
+
+Notes:
+
+- Overview content appears only on overview/default views.
+- Child views show only the selected surface, not the full parent overview stack.
+- Selected forms and detail panels should use the available desktop width without losing readability on mobile.
+
+## Sprint 021B
+
+Complete.
+
+Delivered:
+
+- sidebar active-state bug fixed
+- Overview child tab active only on overview/default view
+- child active state is exclusive
+- `/assurance?view=signals` now shows Signals active only
+- duplicate assurance header/action rows removed from focused child views
+- assurance Signals / New Signal layout widened
+- New Signal form no longer sits in a narrow side rail
+- import Manual Intake layout widened
+- selected intake detail view uses responsive width better
+- child views focus the selected work surface
+
+Notes:
+
+- No backend changes, AI changes, parsing changes, Outlook/email changes, auth changes, red-team/copy gate changes, evidence guardrail changes, or safety-model changes were made.
+- Child navigation should remain exclusive: the overview child is active only for overview/default, and the selected child item must be the only active child pill.

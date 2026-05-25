@@ -203,3 +203,21 @@ Reason: The product needs a practical way to bring in exported email evidence wi
 Decision: Sprint 020B simplifies the dashboard into a one-page overview and navigation hub with high-level counts, clickable module cards, and a small attention strip, while keeping detailed workflows inside the relevant module pages.
 
 Reason: The dashboard should help the user orient quickly and click through to the right place. Operational detail belongs in `/import`, `/assurance`, `/cases`, `/drafts`, and workspace pages, where the work can be handled without turning the dashboard into a workbench.
+
+## D035 - Collapsible sidebar information architecture
+
+Decision: Sprint 021 adds a collapsible sidebar tree with overview-first parent pages and child work surfaces reached through route-aware section tabs or scoped views.
+
+Reason: The main sidebar should represent major work areas, while child navigation should keep the detailed work inside the relevant module instead of flattening everything into one long page.
+
+## D036 - Overview-only parent views
+
+Decision: Sprint 021A and Sprint 021B keep overview content visible only on overview/default views and keep selected child views focused on the active work surface.
+
+Reason: Child views should behave like focused work surfaces rather than long stacked pages with repeated overview content underneath them.
+
+## D037 - Exclusive child activation and responsive form width
+
+Decision: Sprint 021B makes child navigation exclusive so only the active child item is highlighted, and it widens long forms/detail blocks with responsive grids where safe.
+
+Reason: The selected view must be unambiguous, and forms should use available desktop width while remaining readable and safe on mobile.
