@@ -291,7 +291,7 @@ export function BulkEvidenceIntakePanel({
           : "Bulk evidence intake failed.";
       setError(
         message.includes("unexpected response")
-          ? "The bulk intake could not complete safely. Please retry with a smaller batch or use Evidence Upload for unsupported files."
+          ? "The bulk intake returned an invalid response. Please retry the batch or use Evidence Upload for unsupported files."
           : message,
       );
     } finally {

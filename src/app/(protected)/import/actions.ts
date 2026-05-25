@@ -79,7 +79,7 @@ function emptyBulkSummary(): BulkEvidenceBatchSummary {
   };
 }
 
-function structuredBulkFailure(message: string): BulkIntakeActionResult {
+function structuredBulkFailure(message: string, diagnostics?: BulkEvidenceBatchOutcome["diagnostics"]): BulkIntakeActionResult {
   const summary = emptyBulkSummary();
 
   return {
@@ -90,6 +90,18 @@ function structuredBulkFailure(message: string): BulkIntakeActionResult {
     note: message,
     message,
     warnings: [message],
+    diagnostics: diagnostics ?? {
+      fileCountReceived: 0,
+      extensionsReceived: [],
+      acceptedCount: 0,
+      parsedCount: 0,
+      evidenceOnlyCount: 0,
+      preservationOnlyCount: 0,
+      unsupportedCount: 0,
+      failedCount: 0,
+      failureStage: "system",
+      errorCode: "UNEXPECTED_RESPONSE",
+    },
   };
 }
 
@@ -131,7 +143,7 @@ export async function processBulkEvidenceIntakeAction(
     });
 
     return {
-      ok: true,
+      ok: outcome.batchStatus !== "failed",
       ...outcome,
       message: outcome.note,
     };
@@ -139,7 +151,7 @@ export async function processBulkEvidenceIntakeAction(
     const message = error instanceof Error ? error.message : "Bulk evidence intake failed.";
     return structuredBulkFailure(
       message.includes("unexpected response")
-        ? "The bulk intake could not be completed safely. Please retry with a smaller batch or use Evidence Upload for unsupported files."
+        ? "The bulk intake returned an invalid response. Please retry the batch or use Evidence Upload for unsupported files."
         : message,
     );
   }

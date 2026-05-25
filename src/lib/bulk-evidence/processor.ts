@@ -23,6 +23,7 @@ import type {
   BulkEvidenceItemStatus,
   BulkEvidenceSourceKind,
   BulkEvidenceBatchSummary,
+  BulkEvidenceBatchDiagnostics,
 } from "./types";
 
 const MAX_ZIP_BYTES = 50 * 1024 * 1024;
@@ -32,6 +33,13 @@ const MAX_TOTAL_EXTRACTED_EML_BYTES = 100 * 1024 * 1024;
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function fileExtension(fileName: string) {
+  const lower = fileName.toLowerCase();
+  const dotIndex = lower.lastIndexOf(".");
+
+  return dotIndex >= 0 ? lower.slice(dotIndex + 1) : "none";
 }
 
 function isZipFile(file: File) {
@@ -289,6 +297,18 @@ export async function processBulkEvidenceIntake(
     unsupported: 0,
     warnings: 0,
   };
+  const diagnostics: BulkEvidenceBatchDiagnostics = {
+    fileCountReceived: input.files.length,
+    extensionsReceived: input.files.map((file) => fileExtension(file.name)),
+    acceptedCount: 0,
+    parsedCount: 0,
+    evidenceOnlyCount: 0,
+    preservationOnlyCount: 0,
+    unsupportedCount: 0,
+    failedCount: 0,
+    failureStage: "none",
+    errorCode: null,
+  };
   const warnings: string[] = [];
   const savedItems: BulkEvidenceBatchItemRow[] = [];
   let originalArchiveEvidenceId: string | null = null;
@@ -343,11 +363,15 @@ export async function processBulkEvidenceIntake(
 
   if (input.files.length === 0) {
     fatalValidationError = true;
+    diagnostics.failureStage = "validation";
+    diagnostics.errorCode = "NO_FILES";
     warnings.push("No files were attached to the bulk intake request.");
   }
 
   if (input.files.length > MAX_EML_FILES_PER_BATCH) {
     fatalValidationError = true;
+    diagnostics.failureStage = "validation";
+    diagnostics.errorCode = "TOO_MANY_FILES";
     warnings.push(`The batch exceeds the ${MAX_EML_FILES_PER_BATCH} file limit.`);
   }
 
@@ -370,6 +394,7 @@ export async function processBulkEvidenceIntake(
       updated_at: nowIso(),
     });
     summary.unsupported += 1;
+    diagnostics.unsupportedCount += 1;
     summary.warnings += 1;
     warnings.push(message);
   };
@@ -400,6 +425,7 @@ export async function processBulkEvidenceIntake(
       updated_at: nowIso(),
     });
     summary.failed += 1;
+    diagnostics.failedCount += 1;
     summary.warnings += 1;
     warnings.push(inputItem.message);
   };
@@ -449,6 +475,7 @@ export async function processBulkEvidenceIntake(
             updated_at: nowIso(),
           });
           summary.evidenceOnly += 1;
+          diagnostics.evidenceOnlyCount += 1;
           warnings.push("ZIP archive preserved as evidence only before extracting EML entries.");
 
           let extracted;
@@ -527,12 +554,15 @@ export async function processBulkEvidenceIntake(
 
               if (itemStatus === "parsed") {
                 summary.parsedSuccessfully += 1;
+                diagnostics.parsedCount += 1;
               } else if (itemStatus === "failed") {
                 summary.failed += 1;
+                diagnostics.failedCount += 1;
                 summary.warnings += 1;
                 warnings.push(parsed.parseError ?? "An EML item failed to parse.");
               } else if (itemStatus === "unsupported") {
                 summary.unsupported += 1;
+                diagnostics.unsupportedCount += 1;
                 summary.warnings += 1;
                 warnings.push(parsed.parseError ?? "An EML item was unsupported.");
               } else {
@@ -602,12 +632,15 @@ export async function processBulkEvidenceIntake(
 
             if (itemStatus === "parsed") {
               summary.parsedSuccessfully += 1;
+              diagnostics.parsedCount += 1;
             } else if (itemStatus === "failed") {
               summary.failed += 1;
+              diagnostics.failedCount += 1;
               summary.warnings += 1;
               warnings.push(parsed.parseError ?? "An EML item failed to parse.");
             } else if (itemStatus === "unsupported") {
               summary.unsupported += 1;
+              diagnostics.unsupportedCount += 1;
               summary.warnings += 1;
               warnings.push(parsed.parseError ?? "An EML item was unsupported.");
             } else {
@@ -658,6 +691,7 @@ export async function processBulkEvidenceIntake(
               updated_at: nowIso(),
             });
             summary.evidenceOnly += 1;
+            diagnostics.evidenceOnlyCount += 1;
             warnings.push("PDF and Word documents were stored as evidence only.");
           } catch (error) {
             const message =
@@ -706,6 +740,7 @@ export async function processBulkEvidenceIntake(
               updated_at: nowIso(),
             });
             summary.preservationOnly += 1;
+            diagnostics.preservationOnlyCount += 1;
             warnings.push("PST stored as preservation evidence only. PST parsing is not available in this sprint.");
           } catch (error) {
             const message =
@@ -738,6 +773,12 @@ export async function processBulkEvidenceIntake(
   }
 
   const acceptedCount = summary.parsedSuccessfully + summary.evidenceOnly + summary.preservationOnly;
+  diagnostics.acceptedCount = acceptedCount;
+  diagnostics.parsedCount = summary.parsedSuccessfully;
+  diagnostics.evidenceOnlyCount = summary.evidenceOnly;
+  diagnostics.preservationOnlyCount = summary.preservationOnly;
+  diagnostics.unsupportedCount = summary.unsupported;
+  diagnostics.failedCount = summary.failed;
   const hadErrors = summary.failed + summary.unsupported + summary.skipped > 0;
   const batchStatus: BulkEvidenceBatchStatus = fatalValidationError
     ? "failed"
@@ -748,6 +789,37 @@ export async function processBulkEvidenceIntake(
       : hadErrors
         ? "failed"
         : "completed";
+
+  if (batchStatus === "failed") {
+    if (diagnostics.failureStage === "none") {
+      diagnostics.failureStage = summary.failed > 0 ? "batch-processing" : "validation";
+    }
+
+    if (!diagnostics.errorCode) {
+      if (summary.unsupported > 0 && summary.failed === 0 && summary.skipped === 0) {
+        diagnostics.errorCode = "UNSUPPORTED_ONLY";
+      } else if (summary.failed > 0 && acceptedCount === 0) {
+        diagnostics.errorCode = "ALL_ITEMS_FAILED";
+      } else if (summary.skipped > 0 && acceptedCount === 0) {
+        diagnostics.errorCode = "NO_ACCEPTED_ITEMS";
+      } else {
+        diagnostics.errorCode = "BATCH_FAILED";
+      }
+    }
+  }
+
+  const failureNote =
+    diagnostics.errorCode === "NO_FILES"
+      ? "No files were attached to the bulk intake request."
+      : diagnostics.errorCode === "TOO_MANY_FILES"
+        ? `The batch exceeds the ${MAX_EML_FILES_PER_BATCH} file limit.`
+        : diagnostics.errorCode === "UNSUPPORTED_ONLY"
+          ? "The batch contained only unsupported files. Use Evidence Upload for unsupported files."
+          : diagnostics.errorCode === "ALL_ITEMS_FAILED"
+            ? "The batch could not complete because every file failed safely."
+            : diagnostics.errorCode === "NO_ACCEPTED_ITEMS"
+              ? "The batch could not complete because no file could be safely accepted."
+              : "The bulk intake could not complete safely.";
 
   const batchRow: BulkEvidenceBatchRow = (
     await saveBulkEvidenceBatch({
@@ -804,11 +876,12 @@ export async function processBulkEvidenceIntake(
     batchStatus,
     note:
       batchStatus === "failed"
-        ? "The bulk intake could not complete safely. Please retry with a smaller batch or use Evidence Upload for PDFs and Word documents."
+        ? failureNote
         : batchStatus === "completed_with_warnings"
           ? "The bulk intake completed with warnings. Review skipped, unsupported, and failed items."
           : "The bulk intake completed successfully.",
     warnings,
+    diagnostics,
     items: savedItems.map((item) => ({
       fileName: item.file_name,
       sourceKind: item.source_kind,

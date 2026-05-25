@@ -35,6 +35,19 @@ export type BulkEvidenceBatchSummary = {
   warnings: number;
 };
 
+export type BulkEvidenceBatchDiagnostics = {
+  fileCountReceived: number;
+  extensionsReceived: string[];
+  acceptedCount: number;
+  parsedCount: number;
+  evidenceOnlyCount: number;
+  preservationOnlyCount: number;
+  unsupportedCount: number;
+  failedCount: number;
+  failureStage: "none" | "validation" | "batch-processing" | "zip-extraction" | "storage" | "parse" | "system";
+  errorCode: string | null;
+};
+
 export type BulkEvidenceLinkTargets = {
   caseId?: string | null;
   assuranceSignalId?: string | null;
@@ -58,6 +71,7 @@ export type BulkEvidenceBatchOutcome = {
   batchStatus: BulkEvidenceBatchStatus;
   note: string;
   warnings: string[];
+  diagnostics?: BulkEvidenceBatchDiagnostics;
   items?: Array<{
     fileName: string;
     sourceKind: BulkEvidenceSourceKind;
