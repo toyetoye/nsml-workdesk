@@ -49,6 +49,19 @@ function isEmlFile(file: File) {
   return name.endsWith(".eml") || file.type === "message/rfc822";
 }
 
+function isDocumentFile(file: File) {
+  const name = file.name.toLowerCase();
+
+  return (
+    name.endsWith(".pdf") ||
+    name.endsWith(".doc") ||
+    name.endsWith(".docx") ||
+    file.type === "application/pdf" ||
+    file.type === "application/msword" ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  );
+}
+
 function evidenceDescription(sourceLabel: string, note: string, pathInArchive?: string | null) {
   const parts = [
     `Imported via ${sourceLabel}.`,
@@ -70,6 +83,10 @@ function sourceKindForFile(file: File): BulkEvidenceSourceKind {
 
   if (isEmlFile(file)) {
     return "eml";
+  }
+
+  if (isDocumentFile(file)) {
+    return "document";
   }
 
   return "unsupported";
@@ -191,6 +208,32 @@ async function processPstArchive(input: {
   });
 }
 
+async function processDocumentFile(input: {
+  file: File;
+  workspaceAssignment: ImportWorkspaceAssignment;
+  sourceLabel: string;
+  batchId: string;
+  linkedCaseId: string | null;
+  linkedCaseRef: string | null;
+}) {
+  const description = evidenceDescription(
+    input.sourceLabel,
+    "Stored as evidence only. No PDF or Word parsing is performed in this sprint.",
+  );
+
+  return await saveFileAsEvidence({
+    file: input.file,
+    title: `Evidence file: ${input.file.name}`,
+    sourceType: "document-placeholder",
+    workspaceAssignment: input.workspaceAssignment,
+    sourceLabel: `${input.sourceLabel} evidence intake`,
+    description,
+    linkedCaseId: input.linkedCaseId,
+    linkedCaseRef: input.linkedCaseRef,
+    linkedIntakeItemRef: `Bulk batch ${input.batchId}`,
+  });
+}
+
 async function processEmlFile(input: {
   file: File;
   workspaceAssignment: ImportWorkspaceAssignment;
@@ -248,6 +291,7 @@ export async function processBulkEvidenceIntake(
     totalFiles: 0,
     emlFilesFound: 0,
     parsedSuccessfully: 0,
+    evidenceOnly: 0,
     skipped: 0,
     failed: 0,
     unsupported: 0,
@@ -308,7 +352,8 @@ export async function processBulkEvidenceIntake(
     warnings.push(`The batch exceeds the ${MAX_EML_FILES_PER_BATCH} file limit.`);
   }
 
-  if (!fatalError) {
+  try {
+    if (!fatalError) {
     for (const file of input.files) {
       summary.totalFiles += 1;
 
@@ -355,7 +400,7 @@ export async function processBulkEvidenceIntake(
           file_name: file.name,
           source_path_in_archive: null,
           file_size_bytes: file.size,
-          status: "skipped",
+          status: "evidence_only",
           note: "ZIP archive preserved as evidence only before extracting EML entries.",
           evidence_id: archive.evidenceRow.evidence_id,
           thread_id: null,
@@ -365,8 +410,7 @@ export async function processBulkEvidenceIntake(
           created_at: nowIso(),
           updated_at: nowIso(),
         });
-        summary.skipped += 1;
-        summary.warnings += 1;
+        summary.evidenceOnly += 1;
 
         let extracted;
         try {
@@ -511,7 +555,7 @@ export async function processBulkEvidenceIntake(
           file_name: file.name,
           source_path_in_archive: null,
           file_size_bytes: file.size,
-          status: "skipped",
+          status: "evidence_only",
           note: "PST stored as preservation evidence only. PST parsing is not available in this sprint.",
           evidence_id: preserved.evidenceRow.evidence_id,
           thread_id: null,
@@ -521,9 +565,7 @@ export async function processBulkEvidenceIntake(
           created_at: nowIso(),
           updated_at: nowIso(),
         });
-        summary.skipped += 1;
-        summary.warnings += 1;
-        warnings.push("PST stored as preservation evidence only. PST parsing is not available in this sprint.");
+        summary.evidenceOnly += 1;
         continue;
       }
 
@@ -586,6 +628,37 @@ export async function processBulkEvidenceIntake(
         continue;
       }
 
+      if (kind === "document") {
+        const preserved = await processDocumentFile({
+          file,
+          workspaceAssignment: input.workspaceAssignment,
+          sourceLabel,
+          batchId,
+          linkedCaseId,
+          linkedCaseRef,
+        });
+
+        savedItems.push({
+          batch_item_id: `bulk-batch-item-${randomUUID()}`,
+          batch_id: batchId,
+          source_kind: "document",
+          file_name: file.name,
+          source_path_in_archive: null,
+          file_size_bytes: file.size,
+          status: "evidence_only",
+          note: "Stored as evidence only. No PDF or Word parsing is performed in this sprint.",
+          evidence_id: preserved.evidenceRow.evidence_id,
+          thread_id: null,
+          message_id: null,
+          parse_status: preserved.evidenceRow.parse_status,
+          parse_error: preserved.evidenceRow.parse_error,
+          created_at: nowIso(),
+          updated_at: nowIso(),
+        });
+        summary.evidenceOnly += 1;
+        continue;
+      }
+
       savedItems.push({
         batch_item_id: `bulk-batch-item-${randomUUID()}`,
         batch_id: batchId,
@@ -594,7 +667,7 @@ export async function processBulkEvidenceIntake(
         source_path_in_archive: null,
         file_size_bytes: file.size,
         status: "unsupported",
-        note: "Unsupported file type. Only .eml files, ZIP archives containing .eml files, and PST preservation archives are accepted.",
+        note: "Unsupported file type. Use Evidence Upload for this file, or upload .eml, ZIP of .eml, PST preservation, PDF, DOC, or DOCX through bulk intake.",
         evidence_id: null,
         thread_id: null,
         message_id: null,
@@ -605,8 +678,15 @@ export async function processBulkEvidenceIntake(
       });
       summary.unsupported += 1;
       summary.warnings += 1;
-      warnings.push(`Unsupported file skipped: ${file.name}`);
+      warnings.push(`Unsupported file skipped: ${file.name}. Use Evidence Upload for unsupported file types.`);
     }
+  }
+
+  } catch (error) {
+    fatalError = true;
+    const safeMessage = error instanceof Error ? error.message : "Bulk intake failed unexpectedly.";
+    warnings.push(safeMessage);
+    summary.failed += 1;
   }
 
   const batchStatus = batchStatusFromSummary(summary, fatalError);
@@ -671,5 +751,12 @@ export async function processBulkEvidenceIntake(
           ? "The bulk intake completed with warnings. Review skipped, unsupported, and failed items."
           : "The bulk intake completed successfully.",
     warnings,
+    items: savedItems.map((item) => ({
+      fileName: item.file_name,
+      sourceKind: item.source_kind,
+      status: item.status,
+      note: item.note,
+      sourcePathInArchive: item.source_path_in_archive,
+    })),
   };
 }

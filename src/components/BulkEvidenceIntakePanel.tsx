@@ -38,8 +38,9 @@ const batchModeOptions: Array<{
 }> = [
   {
     value: "selected-eml-files",
-    label: "Selected EML upload",
-    description: "Upload one or many exported .eml files. Folder-style selection is supported where the browser allows it.",
+    label: "Selected evidence upload",
+    description:
+      "Upload one or many exported .eml files. PDFs and Word documents in the same batch are stored as evidence only. Folder-style selection is supported where the browser allows it.",
   },
   {
     value: "zip-of-emls",
@@ -68,6 +69,7 @@ const batchStatusTone: Record<BulkEvidenceBatchRow["status"], StatusTone> = {
 
 const itemStatusTone: Record<BulkEvidenceBatchItemRow["status"], StatusTone> = {
   parsed: "accent",
+  evidence_only: "neutral",
   skipped: "neutral",
   failed: "danger",
   unsupported: "warning",
@@ -93,6 +95,8 @@ function itemStatusLabel(status: BulkEvidenceBatchItemRow["status"]) {
   switch (status) {
     case "parsed":
       return "Parsed";
+    case "evidence_only":
+      return "Evidence only";
     case "skipped":
       return "Skipped";
     case "failed":
@@ -116,7 +120,7 @@ function fileAcceptForMode(mode: BulkEvidenceBatchMode) {
     return ".pst,application/vnd.ms-outlook";
   }
 
-  return ".eml,message/rfc822";
+  return ".eml,message/rfc822,.pdf,application/pdf,.doc,application/msword,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 }
 
 export function BulkEvidenceIntakePanel({
@@ -163,11 +167,17 @@ export function BulkEvidenceIntakePanel({
     [initialBatchItems, selectedBatch],
   );
 
+  const selectedEvidenceOnlyCount = useMemo(
+    () => selectedItems.filter((item) => item.status === "evidence_only").length,
+    [selectedItems],
+  );
+
   const selectedBatchSummary = selectedBatch
     ? [
         { label: "Total files", value: selectedBatch.total_files },
         { label: "EML files found", value: selectedBatch.eml_files_found },
         { label: "Parsed", value: selectedBatch.parsed_successfully },
+        { label: "Evidence only", value: selectedEvidenceOnlyCount },
         { label: "Skipped", value: selectedBatch.skipped },
         { label: "Failed", value: selectedBatch.failed },
         { label: "Unsupported", value: selectedBatch.unsupported },
@@ -217,7 +227,18 @@ export function BulkEvidenceIntakePanel({
 
       const result = await processBulkEvidenceIntakeAction(formData);
 
-      setNotice(result.note);
+      if (!result || typeof result.ok !== "boolean") {
+        throw new Error(
+          "The bulk intake returned an invalid response. Please retry with a smaller batch or use Evidence Upload for PDF and Word documents.",
+        );
+      }
+
+      if (!result.ok) {
+        setError(result.message || "Bulk evidence intake could not be completed.");
+        return;
+      }
+
+      setNotice(result.message || result.note);
       setBatches((current) => {
         const existing = current.filter((batch) => batch.batch_id !== result.batchId);
         return [
@@ -245,7 +266,9 @@ export function BulkEvidenceIntakePanel({
           ...existing,
         ];
       });
-      setSelectedBatchId(result.batchId);
+      if (result.batchId) {
+        setSelectedBatchId(result.batchId);
+      }
 
       formRef.current?.reset();
       setBatchMode("selected-eml-files");
@@ -258,7 +281,15 @@ export function BulkEvidenceIntakePanel({
       clearSelectedFiles();
       router.refresh();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Bulk evidence intake failed.");
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : "Bulk evidence intake failed.";
+      setError(
+        message.includes("unexpected response")
+          ? "The bulk intake could not complete safely. Please retry with a smaller batch or use Evidence Upload for PDFs and Word documents."
+          : message,
+      );
     } finally {
       setBusy(false);
     }
@@ -291,10 +322,10 @@ export function BulkEvidenceIntakePanel({
             Bulk Evidence Intake
           </p>
           <h2 className="mt-1 text-2xl font-bold text-slate-950">Bring Outlook exports in safely</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Bulk intake accepts exported email evidence without connecting to Outlook directly. ZIP extraction
-            happens server-side only, unsupported files are skipped safely, and PST archives stay preservation-only
-            in this sprint.
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+            Bulk intake accepts exported email evidence without connecting to Outlook directly. EML and ZIP of
+            EML files are parsed into correspondence, PDFs and Word documents are stored as evidence only, and PST
+            archives stay preservation-only in this sprint.
           </p>
         </div>
 
@@ -528,8 +559,8 @@ export function BulkEvidenceIntakePanel({
           <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence guidance</p>
             <p className="mt-2 text-sm leading-6 text-slate-700">
-              Imported email content is evidence of the message content. Conclusions drawn from the content still
-              need a separate classification as Fact, Reported, Inference, or Assumption.
+              Imported documents are evidence files. Conclusions drawn from them still need a separate
+              classification as Fact, Reported, Inference, or Assumption.
             </p>
             <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-teal-700">
               <AlertTriangle aria-hidden size={14} />

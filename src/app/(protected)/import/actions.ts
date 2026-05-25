@@ -8,6 +8,7 @@ import { processBulkEvidenceIntake } from "@/lib/bulk-evidence/processor";
 import type {
   BulkEvidenceBatchMode,
   BulkEvidenceBatchOutcome,
+  BulkEvidenceBatchSummary,
 } from "@/lib/bulk-evidence/types";
 import type { ImportWorkspaceAssignment } from "@/lib/mock-data";
 
@@ -59,7 +60,37 @@ export async function saveIntakeItemAction(
   };
 }
 
-type BulkIntakeActionResult = BulkEvidenceBatchOutcome;
+type BulkIntakeActionResult = BulkEvidenceBatchOutcome & {
+  ok: boolean;
+  message: string;
+};
+
+function emptyBulkSummary(): BulkEvidenceBatchSummary {
+  return {
+    totalFiles: 0,
+    emlFilesFound: 0,
+    parsedSuccessfully: 0,
+    evidenceOnly: 0,
+    skipped: 0,
+    failed: 0,
+    unsupported: 0,
+    warnings: 0,
+  };
+}
+
+function structuredBulkFailure(message: string): BulkIntakeActionResult {
+  const summary = emptyBulkSummary();
+
+  return {
+    ok: false,
+    batchId: "",
+    batchStatus: "failed",
+    summary,
+    note: message,
+    message,
+    warnings: [message],
+  };
+}
 
 function readString(formData: FormData, key: string, fallback = "") {
   return String(formData.get(key) ?? fallback).trim();
@@ -86,14 +117,27 @@ export async function processBulkEvidenceIntakeAction(
   const linkedAssuranceSignalId = readString(formData, "linkedAssuranceSignalId", "") || null;
   const linkedVesselSupportItemId = readString(formData, "linkedVesselSupportItemId", "") || null;
 
-  return await processBulkEvidenceIntake({
-    files,
-    batchMode,
-    workspaceAssignment,
-    sourceLabel,
-    notes,
-    linkedCaseId,
-    linkedAssuranceSignalId,
-    linkedVesselSupportItemId,
-  });
+  try {
+    const outcome = await processBulkEvidenceIntake({
+      files,
+      batchMode,
+      workspaceAssignment,
+      sourceLabel,
+      notes,
+      linkedCaseId,
+      linkedAssuranceSignalId,
+      linkedVesselSupportItemId,
+    });
+
+    return {
+      ok: true,
+      ...outcome,
+      message: outcome.note,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Bulk evidence intake failed.";
+    return structuredBulkFailure(
+      message.includes("unexpected response") ? "The bulk intake could not be completed safely. Please retry with a smaller batch or use Evidence Upload for PDFs and Word documents." : message,
+    );
+  }
 }

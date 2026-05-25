@@ -13,14 +13,15 @@ export type BulkEvidenceBatchStatus =
   | "completed_with_warnings"
   | "failed";
 
-export type BulkEvidenceItemStatus = "parsed" | "skipped" | "failed" | "unsupported";
+export type BulkEvidenceItemStatus = "parsed" | "evidence_only" | "skipped" | "failed" | "unsupported";
 
-export type BulkEvidenceSourceKind = "zip" | "eml" | "pst" | "unsupported";
+export type BulkEvidenceSourceKind = "zip" | "eml" | "pst" | "document" | "unsupported";
 
 export type BulkEvidenceBatchSummary = {
   totalFiles: number;
   emlFilesFound: number;
   parsedSuccessfully: number;
+  evidenceOnly: number;
   skipped: number;
   failed: number;
   unsupported: number;
@@ -50,4 +51,11 @@ export type BulkEvidenceBatchOutcome = {
   batchStatus: BulkEvidenceBatchStatus;
   note: string;
   warnings: string[];
+  items?: Array<{
+    fileName: string;
+    sourceKind: BulkEvidenceSourceKind;
+    status: BulkEvidenceItemStatus;
+    note: string;
+    sourcePathInArchive: string | null;
+  }>;
 };
