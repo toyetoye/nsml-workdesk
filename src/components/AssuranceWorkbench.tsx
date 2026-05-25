@@ -649,16 +649,13 @@ export function AssuranceWorkbench({
               ? "Assurance records write through the repository first."
               : "Assurance records stay in this session until persistence becomes available."}
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href="/cases" className="btn-secondary">
-              <ArrowRight aria-hidden size={14} />
-              Cases
-            </Link>
-            <Link href="/import" className="btn-secondary">
-              <ArrowRight aria-hidden size={14} />
-              Import
-            </Link>
-          </div>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-teal-700">
+            Child view focused
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Use the tabs below to switch surfaces. Detailed actions stay inside the active work
+            panel.
+          </p>
         </div>
       </header>
 
@@ -710,7 +707,7 @@ export function AssuranceWorkbench({
       </div>
 
       {activeTab === "signals" ? (
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <section className="space-y-4">
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MiniStat label="Signals" value={signals.length} icon={<ShieldAlert aria-hidden size={16} />} />
@@ -821,7 +818,7 @@ export function AssuranceWorkbench({
             </div>
           </div>
 
-          <aside className="space-y-4">
+          <div className="space-y-4">
             <section className="card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -858,7 +855,7 @@ export function AssuranceWorkbench({
               <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
                 New signal
               </p>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <TextField
                   label="Signal title"
                   value={signalForm.signal_title}
@@ -1043,7 +1040,7 @@ export function AssuranceWorkbench({
                 </button>
               </div>
             </section>
-          </aside>
+          </div>
         </section>
       ) : null}
 

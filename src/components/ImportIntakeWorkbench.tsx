@@ -351,7 +351,7 @@ export function ImportIntakeWorkbench({
         </div>
       ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
         <div className="space-y-4">
           <form className="card p-4" onSubmit={handleCreateItem}>
             <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
@@ -461,28 +461,32 @@ export function ImportIntakeWorkbench({
                 />
               </Field>
 
-              <Field label="Body / content">
-                <textarea
-                  value={form.bodyContent}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, bodyContent: event.target.value }))
-                  }
-                  className="field-input min-h-32 resize-y"
-                  placeholder="Paste the email body, note, or intake summary here."
-                />
-              </Field>
+              <div className="xl:col-span-2">
+                <Field label="Body / content">
+                  <textarea
+                    value={form.bodyContent}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, bodyContent: event.target.value }))
+                    }
+                    className="field-input min-h-32 resize-y"
+                    placeholder="Paste the email body, note, or intake summary here."
+                  />
+                </Field>
+              </div>
 
-              <Field label="Tags / topic">
-                <input
-                  type="text"
-                  value={form.tags}
-                  onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
-                  className="field-input"
-                  placeholder="class, evidence, AT10"
-                />
-              </Field>
+              <div className="xl:col-span-2">
+                <Field label="Tags / topic">
+                  <input
+                    type="text"
+                    value={form.tags}
+                    onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
+                    className="field-input"
+                    placeholder="class, evidence, AT10"
+                  />
+                </Field>
+              </div>
 
-              <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2 pt-1 xl:col-span-2">
                 <button type="submit" className="btn-primary" disabled={saving}>
                   {saving ? "Saving..." : "Save intake item"}
                 </button>

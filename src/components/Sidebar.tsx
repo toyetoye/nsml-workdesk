@@ -4,7 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { matchNavigationHref, sidebarNavigation, type NavigationNode } from "@/components/navigation";
+import {
+  isNavigationSectionActive,
+  matchNavigationHref,
+  sidebarNavigation,
+  type NavigationNode,
+} from "@/components/navigation";
 
 type SidebarState = Record<string, boolean>;
 
@@ -200,7 +205,7 @@ function SidebarNode({
             />
           ))}
           {node.sections?.map((section) => {
-            const active = matchNavigationHref(currentPath, currentSearch, section.href);
+            const active = isNavigationSectionActive(currentPath, currentSearch, section);
 
             return (
               <Link
@@ -234,7 +239,9 @@ function buildActiveMap(items: NavigationNode[], currentPath: string, currentSea
   function visit(node: NavigationNode): boolean {
     const selfActive = isNodeActive(node, currentPath, currentSearch);
     const childActive = (node.children ?? []).some((child) => visit(child));
-    const sectionActive = (node.sections ?? []).some((section) => matchNavigationHref(currentPath, currentSearch, section.href));
+    const sectionActive = (node.sections ?? []).some((section) =>
+      isNavigationSectionActive(currentPath, currentSearch, section),
+    );
     const isActive = selfActive || childActive || sectionActive;
 
     if (isActive) {
@@ -258,7 +265,7 @@ function isNodeActive(node: NavigationNode, currentPath: string, currentSearch: 
 
 function activeChildLabel(node: NavigationNode, currentPath: string, currentSearch: string): string {
   const sections = node.sections ?? [];
-  const activeSection = sections.find((section) => matchNavigationHref(currentPath, currentSearch, section.href));
+  const activeSection = sections.find((section) => isNavigationSectionActive(currentPath, currentSearch, section));
 
   if (activeSection) {
     return activeSection.label;

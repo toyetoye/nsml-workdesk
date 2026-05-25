@@ -77,14 +77,20 @@ export default async function AssurancePage({
         eyebrow="Assurance"
         title="Vessel assurance and governance tracker"
         description="Capture support feedback, vessel comments, audit notes, and governance signals as evidence-backed records. Keep the language neutral, track the actions, and avoid turning reported concerns into unsupported facts."
-        context="Signals -> Support Items -> Engagements -> Weekly Pack"
-        primaryAction={{ href: "/assurance?view=signals", label: "Signals" }}
-        secondaryActions={[
-          { href: "/cases", label: "Cases" },
-          { href: "/drafts", label: "Drafts" },
-          { href: "/settings/writing-style", label: "Writing Style" },
-        ]}
-        quickLinks={assuranceSections.map((section) => ({ href: section.href, label: section.label }))}
+        context={isOverview ? "Signals -> Support Items -> Engagements -> Weekly Pack" : undefined}
+        primaryAction={isOverview ? { href: "/assurance?view=signals", label: "Signals" } : undefined}
+        secondaryActions={
+          isOverview
+            ? [
+                { href: "/cases", label: "Cases" },
+                { href: "/drafts", label: "Drafts" },
+                { href: "/settings/writing-style", label: "Writing Style" },
+              ]
+            : []
+        }
+        quickLinks={
+          isOverview ? assuranceSections.map((section) => ({ href: section.href, label: section.label })) : []
+        }
       />
 
       <PageSectionTabs sections={assuranceSections} activeKey={activeView} />

@@ -109,14 +109,18 @@ export async function WorkspacePage({
         eyebrow={`${workspace.type} Workspace`}
         title={workspace.name}
         description={workspace.description}
-        context="Overview first, details in child views"
-        primaryAction={{ href: workspace.href, label: "Overview" }}
-        secondaryActions={[
-          { href: "/cases", label: "Cases" },
-          { href: "/drafts", label: "Drafts" },
-          { href: "/settings/writing-style", label: "Writing Style" },
-        ]}
-        quickLinks={sections.map((section) => ({ href: section.href, label: section.label }))}
+        context={isOverview ? "Overview first, details in child views" : undefined}
+        primaryAction={isOverview ? { href: workspace.href, label: "Overview" } : undefined}
+        secondaryActions={
+          isOverview
+            ? [
+                { href: "/cases", label: "Cases" },
+                { href: "/drafts", label: "Drafts" },
+                { href: "/settings/writing-style", label: "Writing Style" },
+              ]
+            : []
+        }
+        quickLinks={isOverview ? sections.map((section) => ({ href: section.href, label: section.label })) : []}
       />
 
       <PageSectionTabs sections={sections} activeKey={activeView} />

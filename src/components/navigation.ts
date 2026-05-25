@@ -73,6 +73,29 @@ export function workspaceSectionsFor(baseHref: string) {
   }));
 }
 
+export function isOverviewSectionActive(currentPath: string, currentSearch: string, href?: string) {
+  if (!href) {
+    return false;
+  }
+
+  const parsed = new URL(href, "http://nsml.local");
+
+  if (parsed.pathname !== currentPath) {
+    return false;
+  }
+
+  const currentParams = new URLSearchParams(currentSearch);
+  const currentView = currentParams.get("view");
+
+  return !currentView || currentView === "overview";
+}
+
+export function isNavigationSectionActive(currentPath: string, currentSearch: string, section: NavigationSection) {
+  return section.key === "overview"
+    ? isOverviewSectionActive(currentPath, currentSearch, section.href)
+    : matchNavigationHref(currentPath, currentSearch, section.href);
+}
+
 export const sidebarNavigation: NavigationNode[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   {

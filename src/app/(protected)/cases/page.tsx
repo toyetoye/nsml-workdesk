@@ -90,14 +90,18 @@ export default async function CasesPage({
         eyebrow="Cases"
         title="Case management workbench"
         description="A case is the working unit. Evidence and correspondence support the case while the operational work happens here."
-        context="Structure -> Link -> Decide -> Draft -> Review"
-        primaryAction={{ href: "/cases?view=active", label: "Active Cases" }}
-        secondaryActions={[
-          { href: "/import", label: "Import" },
-          { href: "/assurance", label: "Assurance" },
-          { href: "/settings/writing-style", label: "Writing Style" },
-        ]}
-        quickLinks={caseSections.map((section) => ({ href: section.href, label: section.label }))}
+        context={isOverview ? "Structure -> Link -> Decide -> Draft -> Review" : undefined}
+        primaryAction={isOverview ? { href: "/cases?view=active", label: "Active Cases" } : undefined}
+        secondaryActions={
+          isOverview
+            ? [
+                { href: "/import", label: "Import" },
+                { href: "/assurance", label: "Assurance" },
+                { href: "/settings/writing-style", label: "Writing Style" },
+              ]
+            : []
+        }
+        quickLinks={isOverview ? caseSections.map((section) => ({ href: section.href, label: section.label })) : []}
       />
 
       <PageSectionTabs sections={caseSections} activeKey={activeView} />

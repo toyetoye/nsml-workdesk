@@ -80,14 +80,18 @@ export default async function DraftsPage({
         eyebrow="Drafts"
         title="Draft workbench"
         description="Drafts are generated replies only. They stay pending red-team review until a review verdict says they can be copied."
-        context="Draft pending red-team -> Passed -> Needs evidence -> Rejected"
-        primaryAction={{ href: "/cases", label: "Open Cases" }}
-        secondaryActions={[
-          { href: "/import", label: "Import" },
-          { href: "/assurance", label: "Assurance" },
-          { href: "/settings/writing-style", label: "Writing Style" },
-        ]}
-        quickLinks={draftSections.map((section) => ({ href: section.href, label: section.label }))}
+        context={isOverview ? "Draft pending red-team -> Passed -> Needs evidence -> Rejected" : undefined}
+        primaryAction={isOverview ? { href: "/cases", label: "Open Cases" } : undefined}
+        secondaryActions={
+          isOverview
+            ? [
+                { href: "/import", label: "Import" },
+                { href: "/assurance", label: "Assurance" },
+                { href: "/settings/writing-style", label: "Writing Style" },
+              ]
+            : []
+        }
+        quickLinks={isOverview ? draftSections.map((section) => ({ href: section.href, label: section.label })) : []}
       />
 
       <PageSectionTabs sections={draftSections} activeKey={activeView} />

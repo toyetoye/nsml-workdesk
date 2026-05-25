@@ -90,27 +90,35 @@ export default async function ImportPage({
         eyebrow="Import"
         title="Capture and intake"
         description="Start with capture, then structure imported material, link it to the right workstream, and keep the next safe action obvious."
-        context="Capture -> Structure -> Link"
-        primaryAction={{ href: "/import?view=manual", label: "Capture" }}
-        secondaryActions={[
-          { href: "/cases", label: "Cases" },
-          { href: "/assurance", label: "Assurance" },
-          { href: "/drafts", label: "Drafts" },
-        ]}
-        quickLinks={importSections.map((section) => ({ href: section.href, label: section.label }))}
+        context={isOverview ? "Capture -> Structure -> Link" : undefined}
+        primaryAction={isOverview ? { href: "/import?view=manual", label: "Capture" } : undefined}
+        secondaryActions={
+          isOverview
+            ? [
+                { href: "/cases", label: "Cases" },
+                { href: "/assurance", label: "Assurance" },
+                { href: "/drafts", label: "Drafts" },
+              ]
+            : []
+        }
+        quickLinks={
+          isOverview ? importSections.map((section) => ({ href: section.href, label: section.label })) : []
+        }
       />
 
       <PageSectionTabs sections={importSections} activeKey={activeView} />
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {overviewCards.map((card) => (
-          <article key={card.label} className="card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
-          </article>
-        ))}
-      </section>
+      {isOverview ? (
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {overviewCards.map((card) => (
+            <article key={card.label} className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">{card.count}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{card.summary}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       {isOverview ? (
         <section className="grid gap-4 lg:grid-cols-2">
