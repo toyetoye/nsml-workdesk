@@ -666,19 +666,29 @@ export async function saveBulkEvidenceBatchItem(
   return { row: data as BulkEvidenceBatchItemRow, persisted: true };
 }
 
-export async function listIntakeItems() {
+export async function listIntakeItems(workspaceAssignment?: string) {
+  const fallback = workspaceAssignment
+    ? fallbackStore.intake_items.filter((item) => item.workspace_assignment === workspaceAssignment)
+    : fallbackStore.intake_items;
+
   if (!isPersistenceAvailable()) {
-    return clone(fallbackStore.intake_items);
+    return clone(fallback);
   }
 
   const client = getRepoClient();
-  const { data, error } = await client
+  let query = client
     .from("intake_items")
     .select("*")
     .order("created_at", { ascending: false });
 
+  if (workspaceAssignment) {
+    query = query.eq("workspace_assignment", workspaceAssignment);
+  }
+
+  const { data, error } = await query;
+
   if (error || !data) {
-    return clone(fallbackStore.intake_items);
+    return clone(fallback);
   }
 
   return data as IntakeItemRow[];
@@ -719,16 +729,26 @@ export async function saveIntakeItem(input: IntakeItemInput): Promise<WriteResul
   return { row: data as IntakeItemRow, persisted: true };
 }
 
-export async function listCases() {
+export async function listCases(workspaceKey?: string) {
+  const fallback = workspaceKey
+    ? fallbackStore.cases.filter((item) => item.workspace_key === workspaceKey)
+    : fallbackStore.cases;
+
   if (!isPersistenceAvailable()) {
-    return clone(fallbackStore.cases);
+    return clone(fallback);
   }
 
   const client = getRepoClient();
-  const { data, error } = await client.from("cases").select("*").order("created_at", { ascending: false });
+  let query = client.from("cases").select("*").order("created_at", { ascending: false });
+
+  if (workspaceKey) {
+    query = query.eq("workspace_key", workspaceKey);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) {
-    return clone(fallbackStore.cases);
+    return clone(fallback);
   }
 
   return data as CaseRow[];
@@ -778,10 +798,12 @@ export async function saveCase(input: CaseInput): Promise<WriteResult<CaseRow>> 
   return { row: data as CaseRow, persisted: true };
 }
 
-export async function listEvidence(caseId?: string) {
-  const fallback = caseId
-    ? fallbackStore.evidence_items.filter((item) => item.case_id === caseId)
-    : fallbackStore.evidence_items;
+export async function listEvidence(caseId?: string, workspaceAssignment?: string) {
+  const fallback = fallbackStore.evidence_items.filter((item) => {
+    if (caseId && item.case_id !== caseId) return false;
+    if (workspaceAssignment && item.workspace_assignment !== workspaceAssignment) return false;
+    return true;
+  });
 
   if (!isPersistenceAvailable()) {
     return clone(fallback);
@@ -795,6 +817,10 @@ export async function listEvidence(caseId?: string) {
 
   if (caseId) {
     query = query.eq("case_id", caseId);
+  }
+
+  if (workspaceAssignment) {
+    query = query.eq("workspace_assignment", workspaceAssignment);
   }
 
   const { data, error } = await query;
