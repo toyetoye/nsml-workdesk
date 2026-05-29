@@ -91,7 +91,6 @@ export default async function DraftsPage({
               ]
             : []
         }
-        quickLinks={isOverview ? draftSections.map((section) => ({ href: section.href, label: section.label })) : []}
       />
 
       <PageSectionTabs sections={draftSections} activeKey={activeView} />

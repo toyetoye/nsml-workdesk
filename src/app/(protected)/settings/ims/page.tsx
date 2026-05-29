@@ -97,12 +97,6 @@ export default async function IMSReferenceLibraryPage({
           { href: "/drafts", label: "Drafts" },
           { href: "/cases", label: "Cases" },
         ]}
-        quickLinks={[
-          { href: "#ims-status", label: "Status" },
-          { href: "#ims-search", label: "Search" },
-          { href: "#ims-documents", label: "Documents" },
-          { href: "#ims-runs", label: "Index runs" },
-        ]}
       />
 
       <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">

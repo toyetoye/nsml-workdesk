@@ -19,12 +19,6 @@ export default async function WritingStylePage() {
           { href: "/import", label: "Import" },
           { href: "/assurance", label: "Assurance" },
         ]}
-        quickLinks={[
-          { href: "/drafts", label: "Drafts" },
-          { href: "/cases", label: "Cases" },
-          { href: "/import", label: "Import" },
-          { href: "/assurance", label: "Assurance" },
-        ]}
       />
 
       <WritingStyleProfileWorkbench initialProfile={profile} />

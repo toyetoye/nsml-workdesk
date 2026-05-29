@@ -414,16 +414,7 @@ export function CaseManagementWorkbench({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Cases</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-950">Case management workbench</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            A case is the working unit. Evidence and correspondence support the case while the
-            operational work happens here.
-          </p>
-        </div>
-
+      <div className="flex justify-end">
         <button type="button" className="btn-primary" onClick={() => setCreateOpen(true)}>
           <PlusCircle aria-hidden size={16} />
           Create case

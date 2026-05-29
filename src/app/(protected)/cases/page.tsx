@@ -101,7 +101,6 @@ export default async function CasesPage({
               ]
             : []
         }
-        quickLinks={isOverview ? caseSections.map((section) => ({ href: section.href, label: section.label })) : []}
       />
 
       <PageSectionTabs sections={caseSections} activeKey={activeView} />

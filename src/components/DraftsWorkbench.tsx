@@ -291,21 +291,13 @@ export function DraftsWorkbench({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Drafts</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-950">Draft workbench</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Drafts are generated replies only. They stay pending red-team review until a review
-            verdict says they can be copied.
-          </p>
-          <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-            <span className="font-semibold">Writing style:</span>
-            <span>{writingStyleProfileName ?? "Default safe style"}</span>
-            <Link href="/settings/writing-style" className="font-semibold text-teal-700 hover:text-teal-800">
-              Tune profile
-            </Link>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+          <span className="font-semibold">Writing style:</span>
+          <span>{writingStyleProfileName ?? "Default safe style"}</span>
+          <Link href="/settings/writing-style" className="font-semibold text-teal-700 hover:text-teal-800">
+            Tune profile
+          </Link>
         </div>
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-950">
           This draft has not passed red-team review and is not ready to send.

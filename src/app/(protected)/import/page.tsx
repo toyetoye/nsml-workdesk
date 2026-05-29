@@ -101,9 +101,6 @@ export default async function ImportPage({
               ]
             : []
         }
-        quickLinks={
-          isOverview ? importSections.map((section) => ({ href: section.href, label: section.label })) : []
-        }
       />
 
       <PageSectionTabs sections={importSections} activeKey={activeView} />

@@ -88,9 +88,6 @@ export default async function AssurancePage({
               ]
             : []
         }
-        quickLinks={
-          isOverview ? assuranceSections.map((section) => ({ href: section.href, label: section.label })) : []
-        }
       />
 
       <PageSectionTabs sections={assuranceSections} activeKey={activeView} />

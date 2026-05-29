@@ -120,7 +120,6 @@ export async function WorkspacePage({
               ]
             : []
         }
-        quickLinks={isOverview ? sections.map((section) => ({ href: section.href, label: section.label })) : []}
       />
 
       <PageSectionTabs sections={sections} activeKey={activeView} />

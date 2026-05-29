@@ -8,11 +8,6 @@ type HeaderAction = {
   variant?: "primary" | "secondary";
 };
 
-type HeaderLink = {
-  href: string;
-  label: string;
-};
-
 type StickyPageHeaderProps = {
   eyebrow: string;
   title: string;
@@ -20,7 +15,6 @@ type StickyPageHeaderProps = {
   context?: string;
   primaryAction?: HeaderAction;
   secondaryActions?: HeaderAction[];
-  quickLinks?: HeaderLink[];
   trailing?: ReactNode;
 };
 
@@ -31,7 +25,6 @@ export function StickyPageHeader({
   context,
   primaryAction,
   secondaryActions = [],
-  quickLinks = [],
   trailing,
 }: StickyPageHeaderProps) {
   return (
@@ -58,21 +51,6 @@ export function StickyPageHeader({
           {trailing}
         </div>
       </div>
-
-      {quickLinks.length > 0 ? (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {quickLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-800"
-            >
-              {link.label}
-              <ArrowRight aria-hidden size={12} />
-            </Link>
-          ))}
-        </div>
-      ) : null}
     </header>
   );
 }
