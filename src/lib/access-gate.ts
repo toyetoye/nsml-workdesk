@@ -114,6 +114,13 @@ export function isPublicPath(pathname: string) {
     return true;
   }
 
+  // The Outlook add-in calls this from outside any logged-in browser session,
+  // so the cookie gate must not apply. The route enforces its own
+  // bearer-token auth (NSML_INGEST_SECRET) and fails closed when unset.
+  if (pathname === "/api/ingest") {
+    return true;
+  }
+
   if (pathname.startsWith("/_next/")) {
     return true;
   }

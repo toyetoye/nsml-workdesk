@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Send to WorkDesk</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    :root { --blue: #155fa5; --blue-dark: #0c447c; --ink: #1f2937; --muted: #6b7280; --line: #e5e7eb; --ok: #0f6e56; --err: #a32d2d; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 14px; color: var(--ink); font-size: 14px; }
+    h1 { font-size: 15px; margin: 0 0 2px; color: var(--blue-dark); font-weight: 600; }
+    .sub { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+    .field { margin-bottom: 10px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .subject { font-weight: 600; word-break: break-word; }
+    select, input[type=text] { width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; }
+    button { width: 100%; padding: 9px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .status { margin-top: 12px; font-size: 13px; min-height: 18px; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+    summary { font-size: 12px; color: var(--muted); cursor: pointer; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Send to WorkDesk</h1>
+  <p class="sub">Captures this email into WorkDesk. Read-only &mdash; nothing is sent on your behalf.</p>
+
+  <div class="field">
+    <label>Message</label>
+    <div id="subjectPreview" class="subject">Loading&hellip;</div>
+  </div>
+
+  <div class="field">
+    <label for="workspace">Workspace</label>
+    <select id="workspace">
+      <option value="Import/Staging">Import / Staging (unclassified)</option>
+      <option value="LNG PORTHARCOURT II">LNG Port Harcourt II</option>
+      <option value="LPG ALFRED TEMILE">LPG Alfred Temile</option>
+      <option value="LPG ALFRED TEMILE 10">LPG Alfred Temile 10</option>
+      <option value="Projects">Projects</option>
+      <option value="Other">Other</option>
+      <option value="Assurance">Assurance</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="caseId">Link to case ID (optional)</label>
+    <input type="text" id="caseId" placeholder="e.g. case-1042" />
+  </div>
+
+  <button id="sendBtn" disabled>Capture email</button>
+  <div id="status" class="status"></div>
+
+  <details id="settings">
+    <summary>Settings</summary>
+    <div class="field" style="margin-top:10px">
+      <label for="baseUrl">WorkDesk base URL</label>
+      <input type="text" id="baseUrl" placeholder="https://nsml-workdesk.vercel.app" />
+      <div class="hint">Leave blank to use this add-in's own host.</div>
+    </div>
+    <div class="field">
+      <label for="token">Ingest token</label>
+      <input type="text" id="token" placeholder="paste NSML_INGEST_SECRET" />
+      <div class="hint">Stored per-mailbox, not in the add-in's public code.</div>
+    </div>
+    <button id="saveSettingsBtn" style="background:#374151">Save settings</button>
+  </details>
+
+  <script src="taskpane.js"></script>
+</body>
+</html>
