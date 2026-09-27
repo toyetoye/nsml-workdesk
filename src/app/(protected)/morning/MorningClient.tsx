@@ -46,7 +46,7 @@ const WORKSPACES: Array<{ value: ImportWorkspaceAssignment; label: string }> = [
   { value: "LNG PORTHARCOURT II", label: "LNG Port Harcourt II" },
   { value: "LPG ALFRED TEMILE", label: "LPG Alfred Temile" },
   { value: "LPG ALFRED TEMILE 10", label: "LPG Alfred Temile 10" },
-  { value: "Other", label: "LNG Rivers / Adamawa / Other" },
+  { value: "Other", label: "Other / General" },
   { value: "Projects", label: "Projects" },
   { value: "Import/Staging", label: "General / Not vessel-specific" },
 ];

@@ -23,8 +23,6 @@ const VESSEL_MAP: Array<[RegExp, ImportWorkspaceAssignment]> = [
   [/port.?harcourt|phc.?ii|lng.?ph/i, "LNG PORTHARCOURT II"],
   [/alfred.?temile.?10|temile.?10|at.?10/i, "LPG ALFRED TEMILE 10"],
   [/alfred.?temile|temile(?!.?10)|lpg.?at\b/i, "LPG ALFRED TEMILE"],
-  [/rivers/i, "LNG PORTHARCOURT II"], // LNG Rivers → closest match
-  [/adamawa/i, "Other"],
   [/general|fleet|all.?vessels/i, "Other"],
 ];
 

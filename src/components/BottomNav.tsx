@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, FileEdit, Home, Ship, Upload } from "lucide-react";
+import { ClipboardList, FileEdit, LayoutGrid, Sun } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: Home },
-  { label: "Import", href: "/import", icon: Upload },
-  { label: "Cases", href: "/cases", icon: ClipboardList },
+  { label: "Morning", href: "/morning", icon: Sun },
+  { label: "Fleet", href: "/fleet", icon: LayoutGrid },
   { label: "Drafts", href: "/drafts", icon: FileEdit },
-  { label: "Vessels", href: "/vessels/lng-portharcourt-ii", icon: Ship },
+  { label: "More", href: "/dashboard", icon: ClipboardList },
 ];
 
 export function BottomNav() {
@@ -21,8 +20,8 @@ export function BottomNav() {
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active =
-            item.label === "Vessels"
-              ? pathname.startsWith("/vessels/")
+            item.label === "Fleet"
+              ? pathname.startsWith("/fleet") || pathname.startsWith("/vessels/")
               : pathname.startsWith(item.href);
 
           return (

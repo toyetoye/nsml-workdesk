@@ -2092,3 +2092,71 @@ export function resolveLinkedCaseId(threadRef: string) {
   return resolveCaseIdFromThreadRef(threadRef);
 }
 
+
+// ─── vessel health ────────────────────────────────────────────────────────────
+
+import type {
+  VesselHealthItem,
+  VesselHealthCategory,
+  VesselHealthStatus,
+  VesselHealthSource,
+} from "@/lib/persistence/vessel-health-types";
+
+export async function listVesselHealthItems(vesselKey: string): Promise<VesselHealthItem[]> {
+  if (!isPersistenceAvailable()) return [];
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("vessel_health_items")
+    .select("*")
+    .eq("vessel_key", vesselKey)
+    .order("category")
+    .order("status");
+
+  if (error || !data) return [];
+  return data as VesselHealthItem[];
+}
+
+export async function saveVesselHealthItem(
+  item: Omit<VesselHealthItem, "health_id" | "created_at" | "last_updated">,
+): Promise<VesselHealthItem | null> {
+  if (!isPersistenceAvailable()) return null;
+
+  const client = getRepoClient();
+  const { data, error } = await client
+    .from("vessel_health_items")
+    .insert({ ...item, last_updated: new Date().toISOString() })
+    .select()
+    .single();
+
+  if (error || !data) return null;
+  return data as VesselHealthItem;
+}
+
+export async function updateVesselHealthItem(
+  healthId: string,
+  updates: Partial<Pick<VesselHealthItem, "status" | "notes" | "due_date" | "crew_reported_ok" | "independently_verified">>,
+): Promise<boolean> {
+  if (!isPersistenceAvailable()) return false;
+
+  const client = getRepoClient();
+  const { error } = await client
+    .from("vessel_health_items")
+    .update({ ...updates, last_updated: new Date().toISOString() })
+    .eq("health_id", healthId);
+
+  return !error;
+}
+
+export async function deleteVesselHealthItem(healthId: string): Promise<boolean> {
+  if (!isPersistenceAvailable()) return false;
+
+  const client = getRepoClient();
+  const { error } = await client
+    .from("vessel_health_items")
+    .delete()
+    .eq("health_id", healthId);
+
+  return !error;
+}
+
