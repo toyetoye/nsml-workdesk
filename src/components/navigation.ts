@@ -59,6 +59,7 @@ export const draftSections: NavigationSection[] = [
 
 export const workspaceSections: NavigationSection[] = [
   { key: "overview", label: "Overview", href: "" },
+  { key: "health", label: "Health", href: "?view=health" },
   { key: "correspondence", label: "Correspondence", href: "?view=correspondence" },
   { key: "cases", label: "Cases", href: "?view=cases" },
   { key: "evidence", label: "Evidence", href: "?view=evidence" },

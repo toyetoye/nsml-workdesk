@@ -5,6 +5,7 @@ import { WorkspaceSummary } from "@/components/WorkspaceSummary";
 import { PageSectionTabs } from "@/components/PageSectionTabs";
 import { StickyPageHeader } from "@/components/StickyPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
+import { VesselHealthTab } from "@/components/VesselHealthTab";
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { workspaceSectionsFor } from "@/components/navigation";
 import {
@@ -16,6 +17,7 @@ import {
   listEvidence,
   listIntakeItems,
   listTimelineEvents,
+  listVesselHealthItems,
 } from "@/lib/persistence/repository";
 import {
   mapEvidenceRowsToRecords,
@@ -31,6 +33,7 @@ type SearchParamsValue =
 
 type WorkspaceView =
   | "overview"
+  | "health"
   | "correspondence"
   | "cases"
   | "evidence"
@@ -39,6 +42,7 @@ type WorkspaceView =
 
 const WORKSPACE_VIEWS: WorkspaceView[] = [
   "overview",
+  "health",
   "correspondence",
   "cases",
   "evidence",
@@ -85,6 +89,7 @@ export async function WorkspacePage({
     draftRows,
     reviewRows,
     timelineRows,
+    healthItems,
   ] = await Promise.all([
     listCorrespondenceThreads(),
     listCorrespondenceMessages(),
@@ -97,6 +102,7 @@ export async function WorkspacePage({
     listDraftResponses(),
     listDraftRedTeamReviews(),
     listTimelineEvents(),
+    listVesselHealthItems(correspondenceScope),
   ]);
 
   const aiConfig = getAiConfigStatus();
@@ -282,6 +288,11 @@ export async function WorkspacePage({
       ) : null}
 
       {/* Evidence: scoped list for this vessel */}
+      {/* Health tab */}
+      {activeView === "health" ? (
+        <VesselHealthTab vesselKey={correspondenceScope} items={healthItems} />
+      ) : null}
+
       {activeView === "evidence" ? (
         <section className="space-y-4">
           {evidenceRecords.length === 0 ? (
