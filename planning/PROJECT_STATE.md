@@ -113,3 +113,10 @@ Sprint 021B - complete.
 ## Next action
 
 Start the next approved sprint.
+
+
+## Maintenance review - 2026-10-19
+
+Reviewed main at 1b15fbc56c64d47f0bc060cf7d2d43cd8f84d2eb. The historic Sprint 021B status above is not a complete inventory of current source. See WD-002 in BACKLOG.md for reconciliation rather than assuming later capabilities are approved or reverting them automatically.
+
+A candidate in planning/sprints/maintenance-001-reliability-baseline adds preflight regression tests, configuration-only wording, and prioritized operating records. It is not merged, deployed, or accepted as a completed sprint. See its HANDOFF.md for actual validation results and limitations. No correspondence is sent and no live data is modified by this candidate.

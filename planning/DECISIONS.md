@@ -221,3 +221,28 @@ Reason: Child views should behave like focused work surfaces rather than long st
 Decision: Sprint 021B makes child navigation exclusive so only the active child item is highlighted, and it widens long forms/detail blocks with responsive grids where safe.
 
 Reason: The selected view must be unambiguous, and forms should use available desktop width while remaining readable and safe on mobile.
+
+
+## D038 - Operations-first continuous improvement (2026-10-19)
+
+Status: Product direction confirmed by the owner; individual implementation scopes still require review.
+
+Decision: Use this repository as the source of truth; inspect its latest state before recommendations. Prioritize dependable automation that reduces repeat administration, organizes correspondence/cases/decisions/actions/evidence, produces reviewable drafts and reports, prioritizes quietly, and verifies completeness before close-out. Preserve confidentiality and explicit human approval. Never autonomously send correspondence.
+
+Consequences: Maintain planning/BACKLOG.md and acceptance evidence in each maintenance or sprint handoff. Prefer small reviewable changes over dashboard expansion. A proposal, green test run, AI review, or scheduled review does not authorize merge, deployment, or operational close-out.
+
+## D039 - Configuration checks are not live assurance (2026-10-19)
+
+Status: Proposed technical clarification in maintenance-001; merge pending human review.
+
+Decision: Deployment preflight may classify environment presence and intentional disable, but must explicitly state that it does not verify credentials, bucket existence/privacy, RLS, or the running deployment. Tests use synthetic isolated fixtures and never require real credentials. Keep existing classification and exit-code behavior in this narrow candidate.
+
+Consequences: Live assurance remains WD-001/WD-003 follow-on work; no security control is considered verified merely because a configuration check passes.
+
+## D040 - Resolve recorded-scope drift without inference (2026-10-19)
+
+Status: Owner decision required; no existing behavior is removed or newly approved here.
+
+Observation: The recorded Sprint 021B state and earlier integration restrictions do not describe all capabilities now present in source. Repository visibility is public at review time, although the product is intended for private operations.
+
+Decision needed: Confirm intended repository visibility, review/change controls, and retained integration scope against actual commit history. Preserve the prohibition on autonomous correspondence regardless of that decision. Keep any sensitive audit details outside the repository.

@@ -126,7 +126,7 @@ const checks = [
     details: supabaseDisabled
       ? "Storage is intentionally disabled because Supabase is disabled."
       : supabaseConfigured && evidenceBucketReady
-        ? "Private bucket nsml-evidence-files is configured."
+        ? "Evidence bucket name is configured as nsml-evidence-files; live existence and privacy are not verified."
         : isProduction
           ? "Production needs the private nsml-evidence-files bucket configured and private."
           : "Local development fallback is active because the private evidence bucket is missing.",
@@ -149,6 +149,8 @@ const checks = [
 ];
 
 console.log("NSML WorkDesk deployment preflight");
+console.log("Scope: environment configuration only. This check does not verify credentials, bucket existence or privacy, RLS policies, or a live deployment.");
+console.log("A ready state below means required configuration is present, not that live security has been verified.");
 console.log(`Mode: ${isProduction ? "production" : "development"}`);
 for (const check of checks) {
   stateLine(check.label, check.state, check.details);
