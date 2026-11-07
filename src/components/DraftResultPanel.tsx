@@ -6,6 +6,7 @@ import { IMSReferenceList } from "@/components/IMSReferenceList";
 import { StatusBadge } from "@/components/StatusBadge";
 import { describeDraftMode } from "@/lib/ai/descriptions";
 import { describeReadinessStatus, describeRedTeamVerdict } from "@/lib/ai/red-team-builders";
+import { isRedTeamCopyPermitted } from "@/lib/ai/red-team-copy-gate";
 import { runRedTeamReviewAction } from "@/app/(protected)/ai/actions";
 import type { DraftStatus, RedTeamRunOutcome, StructuredDraftResult } from "@/lib/ai/types";
 import type { IMSReferenceUsage } from "@/lib/ims/types";
@@ -108,7 +109,14 @@ function DraftResultPanelBody({
   }
 
   async function handleCopyReviewedDraft() {
-    if (!result || !reviewOutcome?.reviewResult?.safe_to_copy) {
+    if (
+      !result ||
+      !isRedTeamCopyPermitted(
+        reviewOutcome?.reviewResult?.verdict,
+        reviewOutcome?.reviewResult?.safe_to_copy,
+        reviewOutcome?.reviewResult?.readiness_status,
+      )
+    ) {
       return;
     }
 
@@ -121,7 +129,11 @@ function DraftResultPanelBody({
   }
 
   const activeReview = reviewOutcome?.reviewResult ?? null;
-  const safeToCopy = activeReview?.safe_to_copy ?? false;
+  const safeToCopy = isRedTeamCopyPermitted(
+    activeReview?.verdict,
+    activeReview?.safe_to_copy,
+    activeReview?.readiness_status,
+  );
   const reviewHeadline = activeReview
     ? safeToCopy
       ? "This draft passed red-team review and can be copied manually."
@@ -170,7 +182,7 @@ function DraftResultPanelBody({
         </StatusBadge>
         {activeReview ? (
           <StatusBadge tone={safeToCopy ? "accent" : activeReview.verdict === "reject" ? "danger" : "warning"}>
-            {describeReadinessStatus(activeReview.readiness_status)}
+            {describeReadinessStatus(safeToCopy ? "ready_to_copy" : "not_ready")}
           </StatusBadge>
         ) : null}
       </div>
@@ -253,7 +265,7 @@ function DraftResultPanelBody({
               <div className="flex flex-wrap items-center gap-2">
                 <ShieldCheck aria-hidden className="text-teal-700" size={16} />
                 <StatusBadge tone={safeToCopy ? "accent" : "warning"}>
-                  {describeReadinessStatus(activeReview.readiness_status)}
+                  {describeReadinessStatus(safeToCopy ? "ready_to_copy" : "not_ready")}
                 </StatusBadge>
                 <StatusBadge tone={safeToCopy ? "accent" : "danger"}>
                   {describeRedTeamVerdict(activeReview.verdict)}
