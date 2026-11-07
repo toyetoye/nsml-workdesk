@@ -1,13 +1,14 @@
 # Maintenance 002 - Acceptance
 
-Status: PENDING OWNER REVIEW.
+Status: CANDIDATE VALIDATED, PENDING OWNER REVIEW. Not merged or deployed.
 
-- [ ] Two permitted verdicts copy only when flag is true and readiness is ready_to_copy.
-- [ ] Negative, missing, malformed, or inconsistent flags fail closed.
-- [ ] All other verdicts fail closed even with positive flags.
-- [ ] Server normalization, both UI handlers, disabled states, badges and safe count share the predicate.
-- [ ] Synthetic unit tests, changed-file lint, TypeScript and build are checked and logged.
-- [ ] Existing tests checked where available; failed and untested separated.
-- [ ] Owner accepts scope and test evidence before any merge.
+- [x] Isolated 17-case synthetic truth table establishes strict three-field manual-copy gate.
+- [x] Explicit pass/caution-pass, true flag, and ready_to_copy are all necessary.
+- [x] Negative, unknown, missing, malformed, and contradictory values fail closed.
+- [x] Source inspection confirms server normalizer, both UI handlers/disabled states/badges and safe count call the same predicate.
+- [x] Changed-file lint, TypeScript, build, and git diff --check passed.
+- [ ] Repository-wide lint: two unchanged MorningClient.tsx:285 errors and 17 warnings remain (tested).
+- [ ] Browser copy interaction, live provider, persistence, historic review provenance, draft/source immutability, required user-check completion, and security controls remain untested or outside scope.
+- [ ] Owner accepts scope and impact before any merge or deployment.
 
-Does not verify historical records, live access, unchanged draft/source content, or user-check completion. External communication remains manual.
+No sending, operational approval, mailbox access, or case close-out occurs.
