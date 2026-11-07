@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Copy, FileSearch, Layers3, ShieldCheck } from "lucide-react";
 import { runRedTeamReviewAction } from "@/app/(protected)/ai/actions";
+import { isRedTeamCopyPermitted } from "@/lib/ai/red-team-copy-gate";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { AiConfigStatus } from "@/lib/ai/types";
 import type { DraftRedTeamReviewRow, DraftResponsePlaceholderRow } from "@/lib/persistence/types";
@@ -102,7 +103,9 @@ function readinessTone(review?: DraftRedTeamReviewRow | null): "danger" | "warni
     return "warning";
   }
 
-  return review.safe_to_copy ? "accent" : "danger";
+  return isRedTeamCopyPermitted(review.verdict, review.safe_to_copy, review.readiness_status)
+    ? "accent"
+    : "danger";
 }
 
 function joinList(items: string[]) {
@@ -199,7 +202,10 @@ export function DraftsWorkbench({
   );
 
   const pendingCount = sortedDrafts.filter((item) => !reviewMap.get(item.draft_id)).length;
-  const safeCount = sortedDrafts.filter((item) => reviewMap.get(item.draft_id)?.safe_to_copy).length;
+  const safeCount = sortedDrafts.filter((item) => {
+    const review = reviewMap.get(item.draft_id);
+    return isRedTeamCopyPermitted(review?.verdict, review?.safe_to_copy, review?.readiness_status);
+  }).length;
   const passedCount = sortedDrafts.filter((item) => reviewMap.get(item.draft_id)?.verdict === "pass").length;
   const cautionCount = sortedDrafts.filter(
     (item) => reviewMap.get(item.draft_id)?.verdict === "pass_with_caution",
@@ -271,7 +277,7 @@ export function DraftsWorkbench({
   async function handleCopyReviewedDraft(draft: DraftResponsePlaceholderRow) {
     const review = reviewMap.get(draft.draft_id);
 
-    if (!review?.safe_to_copy) {
+    if (!isRedTeamCopyPermitted(review?.verdict, review?.safe_to_copy, review?.readiness_status)) {
       return;
     }
 
@@ -356,7 +362,11 @@ export function DraftsWorkbench({
         <div className="space-y-3">
           {filteredDrafts.map((draft) => {
             const review = reviewMap.get(draft.draft_id) ?? null;
-            const safeToCopy = review?.safe_to_copy ?? false;
+            const safeToCopy = isRedTeamCopyPermitted(
+              review?.verdict,
+              review?.safe_to_copy,
+              review?.readiness_status,
+            );
 
             return (
               <article key={draft.draft_id} className="card p-4">
@@ -375,7 +385,7 @@ export function DraftsWorkbench({
                         {verdictLabel(review)}
                       </StatusBadge>
                       <StatusBadge tone={review ? readinessTone(review) : "warning"}>
-                        {review ? review.readiness_status : "not_ready"}
+                        {safeToCopy ? "ready_to_copy" : "not_ready"}
                       </StatusBadge>
                     </div>
                     <h2 className="mt-2 text-2xl font-bold text-slate-950">
@@ -457,7 +467,7 @@ export function DraftsWorkbench({
                           {review.verdict}
                         </StatusBadge>
                         <StatusBadge tone={safeToCopy ? "accent" : "danger"}>
-                          {review.readiness_status}
+                          {safeToCopy ? "ready_to_copy" : "not_ready"}
                         </StatusBadge>
                         <StatusBadge tone={safeToCopy ? "accent" : "danger"}>
                           {safeToCopy ? "Safe to copy" : "Not safe to copy"}

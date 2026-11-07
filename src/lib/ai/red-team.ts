@@ -6,6 +6,7 @@ import { buildIMSReferencesForContext, formatIMSReferencePromptSection } from "@
 import type { DraftResponsePlaceholderRow, Json } from "@/lib/persistence/types";
 import { getAiConfigStatus } from "./config";
 import { describeRedTeamVerdict } from "./red-team-builders";
+import { isRedTeamCopyPermitted } from "./red-team-copy-gate";
 import type {
   DraftReadinessStatus,
   DraftReviewVerdict,
@@ -143,7 +144,7 @@ function normalizeRedTeamReview(parsed: unknown, draft: DraftResponsePlaceholder
 
   const value = parsed as Record<string, unknown>;
   const verdict = normalizeVerdict(value.verdict);
-  const safeToCopy = verdict === "pass" || verdict === "pass_with_caution";
+  const safeToCopy = isRedTeamCopyPermitted(verdict, value.safe_to_copy, value.readiness_status);
   const confidence =
     typeof value.confidence === "number" ? Math.max(0, Math.min(1, value.confidence)) : 0;
 
