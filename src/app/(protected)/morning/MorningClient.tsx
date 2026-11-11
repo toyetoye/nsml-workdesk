@@ -282,7 +282,7 @@ function ScoutImport({ onDone }: { onDone: () => void }) {
       <div>
         <p className="text-sm font-semibold text-slate-800">Paste WorkDesk Scout output</p>
         <p className="mt-0.5 text-xs text-slate-500">
-          Open Copilot in Outlook, ask your WorkDesk Scout agent "What needs my attention this week?", then paste the result here.
+          Open Copilot in Outlook, ask your WorkDesk Scout agent &quot;What needs my attention this week?&quot;, then paste the result here.
         </p>
       </div>
       <textarea
